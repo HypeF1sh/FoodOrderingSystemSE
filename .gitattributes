@@ -1,0 +1,20 @@
+# Normalise line endings so commits from different machines don't show whole-file changes
+* text=auto
+
+# Windows-native files keep CRLF
+*.sln    text eol=crlf
+*.slnx   text eol=crlf
+*.csproj text eol=crlf
+*.ps1    text eol=crlf
+*.cmd    text eol=crlf
+*.bat    text eol=crlf
+
+# Binary files — never touch
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
