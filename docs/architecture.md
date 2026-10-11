@@ -14,33 +14,32 @@ SQL Server (LocalDB in development)
 ```
 Dependency direction is one-way: Presentation → Business → Data. Nothing points upward.
 
-## Solution layout
-**Decision pending (see progress.md, D2).** Two options:
+## Solution layout — one project, layered folders (decided 2026-10-10)
+Same structure as the lecturer's labs (`StaffAccountSystem` etc.). The 3-tier separation comes from
+the **Services layer** and the rule that pages never touch the DbContext.
 
-**Option 1 — three projects (recommended).** The compiler enforces the layers, which is the
-strongest evidence for the 5-mark architecture criterion and easy to show in the viva.
 ```
-FoodOrderingSystem.slnx
-FoodOrderingSystem/            Presentation — Razor Pages web app (startup project)
-FoodOrderingSystem.Business/   Business — services, interfaces, view models
-FoodOrderingSystem.Data/       Data — AppDbContext, entities, enums, migrations
+FoodOrderingSystem/                 web project
+├── Pages/          Presentation — Razor Pages grouped by feature folder
+├── ViewModels/     Presentation — input/view models that forms bind to
+├── Services/       Business — I<Name>Service interfaces + <Name>Service implementations
+├── Models/         Data — entity classes (as in the labs)
+├── Data/           Data — ApplicationDbContext
+├── Migrations/     Data — EF Core migrations (as in the labs)
+└── wwwroot/        static files, Bootstrap in lib/
 ```
-References: Web → Business → Data. EF commands then need
-`--project FoodOrderingSystem.Data --startup-project FoodOrderingSystem`.
 
-**Option 2 — one project, layered folders.** Simpler, layering enforced by discipline only.
-```
-FoodOrderingSystem/
-├── Pages/        Presentation
-├── Models/       view and input models
-├── Services/     Business (interfaces + implementations)
-└── Data/         AppDbContext, Entities/, Enums/, Migrations/
-```
+Three separate projects (Web / Business / Data) were considered and rejected: no lab uses that
+structure, ASP.NET Core Identity scaffolding assumes a single project, and every EF command would
+need `--project` / `--startup-project`. This trade-off is worth a paragraph in Chapter 2.
+
+The labs themselves are **not** 3-tier: their PageModels query `ApplicationDbContext` directly.
+Adding the Services layer is the deliberate difference — explain this in Chapter 2 and the viva.
 
 ## Entities
 | Entity | Key fields | Owner |
 |---|---|---|
-| User (or Identity user) | Id, FullName, Email, Phone, Role, IsActive, CreatedAt | A |
+| ApplicationUser (extends IdentityUser) | FullName, Phone, IsActive, CreatedAt (+ Identity's Id, Email, PasswordHash) | A |
 | DiningArea | Id, Name, Description | A |
 | RestaurantTable | Id, DiningAreaId, TableNumber, Capacity, IsActive | A |
 | OperatingHours | Id, DayOfWeek, OpenTime, CloseTime, IsClosed | A |
@@ -55,6 +54,9 @@ FoodOrderingSystem/
 | Order | Id, CustomerId, ReservationId?, Status, TotalAmount, Notes, CreatedAt | C |
 | OrderItem | Id, OrderId, MenuItemId, Quantity, UnitPrice | C |
 | Payment | Id, OrderId, Amount, Method, Status, TransactionRef, PaidAt, RecordedByUserId? | C |
+
+Keys follow the newest lab: `[Key] public int <Entity>Id` (`MenuItemId`, `OrderId`), except
+`ApplicationUser`, whose string `Id` comes from Identity.
 
 `OrderItem.UnitPrice` snapshots the price at ordering time so past orders stay correct when prices change.
 
@@ -89,6 +91,7 @@ Overlap, not exact-time matching. A 7:00pm booking blocks a 7:45pm request.
 | # | Decision | Status |
 |---|---|---|
 | 1 | Razor Pages on .NET 10, SQL Server via EF Core code-first | Agreed |
-| 2 | One project vs three projects (see above) | **Pending** |
-| 3 | Authentication: ASP.NET Core Identity vs custom cookie auth | **Pending — Carynn** |
-| 4 | Dev database: SQL Server LocalDB per developer, schema shared via migrations | Proposed |
+| 2 | One project with layered folders, matching the labs | Agreed |
+| 3 | Authentication: **ASP.NET Core Identity** with roles Administrator / Staff / Customer | Chosen by Jordan — confirm with Carynn |
+| 4 | Dev database: SQL Server LocalDB per developer, connection string `DefaultConnection` (as in the labs) | Proposed |
+| 5 | UI direction: modern minimal — see `coding-conventions.md` | Agreed |
