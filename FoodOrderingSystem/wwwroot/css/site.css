@@ -1,31 +1,436 @@
+/* ===========================================================================
+   Rumah Rasa - global base styles and design tokens
+   ---------------------------------------------------------------------------
+   Shared file. Page-specific styles belong in that page's .cshtml.css instead.
+   We override Bootstrap 5's CSS variables rather than editing Bootstrap itself,
+   so wwwroot/lib/bootstrap stays the untouched library copy.
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. Design tokens
+   One place to change a colour or a type size for the whole site.
+   --------------------------------------------------------------------------- */
+:root {
+    /* Colour - deep teal ink and asam-plum accent, after Peranakan tilework */
+    --rr-ink: #0F2E2B;          /* body text, wordmark, headings */
+    --rr-muted: #5E6B69;        /* secondary text, nav links at rest */
+    --rr-surface: #FBFAF7;      /* page background */
+    --rr-raised: #FFFFFF;       /* cards, navbar, footer */
+    --rr-line: #E4E2DB;         /* every hairline border */
+    --rr-accent: #A3334A;       /* primary action, active nav underline */
+    --rr-accent-dark: #86293C;  /* hover and active state of the accent */
+
+    /* Type scale, base 16px, ratio about 1.25 */
+    --rr-text-sm: 0.875rem;
+    --rr-text-base: 1rem;
+    --rr-text-lg: 1.125rem;
+    --rr-h3: 1.375rem;
+    --rr-h2: 1.75rem;
+    --rr-h1: 2.25rem;
+
+    --rr-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --rr-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+    /* Spacing step and corner radius */
+    --rr-gutter: 1rem;
+    --rr-radius: 0.375rem;
+
+    /* --- Bootstrap variable overrides (Bootstrap reads these itself) --- */
+    --bs-body-bg: var(--rr-surface);
+    --bs-body-color: var(--rr-ink);
+    --bs-body-font-family: var(--rr-sans);
+    --bs-body-font-size: var(--rr-text-base);
+    --bs-body-line-height: 1.6;
+    --bs-border-color: var(--rr-line);
+    --bs-border-radius: var(--rr-radius);
+    --bs-link-color: var(--rr-accent);
+    --bs-link-hover-color: var(--rr-accent-dark);
+    --bs-emphasis-color: var(--rr-ink);
+    --bs-secondary-color: var(--rr-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   2. Page frame
+   Flex column so the footer sits at the bottom of short pages without the
+   absolute-positioning trick the project template shipped with.
+   --------------------------------------------------------------------------- */
 html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--rr-surface);
+    color: var(--rr-ink);
+    font-family: var(--rr-sans);
+    -webkit-font-smoothing: antialiased;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* main grows, which pushes the footer down */
+main {
+    flex: 1 0 auto;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* Keep a 16px gutter at phone width so nothing touches the screen edge.
+   The width cap stops content stranding itself on the left of a wide monitor -
+   the navbar, page body and footer all share it so everything stays aligned. */
+.container {
+    max-width: 1120px;
+    padding-left: var(--rr-gutter);
+    padding-right: var(--rr-gutter);
+}
+
+/* ---------------------------------------------------------------------------
+   3. Typography
+   Georgia for headings and the wordmark, the system UI face for everything
+   else. No web fonts: the demo has to work without an internet connection,
+   for the same reason Bootstrap is served from wwwroot/lib.
+   --------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5 {
+    font-family: var(--rr-serif);
+    font-weight: 400;
+    color: var(--rr-ink);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--rr-h1); }
+h2 { font-size: var(--rr-h2); }
+h3 { font-size: var(--rr-h3); }
+
+/* Body copy stays under about 70 characters per line for readability */
+.rr-prose {
+    max-width: 68ch;
+}
+
+.text-muted {
+    color: var(--rr-muted) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   4. Buttons
+   Bootstrap 5.3 builds each variant from its own --bs-btn-* variables, so we
+   set those rather than fighting the compiled colours.
+   --------------------------------------------------------------------------- */
+.btn {
+    --bs-btn-padding-y: 0.5rem;
+    --bs-btn-padding-x: 1.125rem;
+    --bs-btn-font-weight: 500;
+    border-radius: var(--rr-radius);
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--rr-accent);
+    --bs-btn-border-color: var(--rr-accent);
+    --bs-btn-hover-bg: var(--rr-accent-dark);
+    --bs-btn-hover-border-color: var(--rr-accent-dark);
+    --bs-btn-active-bg: var(--rr-accent-dark);
+    --bs-btn-active-border-color: var(--rr-accent-dark);
+}
+
+/* A disabled action should read as "not available yet", not as a faded version
+   of itself. Both variants fall back to the same inert outline. */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-primary.disabled,
+.btn-secondary.disabled {
+    --bs-btn-disabled-color: var(--rr-muted);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--rr-line);
+    --bs-btn-disabled-opacity: 1;
+    cursor: not-allowed;
+}
+
+/* Cancel and back - a quiet outline, never a filled grey block */
+.btn-secondary {
+    --bs-btn-color: var(--rr-ink);
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: var(--rr-line);
+    --bs-btn-hover-color: var(--rr-ink);
+    --bs-btn-hover-bg: var(--rr-surface);
+    --bs-btn-hover-border-color: var(--rr-muted);
+    --bs-btn-active-color: var(--rr-ink);
+    --bs-btn-active-bg: var(--rr-surface);
+    --bs-btn-active-border-color: var(--rr-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   5. Cards, tables and forms
+   Hairline borders instead of drop shadows - that is the whole look.
+   --------------------------------------------------------------------------- */
+.card {
+    --bs-card-border-color: var(--rr-line);
+    --bs-card-bg: var(--rr-raised);
+    --bs-card-border-radius: var(--rr-radius);
+    --bs-card-spacer-y: 1.25rem;
+    --bs-card-spacer-x: 1.25rem;
+}
+
+.card-header {
+    background-color: var(--rr-raised);
+    border-bottom-color: var(--rr-line);
+    font-weight: 600;
+}
+
+/* .card.shadow is for receipts and confirmations - keep it soft, not grey mush */
+.card.shadow {
+    box-shadow: 0 1px 2px rgba(15, 46, 43, 0.04), 0 8px 24px rgba(15, 46, 43, 0.06) !important;
+}
+
+.table {
+    --bs-table-border-color: var(--rr-line);
+    --bs-table-color: var(--rr-ink);
+    --bs-table-hover-bg: var(--rr-surface);
+}
+
+.table > thead {
+    background-color: var(--rr-surface);
+}
+
+.table > thead th {
+    font-weight: 600;
+    font-size: var(--rr-text-sm);
+    color: var(--rr-muted);
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: var(--rr-text-sm);
+    margin-bottom: 0.375rem;
+}
+
+.form-control, .form-select {
+    border-color: var(--rr-line);
+    border-radius: var(--rr-radius);
+    padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--rr-muted);
+    box-shadow: 0 0 0 3px rgba(163, 51, 74, 0.12);
+}
+
+.input-group-text {
+    background-color: var(--rr-surface);
+    border-color: var(--rr-line);
+    color: var(--rr-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   6. Badges and alerts
+   Status badges keep Bootstrap's colour meanings (see .claude/rules), just
+   toned down to sit inside this palette.
+   --------------------------------------------------------------------------- */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.6em;
+    border-radius: var(--rr-radius);
+}
+
+.alert {
+    border-radius: var(--rr-radius);
+    border-width: 1px;
+}
+
+/* The banner slot sits directly under the navbar (see _Banners.cshtml).
+   Lives here rather than in _Layout.cshtml.css because CSS isolation scopes
+   styles per file, and the markup is in the partial, not the layout. */
+.rr-banner {
+    margin-top: 1.25rem;
+    margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   7. Site shell - navbar and footer
+   ---------------------------------------------------------------------------
+   These live here rather than in _Layout.cshtml.css on purpose. CSS isolation
+   works by stamping a b-xxxxx attribute onto each element and rewriting the
+   selectors to match it, but elements produced by a tag helper - every
+   <a asp-page="..."> - are rendered without that attribute. Scoped rules for
+   the wordmark, the nav links and the footer link therefore never matched.
+   The shell is shared by every page anyway, so the global sheet is the right
+   home for it. Selectors are nested under .rr-header / .rr-footer so they
+   cannot leak into other navs or lists.
+   --------------------------------------------------------------------------- */
+
+/* Light, airy and sticky, separated from the page by a single hairline
+   instead of a drop shadow. */
+.rr-header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background-color: var(--rr-raised);
+    border-bottom: 1px solid var(--rr-line);
+}
+
+.rr-header .navbar {
+    --bs-navbar-padding-y: 0.875rem;
+    --bs-navbar-color: var(--rr-muted);
+    --bs-navbar-hover-color: var(--rr-ink);
+    --bs-navbar-active-color: var(--rr-ink);
+}
+
+/* Wordmark - the one voiced element in the shell */
+.rr-wordmark {
+    font-family: var(--rr-serif);
+    font-size: var(--rr-h3);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    color: var(--rr-ink);
+    margin-right: 2.5rem;
+}
+
+.rr-wordmark:hover,
+.rr-wordmark:focus {
+    color: var(--rr-ink);
+}
+
+.rr-header .navbar-nav {
+    gap: 0.25rem;
+}
+
+.rr-header .nav-link {
+    position: relative;
+    font-size: 0.9375rem;
+    padding: 0.375rem 0.125rem;
+    margin-right: 1.25rem;
+    color: var(--rr-muted);
+}
+
+.rr-header .nav-link:hover {
+    color: var(--rr-ink);
+}
+
+/* The current page is marked with a short accent underline, not a pill */
+.rr-header .nav-link.active {
+    color: var(--rr-ink);
+    font-weight: 500;
+}
+
+.rr-header .nav-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.125rem;
+    height: 2px;
+    background-color: var(--rr-accent);
+}
+
+/* Links whose pages are not built yet - visibly inert, never clickable */
+.rr-nav-pending {
+    color: var(--rr-muted);
+    opacity: 0.45;
+    cursor: default;
+    font-size: 0.9375rem;
+}
+
+.rr-account {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Keep the hamburger quiet */
+.rr-header .navbar-toggler {
+    border-color: var(--rr-line);
+    padding: 0.375rem 0.5rem;
+}
+
+.rr-header .navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* One quiet row above a hairline. Wraps on narrow screens. */
+.rr-footer {
+    flex-shrink: 0;
+    margin-top: 4rem;
+    padding: 1.5rem 0;
+    background-color: var(--rr-raised);
+    border-top: 1px solid var(--rr-line);
+    font-size: var(--rr-text-sm);
+    color: var(--rr-muted);
+}
+
+.rr-footer .container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+}
+
+.rr-footer-mark {
+    font-family: var(--rr-serif);
+    font-size: var(--rr-text-base);
+    color: var(--rr-ink);
+}
+
+/* Pushes the copyright to the far right on wide screens */
+.rr-footer-meta:last-of-type {
+    margin-left: auto;
+}
+
+.rr-footer a {
+    color: var(--rr-muted);
+    text-decoration: none;
+}
+
+.rr-footer a:hover {
+    color: var(--rr-ink);
+    text-decoration: underline;
+}
+
+/* Phone layout - the collapsed menu stacks, so the underline marker is
+   replaced by weight and colour alone. */
+@media (max-width: 767.98px) {
+    .rr-wordmark {
+        margin-right: 0;
+    }
+
+    .rr-header .nav-link {
+        margin-right: 0;
+        padding: 0.5rem 0;
+    }
+
+    .rr-header .nav-link.active::after {
+        display: none;
+    }
+
+    .rr-account {
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--rr-line);
+    }
+
+    .rr-footer .container {
+        flex-direction: column;
+    }
+
+    .rr-footer-meta:last-of-type {
+        margin-left: 0;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   8. Accessibility
+   A visible focus ring on everything keyboard-reachable, and no motion for
+   anyone whose system asks for reduced motion.
+   --------------------------------------------------------------------------- */
+:focus-visible {
+    outline: 2px solid var(--rr-accent);
+    outline-offset: 2px;
+}
+
+.btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(163, 51, 74, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
