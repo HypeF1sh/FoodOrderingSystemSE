@@ -1,10 +1,51 @@
-﻿@page
+@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@*
+    Placeholder home page. It exists so the layout shell can be seen and
+    screenshotted. The real landing content (featured menu items, promotions)
+    arrives with PB06 and PB07 in Sprint 2.
+*@
+
+<div class="container">
+    <div class="rr-hero">
+        <h1>Book a table, order ahead</h1>
+
+        <p class="rr-prose text-muted">
+            Reserve a table for your party, choose your dishes before you arrive,
+            and settle the bill when you are done.
+        </p>
+
+        <div class="rr-hero-actions">
+            @* Sprint 2 - Wallace (PB09): replace with
+                   <a class="btn btn-primary" asp-page="/Reservations/Create">Book a table</a>
+               Sprint 2 - Jordan (PB06): replace with
+                   <a class="btn btn-secondary" asp-page="/Menu/Index">See the menu</a> *@
+            <button class="btn btn-primary" type="button" disabled>Book a table</button>
+            <button class="btn btn-secondary" type="button" disabled>See the menu</button>
+        </div>
+    </div>
+
+    <!-- Opening hours. Placeholder values until the administrator can set them
+         through the OperatingHours table (Carynn, PB05). -->
+    <section class="rr-hours">
+        <h2>Opening hours</h2>
+        <dl class="rr-hours-list">
+            <div>
+                <dt>Monday to Thursday</dt>
+                <dd>11:30 am - 10:00 pm</dd>
+            </div>
+            <div>
+                <dt>Friday and Saturday</dt>
+                <dd>11:30 am - 11:00 pm</dd>
+            </div>
+            <div>
+                <dt>Sunday</dt>
+                <dd>5:00 pm - 10:00 pm</dd>
+            </div>
+        </dl>
+    </section>
 </div>
