@@ -28,6 +28,11 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 - UI direction: modern minimal.
 
 ## Log
+- **2026-10-11** — Jordan: layout shell on `feature/layout-shell` — modern minimal navbar, footer,
+  design tokens in `site.css`, `_Banners` partial for TempData messages, placeholder home page.
+  Restaurant name is a placeholder (`Rumah Rasa`), set in one `const` in `_Layout.cshtml`.
+  `_LoginPartial` slot left commented out for Carynn's Identity work. `.claude/rules/*.md` brought
+  in line with `architecture.md` and `coding-conventions.md`. Build clean, 0 warnings.
 - **2026-10-10** — Lab survey done: conventions recorded in `coding-conventions.md`. Labs use one
   project, `ApplicationDbContext`, `<Entity>Id` keys, PageModels querying the DbContext directly
   (we add a Services layer instead). UI direction set: modern minimal. Repo initialised locally.

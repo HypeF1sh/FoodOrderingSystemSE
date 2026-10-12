@@ -1,0 +1,22 @@
+@*
+    Success and error banners, rendered once by _Layout for the whole site.
+    A page sets TempData["SuccessMessage"] or TempData["ErrorMessage"] before it
+    redirects, and the message shows on the page the user lands on.
+    Reading TempData here clears it, so the banner appears exactly once.
+*@
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show rr-banner" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show rr-banner" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss"></button>
+    </div>
+}
