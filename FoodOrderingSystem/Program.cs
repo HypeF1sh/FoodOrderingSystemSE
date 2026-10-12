@@ -32,11 +32,10 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// STEP 8: remove the // from these 4 lines after you create DbSeeder.cs
-// using (var scope = app.Services.CreateScope())
-// {
-//     await DbSeeder.SeedAsync(scope.ServiceProvider);
-// }
+using (var scope = app.Services.CreateScope())
+{
+    await DbSeeder.SeedAsync(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
