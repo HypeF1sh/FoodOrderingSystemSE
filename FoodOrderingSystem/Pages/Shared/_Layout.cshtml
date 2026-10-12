@@ -1,45 +1,112 @@
-﻿<!DOCTYPE html>
+@{
+    // The restaurant name is a PLACEHOLDER. Replace it in this one line once the
+    // group agrees on the real name - it feeds the tab title, the navbar wordmark
+    // and the footer, so nothing else needs editing.
+    const string RestaurantName = "Rumah Rasa";
+
+    // Which Razor Page is being shown, e.g. "/Index". Used to underline the
+    // matching navbar link so the user can see where they are.
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - FoodOrderingSystem</title>
+    <title>@ViewData["Title"] - @RestaurantName</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <header class="rr-header">
+        <nav class="navbar navbar-expand-md">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">FoodOrderingSystem</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+                <!-- Wordmark, doubles as the link home -->
+                <a class="navbar-brand rr-wordmark" asp-page="/Index">@RestaurantName</a>
+
+                <!-- Hamburger, shown below the md breakpoint -->
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#rrNav"
+                        aria-controls="rrNav"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="rrNav">
+
+                    <!-- Primary navigation -->
+                    <ul class="navbar-nav me-auto">
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link @(currentPage == "/Index" ? "active" : "")"
+                               asp-page="/Index">Home</a>
+                        </li>
+
+                        @* The pages below do not exist yet, so they are rendered as
+                           inactive placeholders. An asp-page tag helper pointing at a
+                           missing page throws at render time, which is why these are
+                           plain spans for now.
+
+                           Sprint 2 - Jordan (PB06): replace with
+                               <a class="nav-link" asp-page="/Menu/Index">Menu</a>
+                           Sprint 2 - Wallace (PB09): replace with
+                               <a class="nav-link" asp-page="/Reservations/Create">Book a table</a>
+                           Sprint 3 - Jordan (PB14): replace with
+                               <a class="nav-link" asp-page="/Orders/Index">My orders</a>
+                        *@
+                        <li class="nav-item">
+                            <span class="nav-link rr-nav-pending" aria-disabled="true">Menu</span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <span class="nav-link rr-nav-pending" aria-disabled="true">Book a table</span>
                         </li>
+                        <li class="nav-item">
+                            <span class="nav-link rr-nav-pending" aria-disabled="true">My orders</span>
+                        </li>
+
+                        @* Role-aware links go here once Identity is merged (Carynn, PB04).
+                           The pattern will be:
+                               @if (User.IsInRole("Administrator")) { ...admin links... }
+                               @if (User.IsInRole("Staff")) { ...staff links... }
+                        *@
                     </ul>
+
+                    <!-- Account slot.
+                         Carynn's Identity scaffolding (PB04) creates _LoginPartial.cshtml.
+                         When that is merged, delete the placeholder span below and
+                         uncomment the partial - the styling already allows for it. -->
+                    <div class="rr-account">
+                        @* <partial name="_LoginPartial" /> *@
+                        <span class="rr-nav-pending">Sign in</span>
+                    </div>
+
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <main>
         <div class="container">
-            &copy; 2026 - FoodOrderingSystem - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            <!-- Success and error banners are rendered here, once for the whole site.
+                 Pages set TempData["SuccessMessage"] or TempData["ErrorMessage"] and
+                 never render a banner themselves. -->
+            <partial name="_Banners" />
+        </div>
+
+        @RenderBody()
+    </main>
+
+    <footer class="rr-footer">
+        <div class="container">
+            <span class="rr-footer-mark">@RestaurantName</span>
+            <a asp-page="/Privacy">Privacy</a>
+            <span class="rr-footer-meta">&copy; @DateTime.Now.Year</span>
         </div>
     </footer>
 
