@@ -70,6 +70,15 @@
                             <span class="nav-link rr-nav-pending" aria-disabled="true">My orders</span>
                         </li>
 
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(currentPage.StartsWith("/Admin/Users/Index") ? "active" : "")"
+                                   asp-area=""
+                                   asp-page="/Admin/Users/Index">Admin</a>
+                            </li>
+                        }
+
                         @* Role-aware links go here once Identity is merged (Carynn, PB04).
                            The pattern will be:
                                @if (User.IsInRole("Administrator")) { ...admin links... }
@@ -82,7 +91,7 @@
                          When that is merged, delete the placeholder span below and
                          uncomment the partial - the styling already allows for it. -->
                     <div class="rr-account">
-                        <partial name="_LoginPartial">
+                        <partial name="_LoginPartial" />
                     </div>
 
                 </div>
