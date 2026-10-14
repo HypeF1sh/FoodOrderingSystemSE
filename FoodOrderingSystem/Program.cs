@@ -2,6 +2,7 @@ using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using FoodOrderingSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +29,17 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy => policy.RequireRole("Administrator"))
+    .AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Administrator"));
+
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
+    options.Conventions.AuthorizeFolder("/Staff", "StaffOrAdmin");
+});
+
+builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 
 var app = builder.Build();
 
