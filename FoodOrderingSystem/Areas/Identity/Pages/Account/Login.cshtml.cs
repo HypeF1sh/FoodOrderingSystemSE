@@ -110,6 +110,13 @@ public class LoginModel : PageModel
 
         if (ModelState.IsValid)
         {
+            var existingUser = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+            if (existingUser != null && !existingUser.IsActive)
+            {
+                ModelState.AddModelError(string.Empty, "Account disabled. Please contact an administrator.");
+                return Page();
+            }
+
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, set lockoutOnFailure: true
             var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
