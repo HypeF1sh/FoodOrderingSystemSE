@@ -32,6 +32,7 @@ Presentation (Razor Pages) → Business (Services) → Data (DbContext, entities
 - Only the Data layer talks to the database. No string-concatenated SQL, ever.
 - Services are interfaces + implementations, registered in `Program.cs` as scoped.
 - Pages receive and return view models / input models, not raw EF entities, where a form posts data.
+- One project, layered folders (same as the labs): `Pages/` `ViewModels/` `Services/` `Models/` `Data/` `Migrations/`.
 
 ## Domain ownership
 | Domain | Owner | Backlog items |
@@ -41,7 +42,7 @@ Presentation (Razor Pages) → Business (Services) → Data (DbContext, entities
 | C — Menu, Orders & Payment | Jordan | PB06, PB08, PB14–PB16, PB18, PB22 |
 
 Work only inside the current user's domain unless they say otherwise. Shared files
-(`Program.cs`, `_Layout.cshtml`, `AppDbContext`, migrations, `appsettings.json`) need group
+(`Program.cs`, `_Layout.cshtml`, `ApplicationDbContext`, migrations, `appsettings.json`) need group
 agreement before editing — say so and stop rather than editing silently.
 
 ## Coding conventions (summary — full list in docs/coding-conventions.md)

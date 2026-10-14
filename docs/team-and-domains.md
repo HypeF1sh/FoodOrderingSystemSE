@@ -9,6 +9,13 @@ This keeps Git contribution even and gives each member a clear ownership story f
 | B — Reservations & Staff Operations | Wallace Chan | PB09–PB13, PB17, PB19, PB20 | PB26 | Database schema, ER model, seed data |
 | C — Menu, Orders & Payment | Jordan | PB06, PB08, PB14–PB16, PB18, PB22 | PB24, PB25, PB28 | Layout shell, navigation, styling |
 
+## Scrum roles
+| Role | Who |
+|---|---|
+| Scrum Master | **Jordan** — runs sprint planning and the twice-weekly standups, chases blockers, keeps the GitHub Projects board current |
+| Product Owner | Represented by the assignment brief; priorities agreed by the team |
+| Development Team | Carynn, Wallace Chan, Jordan |
+
 ## Sprint plan
 | Sprint | Dates | A — Carynn | B — Wallace | C — Jordan |
 |---|---|---|---|---|
@@ -32,7 +39,7 @@ This keeps Git contribution even and gives each member a clear ownership story f
 | A's monitoring (PB21) and reports read everyone's data | A reads through B's and C's service interfaces only. |
 | C's orders may link to a reservation (B) | `Order.ReservationId` is nullable; C reads reservations via `IReservationService`. |
 | B's notifications (PB20) fire on order/payment events (C) | C's services call `INotificationService`; B owns how notifications are stored and shown. |
-| Shared files: `Program.cs`, `_Layout.cshtml`, `AppDbContext`, migrations, `appsettings.json` | Announce in Discord before editing. Small changes, merge the same day. |
+| Shared files: `Program.cs`, `_Layout.cshtml`, `ApplicationDbContext`, migrations, `appsettings.json` | Announce in Discord before editing. Small changes, merge the same day. |
 | Database schema | Locked after Sprint 1. Any change is agreed by the group first. |
 
 ## Agree interfaces early

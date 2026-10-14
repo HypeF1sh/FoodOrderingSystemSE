@@ -17,12 +17,25 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 ## Open decisions (blocking)
 | # | Decision | Owner | Blocks |
 |---|---|---|---|
-| D1 | Authentication approach: ASP.NET Core Identity (scaffold) or custom cookie auth. Project was created with **no authentication**. | Carynn | PB01–PB04, every `[Authorize]` page |
-| D2 | One project with layered folders, or three projects (Web / Business / Data) | Group | Where every new file goes |
-| D3 | Dev database: SQL Server LocalDB per developer (proposed) | Group | First migration |
+| D1 | **ASP.NET Core Identity** chosen by Jordan — Carynn to confirm, then scaffold it (project was created with no auth) | Carynn | PB01–PB04, every `[Authorize]` page |
+| D3 | Dev database: SQL Server LocalDB per developer, `DefaultConnection` (proposed, as in labs) | Group | First migration |
 | D4 | Fold receipt/confirmation (Intermediate #3) into PB10 and PB16 | Group | PB10, PB16 scope |
 
+## Decided
+- One project with layered folders (Pages / ViewModels / Services / Models / Data / Migrations), matching the labs.
+- Scrum Master: **Jordan**.
+- Auth: ASP.NET Core Identity (pending Carynn's confirmation — see D1).
+- UI direction: modern minimal.
+
 ## Log
+- **2026-10-11** — Jordan: layout shell on `feature/layout-shell` — modern minimal navbar, footer,
+  design tokens in `site.css`, `_Banners` partial for TempData messages, placeholder home page.
+  Restaurant name is a placeholder (`Rumah Rasa`), set in one `const` in `_Layout.cshtml`.
+  `_LoginPartial` slot left commented out for Carynn's Identity work. `.claude/rules/*.md` brought
+  in line with `architecture.md` and `coding-conventions.md`. Build clean, 0 warnings.
+- **2026-10-10** — Lab survey done: conventions recorded in `coding-conventions.md`. Labs use one
+  project, `ApplicationDbContext`, `<Entity>Id` keys, PageModels querying the DbContext directly
+  (we add a Services layer instead). UI direction set: modern minimal. Repo initialised locally.
 - **2026-10-10** — Project scaffolded in Visual Studio 2026 (Razor Pages, .NET 10, no auth) at
   `C:\SoftwareEngineering\FoodOrderingSystem`. Project docs and Claude Code setup added.
   Not yet pushed to GitHub. Chapter 3 (project management) draft done.
