@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,9 @@ public class CreateModel : PageModel
     [BindProperty(SupportsGet = true)]
     public SearchModel Search { get; set; } = new();
 
+    [BindProperty]
+    public BookingInputModel Input { get; set; } = new();
+
     public List<SelectListItem> DiningAreaOptions { get; set; } = new();
     public List<AvailableTableViewModel> AvailableTables { get; set; } = new();
     public bool HasSearched { get; set; }
@@ -38,6 +42,26 @@ public class CreateModel : PageModel
         public int? DiningAreaId { get; set; }
     }
 
+    public class BookingInputModel
+    {
+        [Required(ErrorMessage = "Please select an available table.")]
+        public int RestaurantTableId { get; set; }
+
+        [Required]
+        public DateOnly Date { get; set; }
+
+        [Required]
+        public TimeOnly StartTime { get; set; }
+
+        [Range(1, 20)]
+        public int PartySize { get; set; }
+
+        public int? DiningAreaId { get; set; }
+
+        [StringLength(500)]
+        public string? SpecialRequests { get; set; }
+    }
+
     public async Task OnGetAsync(bool check = false)
     {
         await LoadDiningAreasAsync();
@@ -46,6 +70,45 @@ public class CreateModel : PageModel
         {
             await RunAvailabilitySearchAsync();
         }
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        Search = new SearchModel
+        {
+            Date = Input.Date,
+            StartTime = Input.StartTime,
+            PartySize = Input.PartySize,
+            DiningAreaId = Input.DiningAreaId
+        };
+
+        await LoadDiningAreasAsync();
+
+        if (!ModelState.IsValid)
+        {
+            await RunAvailabilitySearchAsync();
+            return Page();
+        }
+
+        var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        var (success, message, reservationId) = await _reservationService.CreateReservationAsync(
+            customerId,
+            Input.RestaurantTableId,
+            Input.Date,
+            Input.StartTime,
+            Input.PartySize,
+            Input.SpecialRequests);
+
+        if (!success || reservationId == null)
+        {
+            ModelState.AddModelError(string.Empty, message);
+            await RunAvailabilitySearchAsync();
+            return Page();
+        }
+
+        TempData["SuccessMessage"] = message;
+        return RedirectToPage("Confirmation", new { id = reservationId.Value });
     }
 
     private async Task LoadDiningAreasAsync()

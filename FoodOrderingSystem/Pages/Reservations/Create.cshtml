@@ -7,10 +7,10 @@
 <div class="container py-4">
     <h1 class="mb-4">Book a Table</h1>
 
-    <!-- PB09: Check Table Availability Form -->
+    <!-- Step 1: Check Table Availability (PB09) -->
     <div class="card mb-4">
         <div class="card-header bg-light">
-            <strong>Check Table Availability</strong>
+            <strong>1. Check Table Availability</strong>
             <span class="text-muted small ms-2">(90-minute dining slot)</span>
         </div>
         <div class="card-body">
@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <!-- PB09: Search Results -->
+    <!-- Step 2: Select a Table & Confirm Reservation (PB10) -->
     @if (Model.HasSearched)
     {
         @if (!string.IsNullOrEmpty(Model.AvailabilityMessage))
@@ -57,29 +57,60 @@
         {
             <div class="card">
                 <div class="card-header bg-light">
-                    <strong>Available Tables (@Model.AvailableTables.Count found)</strong>
+                    <strong>2. Select a Table &amp; Confirm (@Model.AvailableTables.Count available)</strong>
                     <span class="text-muted small ms-2">
                         for @Model.Search.PartySize guest(s) on @Model.Search.Date.ToString("dd MMM yyyy"),
                         @Model.Search.StartTime.ToString("HH:mm") – @Model.Search.StartTime.AddMinutes(90).ToString("HH:mm")
                     </span>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        @foreach (var table in Model.AvailableTables)
-                        {
-                            <div class="col-md-4">
-                                <div class="card h-100 p-3">
-                                    <div class="fw-bold">Table @table.TableNumber</div>
-                                    <div class="text-muted small">@table.DiningAreaName</div>
-                                    <div class="mt-2">
-                                        <span class="badge bg-success">Seats up to @table.Capacity</span>
-                                    </div>
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <input type="hidden" name="Input.Date" value="@Model.Search.Date.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="Input.StartTime" value="@Model.Search.StartTime.ToString("HH:mm")" />
+                        <input type="hidden" name="Input.PartySize" value="@Model.Search.PartySize" />
+                        <input type="hidden" name="Input.DiningAreaId" value="@Model.Search.DiningAreaId" />
+
+                        <div class="row g-3 mb-3">
+                            @foreach (var table in Model.AvailableTables)
+                            {
+                                <div class="col-md-4">
+                                    <label class="card h-100 p-3" style="cursor: pointer;">
+                                        <span class="form-check">
+                                            <input class="form-check-input" type="radio"
+                                                   name="Input.RestaurantTableId"
+                                                   value="@table.RestaurantTableId"
+                                                   required />
+                                            <span class="form-check-label fw-bold">
+                                                Table @table.TableNumber
+                                            </span>
+                                        </span>
+                                        <span class="text-muted small ps-4">@table.DiningAreaName</span>
+                                        <span class="mt-2 ps-4">
+                                            <span class="badge bg-success">Seats up to @table.Capacity</span>
+                                        </span>
+                                    </label>
                                 </div>
-                            </div>
-                        }
-                    </div>
+                            }
+                        </div>
+                        <span asp-validation-for="Input.RestaurantTableId" class="text-danger d-block mb-3"></span>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.SpecialRequests" class="form-label">Special Requests (Optional)</label>
+                            <textarea asp-for="Input.SpecialRequests" class="form-control" rows="2"
+                                      placeholder="e.g., Baby chair needed, window seat, dietary notes..."></textarea>
+                            <span asp-validation-for="Input.SpecialRequests" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Confirm Reservation</button>
+                    </form>
                 </div>
             </div>
         }
     }
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

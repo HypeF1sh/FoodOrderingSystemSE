@@ -15,3 +15,25 @@ public class AvailableTableViewModel
     public int DiningAreaId { get; set; }
     public string DiningAreaName { get; set; } = string.Empty;
 }
+
+public class ReservationDetailViewModel
+{
+    public int ReservationId { get; set; }
+    public string CustomerId { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+    public int RestaurantTableId { get; set; }
+    public string TableNumber { get; set; } = string.Empty;
+    public int TableCapacity { get; set; }
+    public string DiningAreaName { get; set; } = string.Empty;
+    public DateOnly ReservationDate { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
+    public int PartySize { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string SpecialRequests { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+
+    public bool CanModifyOrCancel { get; set; }
+    public string? LockReason { get; set; }
+}
