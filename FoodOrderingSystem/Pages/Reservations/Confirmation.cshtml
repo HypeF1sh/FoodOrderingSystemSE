@@ -40,7 +40,9 @@
                     </dl>
                 </div>
                 <div class="card-footer d-flex gap-2">
-                    <a asp-page="Create" class="btn btn-outline-secondary">Back to Bookings</a>
+                    <a asp-page="Index" class="btn btn-primary">View My Reservations</a>
+                    <a asp-page="Edit" asp-route-id="@Model.Reservation.ReservationId" class="btn btn-outline-secondary">Modify Reservation</a>
+                    <a asp-page="Create" class="btn btn-outline-secondary">Book Another</a>
                 </div>
             </div>
         </div>

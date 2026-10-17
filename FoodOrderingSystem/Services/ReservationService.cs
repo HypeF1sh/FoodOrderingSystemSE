@@ -137,7 +137,6 @@ public class ReservationService : IReservationService
 
         var requestedEnd = startTime.AddMinutes(DiningDurationMinutes);
 
-        // Prevent the same customer from double-booking overlapping tables
         bool customerHasOverlappingBooking = await _context.Reservations
             .AnyAsync(r => r.CustomerId == customerId
                            && r.ReservationDate == date
@@ -149,7 +148,6 @@ public class ReservationService : IReservationService
         if (customerHasOverlappingBooking)
             return (false, "You already have an active reservation during this time window.", null);
 
-        // Re-verify table availability at the exact moment of submission
         var availableTables = await GetAvailableTablesAsync(date, startTime, partySize);
         var selectedTable = availableTables.FirstOrDefault(t => t.RestaurantTableId == restaurantTableId);
 
@@ -192,6 +190,92 @@ public class ReservationService : IReservationService
         return r == null ? null : MapToDetailViewModel(r);
     }
 
+    public async Task<List<ReservationDetailViewModel>> GetCustomerReservationsAsync(string customerId)
+    {
+        var list = await _context.Reservations
+            .Include(r => r.RestaurantTable)
+                .ThenInclude(t => t!.DiningArea)
+            .Include(r => r.Customer)
+            .Where(r => r.CustomerId == customerId)
+            .OrderByDescending(r => r.ReservationDate)
+            .ThenByDescending(r => r.StartTime)
+            .ToListAsync();
+
+        return list.Select(MapToDetailViewModel).ToList();
+    }
+
+    public async Task<(bool Success, string Message)> UpdateReservationAsync(
+        int reservationId,
+        string customerId,
+        int restaurantTableId,
+        DateOnly date,
+        TimeOnly startTime,
+        int partySize,
+        string? specialRequests)
+    {
+        var reservation = await _context.Reservations
+            .FirstOrDefaultAsync(r => r.ReservationId == reservationId && r.CustomerId == customerId);
+
+        if (reservation == null)
+            return (false, "Reservation not found.");
+
+        var (canModify, lockReason) = EvaluateModificationPolicy(reservation.Status, reservation.ReservationDate, reservation.StartTime);
+        if (!canModify)
+            return (false, lockReason);
+
+        var (isOpen, hoursError) = await ValidateOperatingHoursAsync(date, startTime);
+        if (!isOpen)
+            return (false, hoursError);
+
+        var requestedEnd = startTime.AddMinutes(DiningDurationMinutes);
+
+        bool customerHasOtherOverlap = await _context.Reservations
+            .AnyAsync(r => r.CustomerId == customerId
+                           && r.ReservationId != reservationId
+                           && r.ReservationDate == date
+                           && r.Status != ReservationStatus.Cancelled
+                           && r.Status != ReservationStatus.NoShow
+                           && r.StartTime < requestedEnd
+                           && r.EndTime > startTime);
+
+        if (customerHasOtherOverlap)
+            return (false, "You already have another active reservation during that new time window.");
+
+        var availableTables = await GetAvailableTablesAsync(date, startTime, partySize, null, reservationId);
+        var selectedTable = availableTables.FirstOrDefault(t => t.RestaurantTableId == restaurantTableId);
+
+        if (selectedTable == null)
+            return (false, "The selected table is not available or cannot fit the updated party size for that time slot.");
+
+        reservation.RestaurantTableId = restaurantTableId;
+        reservation.ReservationDate = date;
+        reservation.StartTime = startTime;
+        reservation.EndTime = requestedEnd;
+        reservation.PartySize = partySize;
+        reservation.SpecialRequests = specialRequests?.Trim() ?? string.Empty;
+
+        await _context.SaveChangesAsync();
+        return (true, $"Reservation #{reservationId} updated successfully.");
+    }
+
+    public async Task<(bool Success, string Message)> CancelReservationAsync(int reservationId, string customerId)
+    {
+        var reservation = await _context.Reservations
+            .FirstOrDefaultAsync(r => r.ReservationId == reservationId && r.CustomerId == customerId);
+
+        if (reservation == null)
+            return (false, "Reservation not found.");
+
+        var (canCancel, lockReason) = EvaluateModificationPolicy(reservation.Status, reservation.ReservationDate, reservation.StartTime);
+        if (!canCancel)
+            return (false, lockReason);
+
+        reservation.Status = ReservationStatus.Cancelled;
+        await _context.SaveChangesAsync();
+
+        return (true, $"Reservation #{reservationId} has been cancelled.");
+    }
+
     private static (bool Allowed, string Reason) EvaluateModificationPolicy(
         ReservationStatus status, DateOnly date, TimeOnly startTime)
     {
@@ -206,7 +290,9 @@ public class ReservationService : IReservationService
             return (false, "Past or ongoing reservations cannot be modified or cancelled.");
 
         if (reservationStartDateTime < DateTime.Now.AddHours(CutoffHoursBeforeStart))
-            return (false, $"Changes or cancellations must be made at least {CutoffHoursBeforeStart} hours before the reservation start time.");
+        {
+            return (false, $"Changes or cancellations must be made at least {CutoffHoursBeforeStart} hours before the reservation start time. Please contact restaurant staff directly.");
+        }
 
         return (true, string.Empty);
     }
