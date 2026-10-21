@@ -73,7 +73,7 @@
                         @if (User.IsInRole("Administrator"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(currentPage.StartsWith("/Admin/Users/Index") ? "active" : "")"
+                                <a class="nav-link @(currentPage.StartsWith("/Admin/Index") ? "active" : "")"
                                    asp-area=""
                                    asp-page="/Admin/Index">Admin</a>
                             </li>
