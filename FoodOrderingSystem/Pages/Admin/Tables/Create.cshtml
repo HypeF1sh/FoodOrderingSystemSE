@@ -1,0 +1,53 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.Tables.CreateModel
+@{
+    ViewData["Title"] = "Add Table";
+}
+
+<div class="container py-4">
+    <h1>Add Table</h1>
+
+    @if (!Model.AreaOptions.Any())
+    {
+        <div class="alert alert-warning">
+            There are no dining areas yet. <a asp-page="/Admin/DiningAreas/Create">Create a dining area</a> first.
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.DiningAreaId" class="form-label"></label>
+                    <select asp-for="Input.DiningAreaId" asp-items="Model.AreaOptions" class="form-select">
+                        <option value="">-- Select an area --</option>
+                    </select>
+                    <span asp-validation-for="Input.DiningAreaId" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.TableNumber" class="form-label"></label>
+                    <input asp-for="Input.TableNumber" class="form-control" />
+                    <span asp-validation-for="Input.TableNumber" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Capacity" class="form-label"></label>
+                    <input asp-for="Input.Capacity" type="number" min="1" max="20" class="form-control" />
+                    <span asp-validation-for="Input.Capacity" class="text-danger"></span>
+                </div>
+                <div class="form-check mb-3">
+                    <input asp-for="Input.IsActive" class="form-check-input" />
+                    <label asp-for="Input.IsActive" class="form-check-label"></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a asp-page="Index" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

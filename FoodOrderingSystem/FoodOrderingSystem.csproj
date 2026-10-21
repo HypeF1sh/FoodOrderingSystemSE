@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <Folder Include="Pages\Admin\OperatingHours\" />
-    <Folder Include="Pages\Admin\Tables\" />
   </ItemGroup>
 
 </Project>
