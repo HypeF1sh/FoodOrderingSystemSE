@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using FoodOrderingSystem.Services;     // <-- match your project namespace
+using FoodOrderingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 

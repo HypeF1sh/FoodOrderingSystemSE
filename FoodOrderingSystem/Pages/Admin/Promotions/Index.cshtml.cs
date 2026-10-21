@@ -1,4 +1,4 @@
-using FoodOrderingSystem.Models;       // <-- match your project namespace
+using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
