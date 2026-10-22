@@ -1,0 +1,20 @@
+﻿@model IEnumerable<FoodOrderingSystem.Models.Announcement>
+
+@* Usage on a page (the lead will add this to the home page later):
+     1. In the PageModel:  public List<Announcement> Announcements { get; set; } = new();
+                           Announcements = await _announcementService.GetActiveAsync();
+     2. In the page:       <partial name="_ActiveAnnouncements" model="Model.Announcements" />
+*@
+
+@if (Model != null && Model.Any())
+{
+    <div class="container mt-3">
+        @foreach (var item in Model)
+        {
+            <div class="alert alert-info mb-2" role="alert">
+                <strong>@item.Title</strong>
+                <div>@item.Body</div>
+            </div>
+        }
+    </div>
+}

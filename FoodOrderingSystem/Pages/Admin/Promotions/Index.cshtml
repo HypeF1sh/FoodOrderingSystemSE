@@ -1,0 +1,70 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.Promotions.IndexModel
+@{
+    ViewData["Title"] = "Promotions";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Promotions</h1>
+        <a asp-page="Create" class="btn btn-primary">Add promotion</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Discount</th>
+                    <th>Dates</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var promo in Model.Promotions)
+            {
+                <tr>
+                    <td>
+                        @promo.Title
+                        @if (!string.IsNullOrEmpty(promo.Description))
+                        {
+                            <div class="small text-muted">@promo.Description</div>
+                        }
+                    </td>
+                    <td>@promo.DiscountPercent.ToString("0.##")%</td>
+                    <td>@promo.StartDate.ToString("dd MMM yyyy") &ndash; @promo.EndDate.ToString("dd MMM yyyy")</td>
+                    <td>
+                        @if (promo.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                        @if (promo.EndDate.Date < DateTime.Today)
+                        {
+                            <span class="badge bg-warning text-dark">Expired</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <form method="post" asp-page-handler="Toggle" asp-route-id="@promo.PromotionId" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">@(promo.IsActive ? "Deactivate" : "Activate")</button>
+                        </form>
+                        <a asp-page="Edit" asp-route-id="@promo.PromotionId" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@promo.PromotionId" class="d-inline"
+                              onsubmit="return confirm('Delete this promotion?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Promotions.Any())
+            {
+                <tr><td colspan="5" class="text-muted text-center">No promotions yet.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

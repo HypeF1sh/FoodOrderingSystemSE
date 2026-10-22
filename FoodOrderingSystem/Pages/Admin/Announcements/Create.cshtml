@@ -1,0 +1,38 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.Announcements.CreateModel
+@{
+    ViewData["Title"] = "Add Announcement";
+}
+
+<div class="container py-4">
+    <h1>Add Announcement</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Title" class="form-label"></label>
+                    <input asp-for="Input.Title" class="form-control" />
+                    <span asp-validation-for="Input.Title" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Body" class="form-label"></label>
+                    <textarea asp-for="Input.Body" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="Input.Body" class="text-danger"></span>
+                </div>
+                <div class="form-check mb-3">
+                    <input asp-for="Input.IsActive" class="form-check-input" />
+                    <label asp-for="Input.IsActive" class="form-check-label"></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a asp-page="Index" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
