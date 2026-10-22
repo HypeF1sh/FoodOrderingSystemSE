@@ -1,0 +1,76 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Reservations.IndexModel
+@{
+    ViewData["Title"] = "My Reservations";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">My Reservations</h1>
+        <a asp-page="Create" class="btn btn-primary">Book a Table</a>
+    </div>
+
+    @if (!Model.Reservations.Any())
+    {
+        <div class="alert alert-info">
+            You do not have any reservations yet. <a asp-page="Create">Book a table now</a>.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Ref #</th>
+                        <th>Date</th>
+                        <th>Time Slot</th>
+                        <th>Table &amp; Area</th>
+                        <th>Party Size</th>
+                        <th>Status</th>
+                        <th>Special Requests</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Reservations)
+                {
+                    var badgeClass = item.Status switch
+                    {
+                        "Confirmed" => "bg-success",
+                        "Pending" => "bg-warning text-dark",
+                        "Completed" => "bg-primary",
+                        "Cancelled" => "bg-secondary",
+                        "NoShow" => "bg-danger",
+                        _ => "bg-dark"
+                    };
+
+                    <tr>
+                        <td>#@item.ReservationId</td>
+                        <td>@item.ReservationDate.ToString("dd MMM yyyy")</td>
+                        <td>@item.StartTime.ToString("HH:mm") – @item.EndTime.ToString("HH:mm")</td>
+                        <td>Table @item.TableNumber (@item.DiningAreaName)</td>
+                        <td>@item.PartySize</td>
+                        <td><span class="badge @badgeClass">@item.Status</span></td>
+                        <td class="text-muted small">@(string.IsNullOrWhiteSpace(item.SpecialRequests) ? "-" : item.SpecialRequests)</td>
+                        <td class="text-end">
+                            @if (item.CanModifyOrCancel)
+                            {
+                                <a asp-page="Edit" asp-route-id="@item.ReservationId" class="btn btn-sm btn-outline-primary me-1">Modify</a>
+                                <form method="post" asp-page-handler="Cancel" asp-route-id="@item.ReservationId" class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to cancel this reservation?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                </form>
+                            }
+                            else if (!string.IsNullOrEmpty(item.LockReason) && (item.Status == "Confirmed" || item.Status == "Pending"))
+                            {
+                                <span class="text-muted small" title="@item.LockReason">Locked (&lt; 2h to start)</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,119 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Reservations.CreateModel
+@{
+    ViewData["Title"] = "Book a Table";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Book a Table</h1>
+        <a asp-page="Index" class="btn btn-outline-secondary">My Reservations</a>
+    </div>
+
+    <!-- Step 1: Check Table Availability (PB09) -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <strong>1. Check Table Availability</strong>
+            <span class="text-muted small ms-2">(90-minute dining slot)</span>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <input type="hidden" name="check" value="true" />
+
+                <div class="col-md-3">
+                    <label asp-for="Search.Date" class="form-label">Date</label>
+                    <input asp-for="Search.Date" type="date" class="form-control"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           max="@DateTime.Today.AddDays(60).ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="col-md-2">
+                    <label asp-for="Search.StartTime" class="form-label">Start Time</label>
+                    <input asp-for="Search.StartTime" type="time" class="form-control" step="900" />
+                </div>
+
+                <div class="col-md-2">
+                    <label asp-for="Search.PartySize" class="form-label">Party Size</label>
+                    <input asp-for="Search.PartySize" type="number" min="1" max="20" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Search.DiningAreaId" class="form-label">Dining Area</label>
+                    <select asp-for="Search.DiningAreaId" asp-items="Model.DiningAreaOptions" class="form-select"></select>
+                </div>
+
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary">Check Tables</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Step 2: Select a Table & Confirm Reservation (PB10) -->
+    @if (Model.HasSearched)
+    {
+        @if (!string.IsNullOrEmpty(Model.AvailabilityMessage))
+        {
+            <div class="alert alert-warning">@Model.AvailabilityMessage</div>
+        }
+        else if (Model.AvailableTables.Any())
+        {
+            <div class="card">
+                <div class="card-header bg-light">
+                    <strong>2. Select a Table &amp; Confirm (@Model.AvailableTables.Count available)</strong>
+                    <span class="text-muted small ms-2">
+                        for @Model.Search.PartySize guest(s) on @Model.Search.Date.ToString("dd MMM yyyy"),
+                        @Model.Search.StartTime.ToString("HH:mm") – @Model.Search.StartTime.AddMinutes(90).ToString("HH:mm")
+                    </span>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <input type="hidden" name="Input.Date" value="@Model.Search.Date.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="Input.StartTime" value="@Model.Search.StartTime.ToString("HH:mm")" />
+                        <input type="hidden" name="Input.PartySize" value="@Model.Search.PartySize" />
+                        <input type="hidden" name="Input.DiningAreaId" value="@Model.Search.DiningAreaId" />
+
+                        <div class="row g-3 mb-3">
+                            @foreach (var table in Model.AvailableTables)
+                            {
+                                <div class="col-md-4">
+                                    <label class="card h-100 p-3" style="cursor: pointer;">
+                                        <span class="form-check">
+                                            <input class="form-check-input" type="radio"
+                                                   name="Input.RestaurantTableId"
+                                                   value="@table.RestaurantTableId"
+                                                   required />
+                                            <span class="form-check-label fw-bold">
+                                                Table @table.TableNumber
+                                            </span>
+                                        </span>
+                                        <span class="text-muted small ps-4">@table.DiningAreaName</span>
+                                        <span class="mt-2 ps-4">
+                                            <span class="badge bg-success">Seats up to @table.Capacity</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="Input.RestaurantTableId" class="text-danger d-block mb-3"></span>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.SpecialRequests" class="form-label">Special Requests (Optional)</label>
+                            <textarea asp-for="Input.SpecialRequests" class="form-control" rows="2"
+                                      placeholder="e.g., Baby chair needed, window seat, dietary notes..."></textarea>
+                            <span asp-validation-for="Input.SpecialRequests" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Confirm Reservation</button>
+                    </form>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
