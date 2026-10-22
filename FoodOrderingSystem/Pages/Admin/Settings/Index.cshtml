@@ -1,0 +1,70 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.Settings.IndexModel
+@{
+    ViewData["Title"] = "Restaurant Settings";
+}
+
+<div class="container py-4">
+    <h1>Restaurant Settings</h1>
+    <p class="text-muted">Edit the values below (for example RestaurantName, Phone, Address) and click Save.</p>
+
+    <form method="post" asp-page-handler="Save">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width:30%">Setting</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < Model.Settings.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            <strong>@Model.Settings[i].Key</strong>
+                            <input type="hidden" asp-for="Settings[i].Id" />
+                        </td>
+                        <td>
+                            <input asp-for="Settings[i].Value" class="form-control" />
+                            <span asp-validation-for="Settings[i].Value" class="text-danger"></span>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Settings.Any())
+                {
+                    <tr><td colspan="2" class="text-muted text-center">No settings yet. Add one below.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Settings.Any())
+        {
+            <button type="submit" class="btn btn-primary">Save changes</button>
+        }
+    </form>
+
+    <hr class="my-4" />
+
+    <h4>Add a setting</h4>
+    <form method="post" asp-page-handler="Add" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label" for="newKey">Key</label>
+            <input id="newKey" name="newKey" class="form-control" maxlength="100" required />
+        </div>
+        <div class="col-md-5">
+            <label class="form-label" for="newValue">Value</label>
+            <input id="newValue" name="newValue" class="form-control" maxlength="500" required />
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-primary">Add setting</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

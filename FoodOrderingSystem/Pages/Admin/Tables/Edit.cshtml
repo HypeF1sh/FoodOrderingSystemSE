@@ -1,0 +1,44 @@
+﻿@page "{id:int}"
+@model FoodOrderingSystem.Pages.Admin.Tables.EditModel
+@{
+    ViewData["Title"] = "Edit Table";
+}
+
+<div class="container py-4">
+    <h1>Edit Table</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Input.Id" />
+
+                <div class="mb-3">
+                    <label asp-for="Input.DiningAreaId" class="form-label"></label>
+                    <select asp-for="Input.DiningAreaId" asp-items="Model.AreaOptions" class="form-select"></select>
+                    <span asp-validation-for="Input.DiningAreaId" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.TableNumber" class="form-label"></label>
+                    <input asp-for="Input.TableNumber" class="form-control" />
+                    <span asp-validation-for="Input.TableNumber" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Capacity" class="form-label"></label>
+                    <input asp-for="Input.Capacity" type="number" min="1" max="20" class="form-control" />
+                    <span asp-validation-for="Input.Capacity" class="text-danger"></span>
+                </div>
+                <div class="form-check mb-3">
+                    <input asp-for="Input.IsActive" class="form-check-input" />
+                    <label asp-for="Input.IsActive" class="form-check-label"></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save changes</button>
+                <a asp-page="Index" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,56 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.OperatingHours.IndexModel
+@{
+    ViewData["Title"] = "Operating Hours";
+}
+
+<div class="container py-4">
+    <h1>Operating Hours</h1>
+    <p class="text-muted">Set the opening and closing time for each day. Tick "Closed" for days the restaurant is closed.</p>
+
+    <form method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Opens</th>
+                        <th>Closes</th>
+                        <th>Closed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < Model.Days.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Model.Days[i].DayName
+                            <input type="hidden" name="Days[@i].DayOfWeek" value="@Model.Days[i].DayOfWeek" />
+                        </td>
+                        <td>
+                            <input type="time" name="Days[@i].OpenTime" value="@Model.Days[i].OpenTime.ToString("HH:mm")" class="form-control" />
+                        </td>
+                        <td>
+                            <input type="time" name="Days[@i].CloseTime" value="@Model.Days[i].CloseTime.ToString("HH:mm")" class="form-control" />
+                        </td>
+                        <td>
+                            <div class="form-check">
+                                <input asp-for="Days[i].IsClosed" class="form-check-input" />
+                                <label asp-for="Days[i].IsClosed" class="form-check-label">Closed</label>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save hours</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

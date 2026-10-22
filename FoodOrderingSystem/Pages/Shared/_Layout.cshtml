@@ -48,21 +48,21 @@
                                asp-page="/Index">Home</a>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link @(currentPage.StartsWith("/Menu/") ? "active" : "")"
+                               asp-page="/Menu/Index">Menu</a>
+                        </li>
+
                         @* The pages below do not exist yet, so they are rendered as
                            inactive placeholders. An asp-page tag helper pointing at a
                            missing page throws at render time, which is why these are
                            plain spans for now.
 
-                           Sprint 2 - Jordan (PB06): replace with
-                               <a class="nav-link" asp-page="/Menu/Index">Menu</a>
                            Sprint 2 - Wallace (PB09): replace with
                                <a class="nav-link" asp-page="/Reservations/Create">Book a table</a>
                            Sprint 3 - Jordan (PB14): replace with
                                <a class="nav-link" asp-page="/Orders/Index">My orders</a>
                         *@
-                        <li class="nav-item">
-                            <span class="nav-link rr-nav-pending" aria-disabled="true">Menu</span>
-                        </li>
                         <li class="nav-item">
                             <a class="nav-link @(currentPage.StartsWith("/Reservations") ? "active" : "")"
                                asp-page="/Reservations/Create">Book a table</a>
@@ -74,9 +74,9 @@
                         @if (User.IsInRole("Administrator"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(currentPage.StartsWith("/Admin/Users/Index") ? "active" : "")"
+                                <a class="nav-link @(currentPage.StartsWith("/Admin/Index") ? "active" : "")"
                                    asp-area=""
-                                   asp-page="/Admin/Users/Index">Admin</a>
+                                   asp-page="/Admin/Index">Admin</a>
                             </li>
                         }
 

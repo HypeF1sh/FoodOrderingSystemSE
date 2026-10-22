@@ -1,0 +1,46 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.DiningAreas.IndexModel
+@{
+    ViewData["Title"] = "Dining Areas";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Dining Areas</h1>
+        <a asp-page="Create" class="btn btn-primary">Add dining area</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Tables</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var area in Model.Areas)
+                {
+                    <tr>
+                        <td>@area.Name</td>
+                        <td>@area.Description</td>
+                        <td><span class="badge bg-secondary">@area.RestaurantTables.Count</span></td>
+                        <td class="text-end">
+                            <a asp-page="Edit" asp-route-id="@area.DiningAreaId" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@area.DiningAreaId" class="d-inline"
+                                  onsubmit="return confirm('Delete this dining area?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Areas.Any())
+                {
+                    <tr><td colspan="4" class="text-muted text-center">No dining areas yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
