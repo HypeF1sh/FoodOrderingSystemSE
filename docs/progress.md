@@ -3,7 +3,7 @@
 Keep this file short. Newest log entries on top. Claude reads it at the start of every session.
 
 ## Current position
-- **Today's sprint:** Sprint 1 (8–15 Oct) — foundation
+- **Today's sprint:** Sprint 2 (15–22 Oct) — menu browsing + table booking
 - **Internal target:** 4 Nov · **Formal deadline:** Fri 6 Nov 2026
 
 | Sprint | Dates | Goal |
@@ -28,6 +28,13 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 - UI direction: modern minimal.
 
 ## Log
+- **2026-10-20** — Jordan: PB06 + PB08 v1 on `feature/PB06-PB08-menu` (spec:
+  `docs/superpowers/specs/2026-10-18-menu-design.md`). `IMenuService`/`MenuService`,
+  `IImageStorageService` (JPG/PNG/WebP ≤ 2 MB, GUID names, `wwwroot/uploads/menu/`), public
+  phone-first `/Menu` (sticky category tabs, search, sold-out greyed), `/Admin/Menu` CRUD for items
+  and categories with availability toggle; delete blocked when an item has orders / a category has
+  items. No schema change. Build clean, no new warnings. Group agreed the 2 `AddScoped` lines in
+  `Program.cs` (22/10). TC-M01–M10 passed 21/10. Still pending: Menu nav link in `_Layout.cshtml`.
 - **2026-10-11** — Jordan: layout shell on `feature/layout-shell` — modern minimal navbar, footer,
   design tokens in `site.css`, `_Banners` partial for TempData messages, placeholder home page.
   Restaurant name is a placeholder (`Rumah Rasa`), set in one `const` in `_Layout.cshtml`.
