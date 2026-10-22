@@ -1,0 +1,10 @@
+/* Styles scoped to Admin/Menu/EditItem.cshtml (CSS isolation) */
+
+.edit-item-preview {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: var(--rr-radius);
+    border: 1px solid var(--rr-line);
+    background: var(--rr-surface);
+}

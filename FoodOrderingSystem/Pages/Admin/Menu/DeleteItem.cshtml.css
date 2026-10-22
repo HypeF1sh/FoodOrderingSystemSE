@@ -1,0 +1,10 @@
+/* Styles scoped to Admin/Menu/DeleteItem.cshtml (CSS isolation) */
+
+.delete-item-img {
+    width: 96px;
+    height: 96px;
+    flex: 0 0 auto;
+    object-fit: cover;
+    border-radius: var(--rr-radius);
+    border: 1px solid var(--rr-line);
+}

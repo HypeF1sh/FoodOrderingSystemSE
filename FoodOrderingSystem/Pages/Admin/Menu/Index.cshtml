@@ -1,0 +1,196 @@
+@page
+@model FoodOrderingSystem.Pages.Admin.Menu.IndexModel
+@{
+    ViewData["Title"] = "Manage Menu";
+}
+
+<div class="container mt-4">
+
+    <div class="admin-menu-header">
+        <h1 class="mb-0">Manage Menu</h1>
+        <div class="admin-menu-actions">
+            <a asp-page="./CreateItem" class="btn btn-primary">Add item</a>
+            <a asp-page="./CreateCategory" class="btn btn-outline-primary">Add category</a>
+        </div>
+    </div>
+
+    <!-- Tabs are plain links, so the open tab survives a refresh and works without JavaScript -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a asp-page="./Index" class="nav-link @(Model.ShowCategories ? "" : "active")"
+               aria-current="@(Model.ShowCategories ? null : "page")">Items (@Model.Items.Count)</a>
+        </li>
+        <li class="nav-item">
+            <a asp-page="./Index" asp-route-tab="categories" class="nav-link @(Model.ShowCategories ? "active" : "")"
+               aria-current="@(Model.ShowCategories ? "page" : null)">Categories (@Model.Categories.Count)</a>
+        </li>
+    </ul>
+
+    @if (!Model.ShowCategories)
+    {
+        @if (Model.Items.Count == 0)
+        {
+            <p class="text-muted">No menu items yet. Use <strong>Add item</strong> to create the first one.</p>
+        }
+        else
+        {
+            <!-- Tablet / PC (>= 768px): full table -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">Photo</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Category</th>
+                            <th scope="col" class="text-end">Price</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td><img src="@item.ImageUrl" alt="" class="admin-thumb" loading="lazy" /></td>
+                                <td>@item.Name</td>
+                                <td>@item.CategoryName</td>
+                                <td class="text-end text-nowrap">RM @item.Price.ToString("0.00")</td>
+                                <td>
+                                    @if (item.IsAvailable)
+                                    {
+                                        <span class="badge bg-success">Available</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Sold out</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="admin-row-actions">
+                                        <form method="post" asp-page-handler="Toggle" asp-route-id="@item.MenuItemId">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                @(item.IsAvailable ? "Mark sold out" : "Mark available")
+                                            </button>
+                                        </form>
+                                        <a asp-page="./EditItem" asp-route-id="@item.MenuItemId" class="btn btn-sm btn-warning">Edit</a>
+                                        <a asp-page="./DeleteItem" asp-route-id="@item.MenuItemId" class="btn btn-sm btn-danger">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phone (< 768px): the same data as stacked cards -->
+            <div class="d-md-none">
+                @foreach (var item in Model.Items)
+                {
+                    <div class="card mb-2">
+                        <div class="card-body admin-card">
+                            <img src="@item.ImageUrl" alt="" class="admin-thumb" loading="lazy" />
+                            <div class="admin-card-text">
+                                <div class="fw-semibold">@item.Name</div>
+                                <div class="text-muted small">@item.CategoryName · RM @item.Price.ToString("0.00")</div>
+                                @if (item.IsAvailable)
+                                {
+                                    <span class="badge bg-success">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Sold out</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer admin-row-actions">
+                            <form method="post" asp-page-handler="Toggle" asp-route-id="@item.MenuItemId">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    @(item.IsAvailable ? "Mark sold out" : "Mark available")
+                                </button>
+                            </form>
+                            <a asp-page="./EditItem" asp-route-id="@item.MenuItemId" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-page="./DeleteItem" asp-route-id="@item.MenuItemId" class="btn btn-sm btn-danger">Delete</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        @if (Model.Categories.Count == 0)
+        {
+            <p class="text-muted">No categories yet. Use <strong>Add category</strong> to create one.</p>
+        }
+        else
+        {
+            <!-- Tablet / PC (>= 768px): full table -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-end">Order</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Description</th>
+                            <th scope="col" class="text-end">Items</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <tr>
+                                <td class="text-end">@category.DisplayOrder</td>
+                                <td>@category.Name</td>
+                                <td class="text-muted small">@category.Description</td>
+                                <td class="text-end">@category.ItemCount</td>
+                                <td>
+                                    @if (category.IsActive)
+                                    {
+                                        <span class="badge bg-success">Shown</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Hidden</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="admin-row-actions">
+                                        <a asp-page="./EditCategory" asp-route-id="@category.MenuCategoryId" class="btn btn-sm btn-warning">Edit</a>
+                                        <a asp-page="./DeleteCategory" asp-route-id="@category.MenuCategoryId" class="btn btn-sm btn-danger">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phone (< 768px): stacked cards -->
+            <div class="d-md-none">
+                @foreach (var category in Model.Categories)
+                {
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <div class="fw-semibold">@category.DisplayOrder. @category.Name</div>
+                            <div class="text-muted small">@category.ItemCount item(s)</div>
+                            @if (category.IsActive)
+                            {
+                                <span class="badge bg-success">Shown</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Hidden</span>
+                            }
+                        </div>
+                        <div class="card-footer admin-row-actions">
+                            <a asp-page="./EditCategory" asp-route-id="@category.MenuCategoryId" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-page="./DeleteCategory" asp-route-id="@category.MenuCategoryId" class="btn btn-sm btn-danger">Delete</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
