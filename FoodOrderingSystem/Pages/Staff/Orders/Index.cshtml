@@ -1,0 +1,110 @@
+@page
+@using FoodOrderingSystem.ViewModels
+@model FoodOrderingSystem.Pages.Staff.Orders.IndexModel
+@{
+    ViewData["Title"] = "Orders";
+    var date = Model.SelectedDate.ToString("yyyy-MM-dd");
+}
+
+<div class="container mt-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h1 class="mb-0">Orders</h1>
+
+        <!-- Day picker: a GET form, so the chosen day is in the URL -->
+        <form method="get" asp-page="./Index" class="d-flex gap-2">
+            <input type="hidden" name="filter" value="@Model.Filter" />
+            <label for="orderDate" class="visually-hidden">Day</label>
+            <input id="orderDate" type="date" name="date" value="@date" class="form-control" />
+            <button type="submit" class="btn btn-outline-primary">Show</button>
+        </form>
+    </div>
+
+    <!-- Filter pills -->
+    <ul class="nav nav-pills mb-3">
+        @foreach (var filter in Enum.GetValues<StaffOrderFilter>())
+        {
+            <li class="nav-item">
+                <a class="nav-link @(filter == Model.Filter ? "active" : "")"
+                   asp-page="./Index" asp-route-date="@date" asp-route-filter="@filter">@filter</a>
+            </li>
+        }
+    </ul>
+
+    @if (Model.AutoRefresh)
+    {
+        <p class="text-muted small">This list refreshes every 30 seconds.</p>
+    }
+
+    @if (Model.Orders.Count == 0)
+    {
+        <div class="alert alert-light border">No @Model.Filter.ToString().ToLower() orders on @Model.SelectedDate.ToString("dd/MM/yyyy").</div>
+    }
+
+    <div class="row g-3">
+        @foreach (var order in Model.Orders)
+        {
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">#@order.OrderId · @order.CreatedAt.ToString("hh:mm tt")</span>
+                        <partial name="/Pages/Orders/_OrderStatusBadge.cshtml" model="order.Status" />
+                    </div>
+
+                    <div class="card-body">
+                        <p class="mb-2">
+                            @order.CustomerName
+                            @if (order.ReservationId != null)
+                            {
+                                <span class="text-muted">· Reservation #@order.ReservationId</span>
+                            }
+                        </p>
+
+                        <ul class="list-unstyled mb-2">
+                            @foreach (var line in order.Lines)
+                            {
+                                <li><strong>@line.Quantity ×</strong> @line.Name</li>
+                            }
+                        </ul>
+
+                        @* Notes often carry allergies, so they stand out *@
+                        @if (!string.IsNullOrEmpty(order.Notes))
+                        {
+                            <div class="alert alert-warning py-2 mb-2">@order.Notes</div>
+                        }
+
+                        <div class="text-muted">Total RM @order.TotalAmount.ToString("0.00")</div>
+                    </div>
+
+                    @if (order.NextStatus != null || order.CanCancel)
+                    {
+                        <div class="card-footer d-flex flex-wrap gap-2">
+                            @if (order.NextStatus != null)
+                            {
+                                <form method="post" asp-page-handler="Advance" asp-route-id="@order.OrderId"
+                                      asp-route-currentStatus="@order.Status"
+                                      asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-filter="@Model.Filter">
+                                    <button type="submit" class="btn btn-primary">@OrderStatusDisplay.ActionLabel(order.NextStatus.Value)</button>
+                                </form>
+                            }
+                            @if (order.CanCancel)
+                            {
+                                <a asp-page="./Cancel" asp-route-id="@order.OrderId" class="btn btn-outline-danger">Cancel</a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.AutoRefresh)
+    {
+        <script>
+            // New orders appear without pressing F5. A plain reload keeps this simple;
+            // SignalR would push changes instantly but is more than this screen needs.
+            setTimeout(function () { window.location.reload(); }, 30000);
+        </script>
+    }
+}

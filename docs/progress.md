@@ -28,6 +28,10 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 - UI direction: modern minimal.
 
 ## Log
+- **2026-10-22** — Jordan: Sprint 2 tested on `dev` (all PRs #8–#11 merged). **Issue found (not fixed yet):**
+  admin cannot reach add/edit/delete for dishes from the UI — the Admin hub (`/Admin/Index`, Carynn)
+  has no Menu card, so `/Admin/Menu` is only reachable by typing the URL. Fix: add a Menu card to the hub
+  (needs Carynn's OK). Sprint 3 work (PB14, PB15) moved to `feature/PB14-PB15-ordering`.
 - **2026-10-20** — Jordan: PB06 + PB08 v1 on `feature/PB06-PB08-menu` (spec:
   `docs/superpowers/specs/2026-10-18-menu-design.md`). `IMenuService`/`MenuService`,
   `IImageStorageService` (JPG/PNG/WebP ≤ 2 MB, GUID names, `wwwroot/uploads/menu/`), public

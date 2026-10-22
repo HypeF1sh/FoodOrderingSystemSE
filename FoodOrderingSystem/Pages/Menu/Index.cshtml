@@ -4,6 +4,7 @@
     ViewData["Title"] = "Menu";
     var menu = Model.Menu;
     var isSearching = !string.IsNullOrEmpty(menu.Search);
+    var returnUrl = Request.Path + Request.QueryString;
 }
 
 <div class="container mt-4">
@@ -82,6 +83,15 @@
                             {
                                 <span class="badge bg-secondary">Sold out</span>
                             }
+                            else
+                            {
+                                <!-- PB14: posts to the cart, then comes back to this same tab/search -->
+                                <form method="post" asp-page="/Orders/Cart" asp-page-handler="Add" class="menu-card-add">
+                                    <input type="hidden" name="menuItemId" value="@item.MenuItemId" />
+                                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                                </form>
+                            }
                         </div>
                     </article>
                 }
@@ -89,3 +99,11 @@
         </section>
     }
 </div>
+
+@if (Model.CartCount > 0)
+{
+    <!-- Sticky bar so the cart is always one tap away on a phone -->
+    <div class="menu-cart-bar">
+        <a asp-page="/Orders/Cart" class="btn btn-primary w-100">View cart (@Model.CartCount)</a>
+    </div>
+}

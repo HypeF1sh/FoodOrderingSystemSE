@@ -1,0 +1,44 @@
+@page "{id:int}"
+@model FoodOrderingSystem.Pages.Staff.Orders.CancelModel
+@{
+    ViewData["Title"] = "Cancel Order";
+    var order = Model.Order!; // ! is safe: OnGet/OnPost return NotFound before rendering when Order is null
+}
+
+<div class="container mt-4">
+    <h1>Cancel Order</h1>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">Are you sure you want to cancel order #@order.OrderId?</div>
+                <div class="card-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>@order.CustomerName · @order.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span>
+                        <partial name="/Pages/Orders/_OrderStatusBadge.cshtml" model="order.Status" />
+                    </div>
+
+                    <ul class="list-unstyled mb-3">
+                        @foreach (var line in order.Lines)
+                        {
+                            <li>@line.Quantity × @line.Name</li>
+                        }
+                    </ul>
+
+                    @if (!order.CanCancel)
+                    {
+                        <div class="alert alert-warning">This order can no longer be cancelled — only Pending or Preparing orders can.</div>
+                    }
+
+                    <form method="post" asp-route-id="@order.OrderId">
+                        <input type="hidden" name="currentStatus" value="@order.Status" />
+                        <button type="submit" class="btn btn-danger" disabled="@(!order.CanCancel)">Cancel order</button>
+                        <a asp-page="./Index" class="btn btn-secondary">Back</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

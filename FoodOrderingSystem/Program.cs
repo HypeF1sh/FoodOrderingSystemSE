@@ -51,6 +51,17 @@ builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IRestaurantSettingService, RestaurantSettingService>();
 
+// PB14 cart lives in the session (dish ids + quantities only; prices are re-read from the DB)
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -69,6 +80,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
+
+app.UseSession();          // after UseRouting, before the pages that read the cart
 
 app.UseAuthentication();   // MUST come before UseAuthorization
 app.UseAuthorization();

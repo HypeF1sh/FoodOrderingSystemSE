@@ -1,0 +1,146 @@
+/* ===========================================================================
+   Styles scoped to Orders/Cart.cshtml (CSS isolation). Phone-first, like /Menu.
+   Tag-helper output (<form asp-page-handler>, <a asp-page>) does not get the
+   scope attribute, so those are reached from a plain parent with ::deep.
+   =========================================================================== */
+
+.cart-empty {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--rr-muted);
+    border: 1px dashed var(--rr-line);
+    border-radius: var(--rr-radius);
+}
+
+/* ---- Lines --------------------------------------------------------------- */
+.cart-lines {
+    list-style: none;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.cart-line {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 0.875rem;
+    padding: 0.75rem;
+    background: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: var(--rr-radius);
+}
+
+.cart-line-img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: var(--rr-radius);
+    background: var(--rr-surface);
+}
+
+.cart-line-body {
+    min-width: 0;   /* lets long names wrap instead of overflowing */
+}
+
+.cart-line-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.cart-line-name {
+    font-weight: 600;
+}
+
+.cart-line-total {
+    flex: 0 0 auto;
+    font-weight: 600;
+}
+
+.cart-line-unit,
+.cart-line-warning {
+    font-size: var(--rr-text-sm);
+}
+
+.cart-line-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* − 2 + stepper: buttons at least 40px square so they are easy to tap */
+.cart-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cart-stepper ::deep .btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    font-size: 1.125rem;
+    line-height: 1;
+}
+
+.cart-stepper-qty {
+    min-width: 1.5rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.cart-line.is-unavailable .cart-line-img {
+    filter: grayscale(1);
+    opacity: 0.55;
+}
+
+.cart-line.is-unavailable .cart-line-name,
+.cart-line.is-unavailable .cart-line-total {
+    color: var(--rr-muted);
+}
+
+/* ---- Summary: sticks to the bottom of the screen on a phone --------------- */
+.cart-summary {
+    position: sticky;
+    bottom: 0;
+    margin: 0 calc(-1 * var(--rr-gutter));
+    padding: 0.875rem var(--rr-gutter);
+    background: var(--rr-surface);
+    border-top: 1px solid var(--rr-line);
+}
+
+.cart-summary-total {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: var(--rr-text-base);
+}
+
+.cart-summary-actions {
+    display: grid;
+    gap: 0.5rem;
+}
+
+/* ---- Tablet and up -------------------------------------------------------- */
+@media (min-width: 768px) {
+    .cart-page {
+        max-width: 48rem;
+    }
+
+    .cart-summary {
+        position: static;
+        margin: 0;
+        padding: 1rem;
+        border: 1px solid var(--rr-line);
+        border-radius: var(--rr-radius);
+    }
+
+    .cart-summary-actions {
+        grid-auto-flow: column;
+        justify-content: end;
+    }
+}
