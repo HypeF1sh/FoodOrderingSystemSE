@@ -22,6 +22,53 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | Date | Item | Evidence / note |
 |---|---|---|
 | 2026-10-11 | Layout shell (Sprint 1) | See the detailed entry below |
+| 2026-10-20 | PB06 + PB08 menu v1 (Sprint 2) | See the detailed entry below — TC-M01–M10 passed 21/10 |
+
+### 2026-10-20 — PB06 + PB08 menu (`feature/PB06-PB08-menu`)
+
+**Ch.5 screenshots to capture**
+1. `/Menu` at phone width (375px) — one-column rows, sticky category bar, a greyed "Sold out" dish.
+2. `/Menu` at 1280px — 3-column card grid. Put 1 and 2 side by side for the responsive-design point.
+3. `/Menu?search=zzz` — the empty state with "Clear search".
+4. `/Admin/Menu` Items tab on an iPad-width window (768px) — table with thumbnails and badges.
+5. Edit Item with the current-photo preview, then the same dish on `/Menu` showing the new photo.
+6. Delete Item page for an ordered dish — warning shown, Delete button disabled.
+7. Code excerpt: `MenuService.GetMenuForBrowseAsync` (filtering in the Business layer) and
+   `ImageStorageService.ValidateImage` (upload security).
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-M01 | Logged out, open `/Menu` at 375px | Menu loads without login, one column, sold-out item greyed with badge, no horizontal scroll | Pass (21/10/2026) |
+| TC-M02 | Tap "Desserts"; then search "zzz" | Only desserts shown; then empty state + Clear search | Pass (21/10/2026) |
+| TC-M03 | Log in as customer@rroms.com, open `/Admin/Menu` | Access denied — page not shown | Pass (21/10/2026) |
+| TC-M04 | Admin: Add item with a PNG photo | Success banner; dish appears on `/Menu` with the photo | Pass (21/10/2026) |
+| TC-M05 | Admin: Add item with a `.txt` renamed to `.png`; then a 5 MB JPG | "Only JPG, PNG or WebP…" / "2 MB or smaller" error; nothing saved | Pass (21/10/2026) |
+| TC-M06 | Insert an OrderItem for a dish (SQL), then try to delete that dish | Warning shown, Delete disabled; crafted POST also refused | Pass (21/10/2026) |
+| TC-M07 | Delete a category that still has dishes | Refused with message | Pass (21/10/2026) |
+| TC-M08 | Add category "desserts" (lower case) | Duplicate-name error under Name | Pass (21/10/2026) |
+| TC-M09 | Click "Mark sold out" on a dish | Badge flips to Sold out; dish greyed on `/Menu`; click again restores it | Pass (21/10/2026) |
+| TC-M10 | Price 0, price 10000, empty name | Field-level validation errors, form not submitted | Pass (21/10/2026) |
+
+**Ch.7 reflection notes**
+- *Responsive design without screen detection.* My first idea was to read the screen size in
+  JavaScript to pick a phone or PC layout. CSS media queries (Bootstrap breakpoints) do this in the
+  browser automatically, survive rotation and iPad split-screen, and need no script — so the menu
+  is written phone-first with `@media (min-width: 768px)` / `992px` for larger screens.
+- *`@section` is a Razor keyword.* A loop variable called `section` broke the build
+  (`RZ2005: The 'section' directive must appear at the start of the line`). Renamed it.
+- *CSS isolation and tag helpers again.* Same lesson as the layout shell: the category tabs are
+  `<a asp-page>` links, so their scoped styles had to go through a plain parent with `::deep`.
+- *Testing a rule before its feature exists.* TC-M06 needs an ordered dish, but ordering (PB14) is
+  not built yet, so a test Order + OrderItem row was inserted with SQL, tested, then removed.
+- *Delete rules protect history.* Deleting a dish that appears on past orders would break those
+  orders and receipts, so the service refuses and suggests "Mark sold out" instead. The rule is
+  checked again on POST, not only when the page loads.
+
+**AI use declaration note:** Claude Code was used to draft the menu design spec, the service and
+page code, and the test cases. The QR / phone-first direction, image-upload choice, delete rules
+and all review of the output were mine.
 
 ### 2026-10-11 — Layout shell (`feature/layout-shell`)
 
