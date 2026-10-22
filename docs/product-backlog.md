@@ -11,9 +11,9 @@ Update the Status column when an item changes. Owner domain: A = Carynn, B = Wal
 | PB03 | As a staff member, I want to log in and manage my profile. | Medium | Basic | A | 1 | Todo |
 | PB04 | As an administrator, I want to log in securely, manage user accounts, assign roles, and restrict access by role. | High | Basic + Advanced | A | 1 | Todo |
 | PB05 | As an administrator, I want to manage dining areas, tables and operating hours. | High | Basic | A | 1 | Todo |
-| PB06 | As an administrator, I want to manage menu categories, menu items, pricing and availability. | High | Basic | C | 2 | Todo |
+| PB06 | As an administrator, I want to manage menu categories, menu items, pricing and availability. | High | Basic | C | 2 | In progress |
 | PB07 | As an administrator, I want to manage promotional offers, system announcements and restaurant settings. | Medium | Basic | A | 2 | Todo |
-| PB08 | As a customer, I want to browse the digital menu. | High | Basic | C | 2 | Todo |
+| PB08 | As a customer, I want to browse the digital menu. | High | Basic | C | 2 | In progress |
 | PB09 | As a customer, I want to check table availability by date, time and party size. | High | Basic | B | 2 | Todo |
 | PB10 | As a customer, I want to make a table reservation with automatic availability validation. | High | Basic + Intermediate | B | 2 | Todo |
 | PB11 | As a customer, I want to modify or cancel my reservation. | Medium | Basic | B | 2 | Todo |

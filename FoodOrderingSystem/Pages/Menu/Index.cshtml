@@ -1,0 +1,91 @@
+@page
+@model FoodOrderingSystem.Pages.Menu.IndexModel
+@{
+    ViewData["Title"] = "Menu";
+    var menu = Model.Menu;
+    var isSearching = !string.IsNullOrEmpty(menu.Search);
+}
+
+<div class="container mt-4">
+
+    <!-- Heading + search. A GET form, so the filter shows in the URL and works without JavaScript -->
+    <div class="menu-header">
+        <h1 class="mb-0">Our Menu</h1>
+        <form method="get" asp-page="./Index" class="menu-search" role="search">
+            @if (menu.SelectedCategoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@menu.SelectedCategoryId" />
+            }
+            <label for="menuSearch" class="visually-hidden">Search dishes</label>
+            <div class="input-group">
+                <input id="menuSearch" type="search" name="search" value="@menu.Search"
+                       class="form-control" placeholder="Search dishes…" maxlength="100" />
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Category tabs: sticky, and scroll sideways on a phone so every category stays one tap away -->
+    <nav class="menu-tabs" aria-label="Menu categories">
+        <a asp-page="./Index" asp-route-search="@menu.Search"
+           class="menu-tab @(menu.SelectedCategoryId == null ? "active" : "")"
+           aria-current="@(menu.SelectedCategoryId == null ? "page" : null)">All</a>
+        @foreach (var tab in menu.Tabs)
+        {
+            var isActive = tab.MenuCategoryId == menu.SelectedCategoryId;
+            <a asp-page="./Index" asp-route-categoryId="@tab.MenuCategoryId" asp-route-search="@menu.Search"
+               class="menu-tab @(isActive ? "active" : "")"
+               aria-current="@(isActive ? "page" : null)">@tab.Name</a>
+        }
+    </nav>
+
+    @if (menu.Sections.Count == 0)
+    {
+        <!-- Empty state: either the search found nothing, or there are no dishes yet -->
+        <div class="menu-empty">
+            @if (isSearching)
+            {
+                <p class="mb-2">No dishes match “@menu.Search”.</p>
+                <a asp-page="./Index" asp-route-categoryId="@menu.SelectedCategoryId" class="btn btn-secondary">Clear search</a>
+            }
+            else
+            {
+                <p class="mb-0">No dishes here yet — please check back soon.</p>
+            }
+        </div>
+    }
+
+    @foreach (var category in menu.Sections)
+    {
+        <section class="menu-section" aria-labelledby="cat-@category.MenuCategoryId">
+            <h2 id="cat-@category.MenuCategoryId" class="menu-section-title">@category.Name</h2>
+            @if (!string.IsNullOrEmpty(category.Description))
+            {
+                <p class="text-muted menu-section-desc">@category.Description</p>
+            }
+
+            <div class="menu-grid">
+                @foreach (var item in category.Items)
+                {
+                    <article class="menu-card @(item.IsAvailable ? "" : "is-sold-out")">
+                        <img src="@item.ImageUrl" alt="" class="menu-card-img" loading="lazy" />
+                        <div class="menu-card-body">
+                            <div class="menu-card-head">
+                                <h3 class="menu-card-name">@item.Name</h3>
+                                <span class="menu-card-price">RM @item.Price.ToString("0.00")</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                <p class="menu-card-desc">@item.Description</p>
+                            }
+                            @if (!item.IsAvailable)
+                            {
+                                <span class="badge bg-secondary">Sold out</span>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+</div>
