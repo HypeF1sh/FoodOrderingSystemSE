@@ -9,21 +9,31 @@ namespace FoodOrderingSystem.Services;
 public class ReservationService : IReservationService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IDiningAreaService _diningAreaService;
+    private readonly IOperatingHoursService _operatingHoursService;
 
     public const int DiningDurationMinutes = 90;
     public const int TurnoverBufferMinutes = 15;
     public const int MinAdvanceBookingMinutes = 30;
     public const int MaxAdvanceBookingDays = 60;
     public const int CutoffHoursBeforeStart = 2;
+    public const int MaxOnlinePartySize = 8;
 
-    public ReservationService(ApplicationDbContext context)
+    public ReservationService(
+        ApplicationDbContext context,
+        IDiningAreaService diningAreaService,
+        IOperatingHoursService operatingHoursService)
     {
         _context = context;
+        _diningAreaService = diningAreaService;
+        _operatingHoursService = operatingHoursService;
     }
 
     public async Task<List<DiningAreaOptionViewModel>> GetDiningAreasAsync()
     {
-        return await _context.DiningAreas
+        // Cross-domain rule: read dining areas through IDiningAreaService
+        var areas = await _diningAreaService.GetAreasAsync();
+        return areas
             .OrderBy(d => d.DiningAreaId)
             .Select(d => new DiningAreaOptionViewModel
             {
@@ -31,7 +41,7 @@ public class ReservationService : IReservationService
                 Name = d.Name,
                 Description = d.Description
             })
-            .ToListAsync();
+            .ToList();
     }
 
     public async Task<(bool IsOpen, string ErrorMessage)> ValidateOperatingHoursAsync(DateOnly date, TimeOnly startTime)
@@ -47,9 +57,10 @@ public class ReservationService : IReservationService
         if (requestedDateTime < DateTime.Now.AddMinutes(MinAdvanceBookingMinutes))
             return (false, $"Reservations must be booked at least {MinAdvanceBookingMinutes} minutes in advance.");
 
-        int dayOfWeek = (int)date.DayOfWeek;
-        var hours = await _context.OperatingHours
-            .FirstOrDefaultAsync(h => h.DayOfWeek == dayOfWeek);
+        // Cross-domain rule: read operating hours through IOperatingHoursService
+        int dayOfWeek = (int)date.DayOfWeek; // 0 = Sunday .. 6 = Saturday
+        var week = await _operatingHoursService.GetWeekAsync();
+        var hours = week.FirstOrDefault(h => (int)h.DayOfWeek == dayOfWeek);
 
         if (hours == null || hours.IsClosed)
             return (false, "The restaurant is closed on the selected date.");
@@ -59,8 +70,8 @@ public class ReservationService : IReservationService
         if (startTime < hours.OpenTime || startTime > lastSeatingTime)
         {
             return (false,
-                $"Reservations on {date:dddd} must start between {hours.OpenTime:HH:mm} and {lastSeatingTime:HH:mm} " +
-                $"(allowing a {DiningDurationMinutes}-minute dining slot before closing at {hours.CloseTime:HH:mm}).");
+                $"Reservations on {date:dddd} must start between {hours.OpenTime:hh\\:mm tt} and {lastSeatingTime:hh\\:mm tt} " +
+                $"(allowing a {DiningDurationMinutes}-minute dining slot before closing at {hours.CloseTime:hh\\:mm tt}).");
         }
 
         return (true, string.Empty);
@@ -73,7 +84,7 @@ public class ReservationService : IReservationService
         int? diningAreaId = null,
         int? excludeReservationId = null)
     {
-        if (partySize < 1 || partySize > 20)
+        if (partySize < 1 || partySize > MaxOnlinePartySize)
             return new List<AvailableTableViewModel>();
 
         var (isOpen, _) = await ValidateOperatingHoursAsync(date, startTime);
@@ -97,19 +108,15 @@ public class ReservationService : IReservationService
 
         int maxAllowedCapacity = Math.Max(partySize + 3, 4);
 
-        var query = _context.RestaurantTables
-            .Include(t => t.DiningArea)
+        // Cross-domain rule: read tables through IDiningAreaService
+        var allTables = await _diningAreaService.GetTablesAsync();
+
+        var available = allTables
             .Where(t => t.IsActive
                         && t.Capacity >= partySize
                         && t.Capacity <= maxAllowedCapacity
-                        && !conflictingTableIds.Contains(t.RestaurantTableId));
-
-        if (diningAreaId.HasValue && diningAreaId.Value > 0)
-        {
-            query = query.Where(t => t.DiningAreaId == diningAreaId.Value);
-        }
-
-        return await query
+                        && !conflictingTableIds.Contains(t.RestaurantTableId)
+                        && (!diningAreaId.HasValue || diningAreaId.Value <= 0 || t.DiningAreaId == diningAreaId.Value))
             .OrderBy(t => t.Capacity)
             .ThenBy(t => t.TableNumber)
             .Select(t => new AvailableTableViewModel
@@ -120,7 +127,9 @@ public class ReservationService : IReservationService
                 DiningAreaId = t.DiningAreaId,
                 DiningAreaName = t.DiningArea != null ? t.DiningArea.Name : string.Empty
             })
-            .ToListAsync();
+            .ToList();
+
+        return available;
     }
 
     public async Task<(bool Success, string Message, int? ReservationId)> CreateReservationAsync(
@@ -131,6 +140,9 @@ public class ReservationService : IReservationService
         int partySize,
         string? specialRequests)
     {
+        if (partySize < 1 || partySize > MaxOnlinePartySize)
+            return (false, $"Online bookings are limited to 1–{MaxOnlinePartySize} guests. Please call us directly for larger groups.", null);
+
         var (isOpen, hoursError) = await ValidateOperatingHoursAsync(date, startTime);
         if (!isOpen)
             return (false, hoursError, null);
@@ -162,7 +174,8 @@ public class ReservationService : IReservationService
             StartTime = startTime,
             EndTime = requestedEnd,
             PartySize = partySize,
-            Status = ReservationStatus.Confirmed,
+            // Tidy-up #1: New bookings start as Pending; staff confirm them in PB12
+            Status = ReservationStatus.Pending,
             SpecialRequests = specialRequests?.Trim() ?? string.Empty,
             CreatedAt = DateTime.UtcNow
         };
@@ -170,7 +183,9 @@ public class ReservationService : IReservationService
         _context.Reservations.Add(reservation);
         await _context.SaveChangesAsync();
 
-        return (true, $"Reservation confirmed for Table {selectedTable.TableNumber} on {date:dd MMM yyyy} at {startTime:HH:mm}.", reservation.ReservationId);
+        return (true,
+            $"Reservation request submitted for Table {selectedTable.TableNumber} on {date:dd/MM/yyyy} at {startTime:hh\\:mm tt} (Pending staff confirmation).",
+            reservation.ReservationId);
     }
 
     public async Task<ReservationDetailViewModel?> GetReservationByIdAsync(int reservationId, string? customerId = null)
@@ -213,6 +228,9 @@ public class ReservationService : IReservationService
         int partySize,
         string? specialRequests)
     {
+        if (partySize < 1 || partySize > MaxOnlinePartySize)
+            return (false, $"Online bookings are limited to 1–{MaxOnlinePartySize} guests. Please call us directly for larger groups.");
+
         var reservation = await _context.Reservations
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId && r.CustomerId == customerId);
 
@@ -255,7 +273,7 @@ public class ReservationService : IReservationService
         reservation.SpecialRequests = specialRequests?.Trim() ?? string.Empty;
 
         await _context.SaveChangesAsync();
-        return (true, $"Reservation #{reservationId} updated successfully.");
+        return (true, $"Reservation #{reservationId} updated for {date:dd/MM/yyyy} at {startTime:hh\\:mm tt}.");
     }
 
     public async Task<(bool Success, string Message)> CancelReservationAsync(int reservationId, string customerId)

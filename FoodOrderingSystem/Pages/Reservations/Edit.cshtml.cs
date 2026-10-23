@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using FoodOrderingSystem.Services;
-using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -34,7 +33,7 @@ public class EditModel : PageModel
         [Required, DataType(DataType.Time)]
         public TimeOnly StartTime { get; set; }
 
-        [Range(1, 20, ErrorMessage = "Party size must be between 1 and 20.")]
+        [Range(1, 8, ErrorMessage = "Online bookings are for 1 to 8 guests. Please call us for larger groups.")]
         public int PartySize { get; set; }
 
         [Required(ErrorMessage = "Please select an available table.")]
@@ -113,6 +112,13 @@ public class EditModel : PageModel
         int excludeReservationId,
         int selectedTableId)
     {
+        if (partySize < 1 || partySize > ReservationService.MaxOnlinePartySize)
+        {
+            AvailabilityWarning = $"Online reservations support up to {ReservationService.MaxOnlinePartySize} guests. Please call us directly for larger groups.";
+            TableOptions = new List<SelectListItem>();
+            return;
+        }
+
         var (isOpen, hoursError) = await _reservationService.ValidateOperatingHoursAsync(date, startTime);
         if (!isOpen)
         {

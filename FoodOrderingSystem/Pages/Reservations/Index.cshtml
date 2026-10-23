@@ -18,7 +18,8 @@
     }
     else
     {
-        <div class="table-responsive">
+        <!-- Desktop / Tablet Layout (768px and up) -->
+        <div class="table-responsive d-none d-md-block">
             <table class="table table-striped align-middle">
                 <thead>
                     <tr>
@@ -33,44 +34,104 @@
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (var item in Model.Reservations)
-                {
-                    var badgeClass = item.Status switch
+                    @foreach (var item in Model.Reservations)
                     {
-                        "Confirmed" => "bg-success",
-                        "Pending" => "bg-warning text-dark",
-                        "Completed" => "bg-primary",
-                        "Cancelled" => "bg-secondary",
-                        "NoShow" => "bg-danger",
-                        _ => "bg-dark"
-                    };
+                        var badgeClass = item.Status switch
+                        {
+                            "Confirmed" => "bg-success",
+                            "Pending" => "bg-warning text-dark",
+                            "Completed" => "bg-primary",
+                            "Cancelled" => "bg-secondary",
+                            "NoShow" => "bg-danger",
+                            _ => "bg-dark"
+                        };
 
-                    <tr>
-                        <td>#@item.ReservationId</td>
-                        <td>@item.ReservationDate.ToString("dd MMM yyyy")</td>
-                        <td>@item.StartTime.ToString("HH:mm") – @item.EndTime.ToString("HH:mm")</td>
-                        <td>Table @item.TableNumber (@item.DiningAreaName)</td>
-                        <td>@item.PartySize</td>
-                        <td><span class="badge @badgeClass">@item.Status</span></td>
-                        <td class="text-muted small">@(string.IsNullOrWhiteSpace(item.SpecialRequests) ? "-" : item.SpecialRequests)</td>
-                        <td class="text-end">
+                        <tr>
+                            <td>#@item.ReservationId</td>
+                            <td>@item.ReservationDate.ToString("dd/MM/yyyy")</td>
+                            <td>@item.StartTime.ToString("hh:mm tt") – @item.EndTime.ToString("hh:mm tt")</td>
+                            <td>Table @item.TableNumber (@item.DiningAreaName)</td>
+                            <td>@item.PartySize</td>
+                            <td><span class="badge @badgeClass">@item.Status</span></td>
+                            <td class="text-muted small">@(string.IsNullOrWhiteSpace(item.SpecialRequests) ? "-" : item.SpecialRequests)</td>
+                            <td class="text-end">
+                                @if (item.CanModifyOrCancel)
+                                {
+                                    <a asp-page="Edit" asp-route-id="@item.ReservationId" class="btn btn-sm btn-outline-primary me-1">Modify</a>
+                                    <form method="post" asp-page-handler="Cancel" asp-route-id="@item.ReservationId" class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to cancel this reservation?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                    </form>
+                                }
+                                else if (!string.IsNullOrEmpty(item.LockReason) && (item.Status == "Confirmed" || item.Status == "Pending"))
+                                {
+                                    <span class="text-muted small" title="@item.LockReason">Locked (&lt; 2h to start)</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phone Layout (Below 768px) -->
+        <div class="d-md-none d-flex flex-column gap-3">
+            @foreach (var item in Model.Reservations)
+            {
+                var badgeClass = item.Status switch
+                {
+                    "Confirmed" => "bg-success",
+                    "Pending" => "bg-warning text-dark",
+                    "Completed" => "bg-primary",
+                    "Cancelled" => "bg-secondary",
+                    "NoShow" => "bg-danger",
+                    _ => "bg-dark"
+                };
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                        <strong>Reservation #@item.ReservationId</strong>
+                        <span class="badge @badgeClass">@item.Status</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-1">
+                            <strong>Date:</strong> @item.ReservationDate.ToString("dd/MM/yyyy")
+                        </div>
+                        <div class="mb-1">
+                            <strong>Time:</strong> @item.StartTime.ToString("hh:mm tt") – @item.EndTime.ToString("hh:mm tt")
+                        </div>
+                        <div class="mb-1">
+                            <strong>Table:</strong> Table @item.TableNumber (@item.DiningAreaName)
+                        </div>
+                        <div class="mb-1">
+                            <strong>Party Size:</strong> @item.PartySize guest(s)
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(item.SpecialRequests))
+                        {
+                            <div class="text-muted small mt-2">
+                                <strong>Requests:</strong> @item.SpecialRequests
+                            </div>
+                        }
+                    </div>
+                    @if (item.CanModifyOrCancel || (!string.IsNullOrEmpty(item.LockReason) && (item.Status == "Confirmed" || item.Status == "Pending")))
+                    {
+                        <div class="card-footer d-flex gap-2 justify-content-end bg-white">
                             @if (item.CanModifyOrCancel)
                             {
-                                <a asp-page="Edit" asp-route-id="@item.ReservationId" class="btn btn-sm btn-outline-primary me-1">Modify</a>
+                                <a asp-page="Edit" asp-route-id="@item.ReservationId" class="btn btn-sm btn-outline-primary">Modify</a>
                                 <form method="post" asp-page-handler="Cancel" asp-route-id="@item.ReservationId" class="d-inline"
                                       onsubmit="return confirm('Are you sure you want to cancel this reservation?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
                                 </form>
                             }
-                            else if (!string.IsNullOrEmpty(item.LockReason) && (item.Status == "Confirmed" || item.Status == "Pending"))
+                            else
                             {
-                                <span class="text-muted small" title="@item.LockReason">Locked (&lt; 2h to start)</span>
+                                <span class="text-muted small">@item.LockReason</span>
                             }
-                        </td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     }
 </div>
