@@ -116,8 +116,113 @@ Design direction, the decision to cap the content width and all review of the ou
 |---|---|---|
 | | | |
 
-## Carynn — Domain A
+## Caryn — Domain A
 
 | Date | Item | Evidence / note |
 |---|---|---|
-| | | |
+| 2026-10-23 | Sprint 2 tidy-up | PR #12 — backup file removed, Menu hub card, CS8618 fix, this evidence entry |
+| 2026-10-22 | PB07 promotions, announcements, settings, admin hub (Sprint 2) | PR #10 — see the detailed entry below |
+| 2026-10-22 | PB05 dining areas, tables, operating hours (Sprint 2) | PR #9 — see the detailed entry below |
+| 2026-10-15 | PB04 role locks + admin user management (Sprint 1) | PR #6 — see the detailed entry below |
+| 2026-10-12 | PB01–PB04 Identity setup (Sprint 1) | PR #3 — see the detailed entry below |
+
+### 2026-10-22 — PB07 promotions, announcements, settings, admin hub (`feature/PB07-promotions-settings`)
+
+**Ch.5 screenshots to capture**
+1. `/Admin` hub — all cards, then the same at phone width.
+2. `/Admin/Promotions` showing an Active, an Inactive and an Expired badge.
+3. `/Admin/Promotions/Create` with a validation error (discount 101, or end date before start date).
+4. `/Admin/Announcements` list and the Create form.
+5. `/Admin/Settings` with the "Add a setting" form.
+6. Code excerpt: `PromotionService.Validate` (discount 1–100, end date on or after start date).
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A10 | Promotion: discount 0, then 101; end date before start date | Error each time; nothing saved | |
+| TC-A11 | Promotion and announcement: click Deactivate / Activate | Badge flips; one success message shown | |
+| TC-A12 | Settings: change a value and save; then add a key that already exists | Value saved; duplicate key refused with a message | |
+| TC-A13 | Log in as customer, open `/Admin` and `/Admin/Promotions` | Access Denied page | |
+
+**Ch.7 reflection notes**
+- *Starting before the dependency was merged.* PB07 began while PB05 was still in review. The hub links to PB05 pages, and a link to a page that does not exist in the branch only fails when the page renders, not when the project builds, so a clean build was not proof that the hub worked. The cards were left out until PB05 reached `dev`.
+- *Shared file conflicts.* Every member registers services in the same part of `Program.cs`, so merges conflict there. The rule is to keep all lines.
+- *Settings design.* The page edits values and adds new keys but does not rename or delete existing keys, which keeps other code that reads a key from breaking.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the service and page code and the test cases. [Write here what you did yourself: running and testing every page, fixing errors, deciding what to keep. Only true statements.]
+
+### 2026-10-22 — PB05 dining areas, tables, operating hours (`feature/PB05-dining-setup`)
+
+**Ch.5 screenshots to capture**
+1. `/Admin/DiningAreas` with the table-count badge, and the message when deleting an area that has tables.
+2. `/Admin/Tables` grouped by area, with one Inactive table.
+3. `/Admin/Tables/Create` showing the duplicate-number error.
+4. `/Admin/OperatingHours` with seven days and one closed day.
+5. Code excerpt: `DiningAreaService.ValidateTableAsync` (unique number across all tables, capacity 1–20).
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A06 | Delete a dining area that still has tables | Refused with a message; area stays | |
+| TC-A07 | Create a table with a number already in use; then capacity 0 and 21 | Duplicate error; capacity must be 1–20; nothing saved | |
+| TC-A08 | Delete a table that has reservations | Table becomes Inactive instead of being deleted, with a message | |
+| TC-A09 | Operating hours: Close earlier than Open on one day; then tick Closed on that day | Error naming the day; with Closed ticked it saves | |
+
+**Ch.7 reflection notes**
+- *Rules live in the business tier.* The pages only call `IDiningAreaService` and `IOperatingHoursService`; uniqueness, capacity and delete protection are checked in the service, so they apply however the page is called.
+- *Delete protection.* A table that has reservations is deactivated rather than deleted so past bookings keep their table.
+- *Limit.* Closing times after midnight (for example 01:00) are not supported, because the rule is that Close must be after Open.
+- *Late delivery.* This work was late against the sprint deadline; the lead was told so that the PR order could be planned.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the service and page code and the test cases. [Write here your own part, only true statements.]
+
+### 2026-10-15 — PB04 role locks and admin user management (`feature/PB04-admin-users`)
+
+**Ch.5 screenshots to capture**
+1. `/Admin/Users` — table with role badges and Active / Disabled badges.
+2. `/Admin/Users/Edit` for another user, then for my own account showing the "cannot demote or deactivate yourself" message.
+3. The Access Denied page when a customer opens `/Admin/Users`.
+4. Code excerpt: the role policies and folder rules in `Program.cs`, and the self-demotion check in `UserAdminService.UpdateUserAsync`.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A03 | Log in as customer, open `/Admin/Users`; repeat as staff | Access Denied page, not the user list | |
+| TC-A04 | Admin edits own account: set role to Customer, or untick Active | Error message; nothing changes | |
+| TC-A05 | Admin deactivates another user; that user tries to log in | "Account disabled" message; not signed in | |
+| TC-A14 | Admin changes a user's role from Customer to Staff | Success message; Index shows the Staff badge | |
+
+**Ch.7 reflection notes**
+- *Pages call a service, not the database.* `UserAdminService` uses `UserManager`; the pages never touch the DbContext, which keeps the three tiers separate.
+- *Deactivating also ends the session.* Updating the security stamp when a user is deactivated invalidates their existing login, not only future logins.
+- *Server-side rule.* The self-demotion rule is enforced in the service, so it holds even if someone changes the form data.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the service and page code and to explain the Git and Visual Studio steps. [Write here your own part, only true statements.]
+
+### 2026-10-12 — PB01–PB04 Identity setup (`feature/PB04-identity-setup`)
+
+**Ch.5 screenshots to capture**
+1. `/Identity/Account/Login` and `/Identity/Account/Register` (with the Full Name field).
+2. The navbar logged out (Register, Login) and logged in (Hello name, Logout).
+3. SSMS: `AspNetRoles` (three roles) and `AspNetUserRoles` (new user linked to Customer).
+4. Code excerpt: `AddDefaultIdentity` options in `Program.cs` (password policy, lockout) and `DbSeeder.CreateUserAsync`.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A01 | Log in as admin, staff and customer (seeded accounts) in turn; log out each time | All three log in; logout works | |
+| TC-A02 | Register a new user with a Full Name and a valid password | Logged in straight away; Customer role assigned; FullName saved | |
+| TC-A15 | Register with a weak password (no uppercase, no symbol) | Password policy error; account not created | |
+| TC-A16 | Five wrong passwords in a row | Account locked out for 5 minutes | |
+
+**Ch.7 reflection notes**
+- *The scaffolder created a second `ApplicationUser`.* The build failed with an ambiguous reference between `FoodOrderingSystem.Data.ApplicationUser` and `FoodOrderingSystem.Models.ApplicationUser`. Deleting the generated copy then caused 92 errors in the scaffolded pages. They were one problem repeated, and a `global using` for the Models namespace cleared them all. Lesson: read the first error before the rest.
+- *Passwords.* Identity stores a salted PBKDF2 hash, unlike the lab's plain-text admin login. The seeded development passwords are known, so they must be changed before real deployment.
+- *Security warnings.* NuGet reported NU1902/NU1903 for `System.Security.Cryptography.Pkcs` 9.0.11, a dependency of the SQL Server packages. They did not come from our code, so they were raised as a separate change.
+- *Order of changes.* A `using` line added to `Program.cs` before the matching files existed caused error CS0234. Add the code first, then the registration.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the setup code and to explain the Git and Visual Studio steps. [Write here your own part, only true statements.]
