@@ -31,7 +31,6 @@ public class ReservationService : IReservationService
 
     public async Task<List<DiningAreaOptionViewModel>> GetDiningAreasAsync()
     {
-        // Cross-domain rule: read dining areas through IDiningAreaService
         var areas = await _diningAreaService.GetAreasAsync();
         return areas
             .OrderBy(d => d.DiningAreaId)
@@ -44,21 +43,24 @@ public class ReservationService : IReservationService
             .ToList();
     }
 
-    public async Task<(bool IsOpen, string ErrorMessage)> ValidateOperatingHoursAsync(DateOnly date, TimeOnly startTime)
+    public async Task<(bool IsOpen, string ErrorMessage)> ValidateOperatingHoursAsync(
+        DateOnly date, TimeOnly startTime, bool bypassAdvanceNotice = false)
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
-        if (date < today)
-            return (false, "Reservation date cannot be in the past.");
+        if (!bypassAdvanceNotice)
+        {
+            if (date < today)
+                return (false, "Reservation date cannot be in the past.");
 
-        if (date > today.AddDays(MaxAdvanceBookingDays))
-            return (false, $"Reservations can only be made up to {MaxAdvanceBookingDays} days in advance.");
+            if (date > today.AddDays(MaxAdvanceBookingDays))
+                return (false, $"Reservations can only be made up to {MaxAdvanceBookingDays} days in advance.");
 
-        var requestedDateTime = date.ToDateTime(startTime);
-        if (requestedDateTime < DateTime.Now.AddMinutes(MinAdvanceBookingMinutes))
-            return (false, $"Reservations must be booked at least {MinAdvanceBookingMinutes} minutes in advance.");
+            var requestedDateTime = date.ToDateTime(startTime);
+            if (requestedDateTime < DateTime.Now.AddMinutes(MinAdvanceBookingMinutes))
+                return (false, $"Reservations must be booked at least {MinAdvanceBookingMinutes} minutes in advance.");
+        }
 
-        // Cross-domain rule: read operating hours through IOperatingHoursService
-        int dayOfWeek = (int)date.DayOfWeek; // 0 = Sunday .. 6 = Saturday
+        int dayOfWeek = (int)date.DayOfWeek;
         var week = await _operatingHoursService.GetWeekAsync();
         var hours = week.FirstOrDefault(h => (int)h.DayOfWeek == dayOfWeek);
 
@@ -82,12 +84,13 @@ public class ReservationService : IReservationService
         TimeOnly startTime,
         int partySize,
         int? diningAreaId = null,
-        int? excludeReservationId = null)
+        int? excludeReservationId = null,
+        bool bypassAdvanceNotice = false)
     {
         if (partySize < 1 || partySize > MaxOnlinePartySize)
             return new List<AvailableTableViewModel>();
 
-        var (isOpen, _) = await ValidateOperatingHoursAsync(date, startTime);
+        var (isOpen, _) = await ValidateOperatingHoursAsync(date, startTime, bypassAdvanceNotice);
         if (!isOpen)
             return new List<AvailableTableViewModel>();
 
@@ -108,13 +111,12 @@ public class ReservationService : IReservationService
 
         int maxAllowedCapacity = Math.Max(partySize + 3, 4);
 
-        // Cross-domain rule: read tables through IDiningAreaService
         var allTables = await _diningAreaService.GetTablesAsync();
 
-        var available = allTables
+        return allTables
             .Where(t => t.IsActive
                         && t.Capacity >= partySize
-                        && t.Capacity <= maxAllowedCapacity
+                        && (bypassAdvanceNotice || t.Capacity <= maxAllowedCapacity)
                         && !conflictingTableIds.Contains(t.RestaurantTableId)
                         && (!diningAreaId.HasValue || diningAreaId.Value <= 0 || t.DiningAreaId == diningAreaId.Value))
             .OrderBy(t => t.Capacity)
@@ -128,8 +130,6 @@ public class ReservationService : IReservationService
                 DiningAreaName = t.DiningArea != null ? t.DiningArea.Name : string.Empty
             })
             .ToList();
-
-        return available;
     }
 
     public async Task<(bool Success, string Message, int? ReservationId)> CreateReservationAsync(
@@ -174,7 +174,6 @@ public class ReservationService : IReservationService
             StartTime = startTime,
             EndTime = requestedEnd,
             PartySize = partySize,
-            // Tidy-up #1: New bookings start as Pending; staff confirm them in PB12
             Status = ReservationStatus.Pending,
             SpecialRequests = specialRequests?.Trim() ?? string.Empty,
             CreatedAt = DateTime.UtcNow
@@ -294,6 +293,216 @@ public class ReservationService : IReservationService
         return (true, $"Reservation #{reservationId} has been cancelled.");
     }
 
+    // ---- Sprint 3: PB12 (Staff Daily Reservations & Management) ----
+
+    public async Task<List<ReservationDetailViewModel>> GetStaffDailyReservationsAsync(
+        DateOnly? date,
+        string? statusFilter = null,
+        int? diningAreaId = null,
+        string? searchTerm = null)
+    {
+        var query = _context.Reservations
+            .Include(r => r.RestaurantTable)
+                .ThenInclude(t => t!.DiningArea)
+            .Include(r => r.Customer)
+            .AsQueryable();
+
+        if (date.HasValue)
+        {
+            query = query.Where(r => r.ReservationDate == date.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(statusFilter) &&
+            Enum.TryParse<ReservationStatus>(statusFilter, true, out var parsedStatus))
+        {
+            query = query.Where(r => r.Status == parsedStatus);
+        }
+
+        if (diningAreaId.HasValue && diningAreaId.Value > 0)
+        {
+            query = query.Where(r => r.RestaurantTable != null && r.RestaurantTable.DiningAreaId == diningAreaId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            query = query.Where(r =>
+                (r.Customer != null && (r.Customer.FullName.ToLower().Contains(term) || (r.Customer.Email != null && r.Customer.Email.ToLower().Contains(term)))) ||
+                (r.RestaurantTable != null && r.RestaurantTable.TableNumber.ToLower().Contains(term)) ||
+                r.SpecialRequests.ToLower().Contains(term));
+        }
+
+        var list = await query
+            .OrderBy(r => r.ReservationDate)
+            .ThenBy(r => r.StartTime)
+            .ThenBy(r => r.RestaurantTable!.TableNumber)
+            .ToListAsync();
+
+        return list.Select(MapToDetailViewModel).ToList();
+    }
+
+    public async Task<(bool Success, string Message)> UpdateStatusByStaffAsync(
+        int reservationId,
+        ReservationStatus newStatus)
+    {
+        var reservation = await _context.Reservations
+            .Include(r => r.RestaurantTable)
+            .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
+
+        if (reservation == null)
+            return (false, "Reservation not found.");
+
+        if (reservation.Status == newStatus)
+            return (false, $"Reservation #{reservationId} is already marked as {newStatus}.");
+
+        // If reactivating a Cancelled or NoShow booking to Pending/Confirmed, verify the table hasn't been taken
+        if ((reservation.Status == ReservationStatus.Cancelled || reservation.Status == ReservationStatus.NoShow) &&
+            (newStatus == ReservationStatus.Confirmed || newStatus == ReservationStatus.Pending))
+        {
+            var availableTables = await GetAvailableTablesAsync(
+                reservation.ReservationDate,
+                reservation.StartTime,
+                reservation.PartySize,
+                null,
+                reservation.ReservationId,
+                bypassAdvanceNotice: true);
+
+            if (!availableTables.Any(t => t.RestaurantTableId == reservation.RestaurantTableId))
+            {
+                return (false, $"Cannot reactivate Reservation #{reservationId} because Table {reservation.RestaurantTable?.TableNumber} is now booked by another party during that slot.");
+            }
+        }
+
+        reservation.Status = newStatus;
+        await _context.SaveChangesAsync();
+
+        return (true, $"Reservation #{reservationId} status updated to {newStatus}.");
+    }
+
+    public async Task<(bool Success, string Message)> UpdateReservationByStaffAsync(
+        int reservationId,
+        int restaurantTableId,
+        DateOnly date,
+        TimeOnly startTime,
+        int partySize,
+        ReservationStatus status,
+        string? specialRequests)
+    {
+        if (partySize < 1 || partySize > MaxOnlinePartySize)
+            return (false, $"Party size must be between 1 and {MaxOnlinePartySize}.");
+
+        var reservation = await _context.Reservations
+            .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
+
+        if (reservation == null)
+            return (false, "Reservation not found.");
+
+        var (isOpen, hoursError) = await ValidateOperatingHoursAsync(date, startTime, bypassAdvanceNotice: true);
+        if (!isOpen)
+            return (false, hoursError);
+
+        // Only check table conflicts if the reservation is active (not Cancelled or NoShow)
+        if (status != ReservationStatus.Cancelled && status != ReservationStatus.NoShow)
+        {
+            var availableTables = await GetAvailableTablesAsync(
+                date, startTime, partySize, null, reservationId, bypassAdvanceNotice: true);
+
+            if (!availableTables.Any(t => t.RestaurantTableId == restaurantTableId))
+            {
+                return (false, "The selected table is either occupied during that slot or does not have enough capacity for the party size.");
+            }
+        }
+
+        reservation.RestaurantTableId = restaurantTableId;
+        reservation.ReservationDate = date;
+        reservation.StartTime = startTime;
+        reservation.EndTime = startTime.AddMinutes(DiningDurationMinutes);
+        reservation.PartySize = partySize;
+        reservation.Status = status;
+        reservation.SpecialRequests = specialRequests?.Trim() ?? string.Empty;
+
+        await _context.SaveChangesAsync();
+        return (true, $"Reservation #{reservationId} updated by staff.");
+    }
+
+    // ---- Sprint 3: PB13 (Staff Customer Requests, Preferences & History) ----
+
+    public async Task<CustomerReservationProfileViewModel?> GetCustomerReservationProfileAsync(string customerId)
+    {
+        var customer = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == customerId);
+
+        if (customer == null)
+            return null;
+
+        var reservations = await _context.Reservations
+            .Include(r => r.RestaurantTable)
+                .ThenInclude(t => t!.DiningArea)
+            .Include(r => r.Customer)
+            .Where(r => r.CustomerId == customerId)
+            .OrderByDescending(r => r.ReservationDate)
+            .ThenByDescending(r => r.StartTime)
+            .ToListAsync();
+
+        var mapped = reservations.Select(MapToDetailViewModel).ToList();
+
+        // Compute preferred dining area from past non-cancelled bookings
+        var activeOrCompleted = mapped.Where(r => r.Status != "Cancelled").ToList();
+        var preferredArea = activeOrCompleted
+            .Where(r => !string.IsNullOrEmpty(r.DiningAreaName))
+            .GroupBy(r => r.DiningAreaName)
+            .OrderByDescending(g => g.Count())
+            .Select(g => $"{g.Key} ({g.Count()} visit(s))")
+            .FirstOrDefault() ?? "No preference recorded yet";
+
+        var typicalPartySize = activeOrCompleted.Any()
+            ? (int)Math.Round(activeOrCompleted.Average(r => r.PartySize))
+            : 0;
+
+        var notableRequests = mapped
+            .Where(r => !string.IsNullOrWhiteSpace(r.SpecialRequests))
+            .Select(r => $"{r.ReservationDate:dd/MM/yyyy}: \"{r.SpecialRequests}\"")
+            .Distinct()
+            .Take(8)
+            .ToList();
+
+        return new CustomerReservationProfileViewModel
+        {
+            CustomerId = customer.Id,
+            CustomerName = customer.FullName,
+            CustomerEmail = customer.Email ?? string.Empty,
+            TotalBookings = mapped.Count,
+            CompletedCount = mapped.Count(r => r.Status == "Completed"),
+            CancelledCount = mapped.Count(r => r.Status == "Cancelled"),
+            NoShowCount = mapped.Count(r => r.Status == "NoShow"),
+            PreferredDiningArea = preferredArea,
+            TypicalPartySize = typicalPartySize,
+            NotableRequests = notableRequests,
+            Reservations = mapped
+        };
+    }
+
+    public async Task<List<ReservationDetailViewModel>> GetReservationsWithRequestsAsync(DateOnly? fromDate = null)
+    {
+        var query = _context.Reservations
+            .Include(r => r.RestaurantTable)
+                .ThenInclude(t => t!.DiningArea)
+            .Include(r => r.Customer)
+            .Where(r => r.SpecialRequests != "");
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(r => r.ReservationDate >= fromDate.Value);
+        }
+
+        var list = await query
+            .OrderBy(r => r.ReservationDate)
+            .ThenBy(r => r.StartTime)
+            .ToListAsync();
+
+        return list.Select(MapToDetailViewModel).ToList();
+    }
+
     private static (bool Allowed, string Reason) EvaluateModificationPolicy(
         ReservationStatus status, DateOnly date, TimeOnly startTime)
     {
@@ -328,6 +537,7 @@ public class ReservationService : IReservationService
             RestaurantTableId = r.RestaurantTableId,
             TableNumber = r.RestaurantTable?.TableNumber ?? string.Empty,
             TableCapacity = r.RestaurantTable?.Capacity ?? 0,
+            DiningAreaId = r.RestaurantTable?.DiningAreaId ?? 0,
             DiningAreaName = r.RestaurantTable?.DiningArea?.Name ?? string.Empty,
             ReservationDate = r.ReservationDate,
             StartTime = r.StartTime,

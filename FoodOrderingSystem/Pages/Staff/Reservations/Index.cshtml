@@ -1,0 +1,264 @@
+﻿@page
+@using FoodOrderingSystem.Models.Enums
+@model FoodOrderingSystem.Pages.Staff.Reservations.IndexModel
+@{
+    ViewData["Title"] = "Manage Reservations";
+    int pendingCount = Model.Reservations.Count(r => r.Status == "Pending");
+    int confirmedCount = Model.Reservations.Count(r => r.Status == "Confirmed");
+    int requestsCount = Model.Reservations.Count(r => !string.IsNullOrWhiteSpace(r.SpecialRequests));
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h1 class="mb-0">Staff Reservation Management</h1>
+            <p class="text-muted small mb-0">
+                @(Model.ShowAllDates ? "Showing all dates" : $"Showing bookings for {(Model.FilterDate ?? DateOnly.FromDateTime(DateTime.Today)):dd/MM/yyyy}")
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-warning text-dark p-2">Pending: @pendingCount</span>
+            <span class="badge bg-success p-2">Confirmed: @confirmedCount</span>
+            <span class="badge bg-info text-dark p-2">With Special Requests: @requestsCount</span>
+        </div>
+    </div>
+
+    <!-- Filter Bar (PB12 & PB13) -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label asp-for="FilterDate" class="form-label">Date</label>
+                    <input asp-for="FilterDate" type="date" class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <label asp-for="StatusFilter" class="form-label">Status</label>
+                    <select asp-for="StatusFilter" asp-items="Model.StatusOptions" class="form-select"></select>
+                </div>
+
+                <div class="col-md-2">
+                    <label asp-for="DiningAreaId" class="form-label">Dining Area</label>
+                    <select asp-for="DiningAreaId" asp-items="Model.DiningAreaOptions" class="form-select"></select>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="SearchTerm" class="form-label">Search Customer / Table / Request</label>
+                    <input asp-for="SearchTerm" class="form-control" placeholder="Name, email, table, note..." />
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">Filter</button>
+                    <a asp-page="Index" class="btn btn-outline-secondary">Today</a>
+                </div>
+
+                <div class="col-12 d-flex flex-wrap gap-4 pt-1">
+                    <div class="form-check">
+                        <input asp-for="ShowAllDates" class="form-check-input" />
+                        <label asp-for="ShowAllDates" class="form-check-label small">Show all dates</label>
+                    </div>
+                    <div class="form-check">
+                        <input asp-for="OnlyWithRequests" class="form-check-input" />
+                        <label asp-for="OnlyWithRequests" class="form-check-label small">Only bookings with special requests (PB13)</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Reservations.Any())
+    {
+        <div class="alert alert-info">
+            No reservations found matching the current filters.
+        </div>
+    }
+    else
+    {
+        <!-- Desktop Table -->
+        <div class="table-responsive d-none d-lg-block">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Ref #</th>
+                        <th>Date &amp; Time</th>
+                        <th>Customer</th>
+                        <th>Table &amp; Area</th>
+                        <th>Party</th>
+                        <th>Status</th>
+                        <th>Special Requests (PB13)</th>
+                        <th class="text-end">Staff Actions (PB12)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Reservations)
+                    {
+                        var badgeClass = item.Status switch
+                        {
+                            "Confirmed" => "bg-success",
+                            "Pending" => "bg-warning text-dark",
+                            "Completed" => "bg-primary",
+                            "Cancelled" => "bg-secondary",
+                            "NoShow" => "bg-danger",
+                            _ => "bg-dark"
+                        };
+
+                        <tr>
+                            <td><strong>#@item.ReservationId</strong></td>
+                            <td>
+                                <div>@item.ReservationDate.ToString("dd/MM/yyyy")</div>
+                                <div class="text-muted small">@item.StartTime.ToString("hh:mm tt") – @item.EndTime.ToString("hh:mm tt")</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">@item.CustomerName</div>
+                                <div class="text-muted small">@item.CustomerEmail</div>
+                                <a asp-page="CustomerHistory" asp-route-customerId="@item.CustomerId"
+                                   class="small text-decoration-none">
+                                    View history &amp; preferences &rarr;
+                                </a>
+                            </td>
+                            <td>
+                                <div>Table @item.TableNumber</div>
+                                <div class="text-muted small">@item.DiningAreaName (Max @item.TableCapacity)</div>
+                            </td>
+                            <td>@item.PartySize</td>
+                            <td><span class="badge @badgeClass">@item.Status</span></td>
+                            <td style="max-width: 240px;">
+                                @if (!string.IsNullOrWhiteSpace(item.SpecialRequests))
+                                {
+                                    <div class="p-2 bg-warning-subtle border border-warning rounded small">
+                                        @item.SpecialRequests
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                            <input type="hidden" name="id" value="@item.ReservationId" />
+                                            <input type="hidden" name="newStatus" value="@ReservationStatus.Confirmed" />
+                                            <input type="hidden" name="filterDate" value="@Model.FilterDate?.ToString("yyyy-MM-dd")" />
+                                            <input type="hidden" name="showAllDates" value="@Model.ShowAllDates.ToString()" />
+                                            <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                            <input type="hidden" name="diningAreaId" value="@Model.DiningAreaId" />
+                                            <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="onlyWithRequests" value="@Model.OnlyWithRequests.ToString()" />
+                                            <button type="submit" class="btn btn-sm btn-success">Confirm</button>
+                                        </form>
+                                    }
+                                    @if (item.Status == "Confirmed")
+                                    {
+                                        <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                            <input type="hidden" name="id" value="@item.ReservationId" />
+                                            <input type="hidden" name="newStatus" value="@ReservationStatus.Completed" />
+                                            <input type="hidden" name="filterDate" value="@Model.FilterDate?.ToString("yyyy-MM-dd")" />
+                                            <input type="hidden" name="showAllDates" value="@Model.ShowAllDates.ToString()" />
+                                            <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                            <input type="hidden" name="diningAreaId" value="@Model.DiningAreaId" />
+                                            <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="onlyWithRequests" value="@Model.OnlyWithRequests.ToString()" />
+                                            <button type="submit" class="btn btn-sm btn-primary">Complete</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="UpdateStatus" class="d-inline"
+                                              onsubmit="return confirm('Mark this reservation as No-Show?');">
+                                            <input type="hidden" name="id" value="@item.ReservationId" />
+                                            <input type="hidden" name="newStatus" value="@ReservationStatus.NoShow" />
+                                            <input type="hidden" name="filterDate" value="@Model.FilterDate?.ToString("yyyy-MM-dd")" />
+                                            <input type="hidden" name="showAllDates" value="@Model.ShowAllDates.ToString()" />
+                                            <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                            <input type="hidden" name="diningAreaId" value="@Model.DiningAreaId" />
+                                            <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="onlyWithRequests" value="@Model.OnlyWithRequests.ToString()" />
+                                            <button type="submit" class="btn btn-sm btn-outline-warning text-dark">No-Show</button>
+                                        </form>
+                                    }
+
+                                    <a asp-page="Edit" asp-route-id="@item.ReservationId" class="btn btn-sm btn-outline-secondary">Edit</a>
+
+                                    @if (item.Status != "Cancelled" && item.Status != "Completed")
+                                    {
+                                        <form method="post" asp-page-handler="UpdateStatus" class="d-inline"
+                                              onsubmit="return confirm('Cancel this reservation?');">
+                                            <input type="hidden" name="id" value="@item.ReservationId" />
+                                            <input type="hidden" name="newStatus" value="@ReservationStatus.Cancelled" />
+                                            <input type="hidden" name="filterDate" value="@Model.FilterDate?.ToString("yyyy-MM-dd")" />
+                                            <input type="hidden" name="showAllDates" value="@Model.ShowAllDates.ToString()" />
+                                            <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                            <input type="hidden" name="diningAreaId" value="@Model.DiningAreaId" />
+                                            <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="onlyWithRequests" value="@Model.OnlyWithRequests.ToString()" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile / Tablet Card Layout -->
+        <div class="d-lg-none d-flex flex-column gap-3">
+            @foreach (var item in Model.Reservations)
+            {
+                var badgeClass = item.Status switch
+                {
+                    "Confirmed" => "bg-success",
+                    "Pending" => "bg-warning text-dark",
+                    "Completed" => "bg-primary",
+                    "Cancelled" => "bg-secondary",
+                    "NoShow" => "bg-danger",
+                    _ => "bg-dark"
+                };
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                        <strong>#@item.ReservationId — @item.CustomerName</strong>
+                        <span class="badge @badgeClass">@item.Status</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-1"><strong>Date:</strong> @item.ReservationDate.ToString("dd/MM/yyyy") (@item.StartTime.ToString("hh:mm tt") – @item.EndTime.ToString("hh:mm tt"))</div>
+                        <div class="mb-1"><strong>Table:</strong> Table @item.TableNumber (@item.DiningAreaName) — @item.PartySize guest(s)</div>
+                        <div class="mb-2">
+                            <a asp-page="CustomerHistory" asp-route-customerId="@item.CustomerId" class="small">
+                                View customer preferences &amp; history &rarr;
+                            </a>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(item.SpecialRequests))
+                        {
+                            <div class="p-2 bg-warning-subtle border border-warning rounded small">
+                                <strong>Special Request:</strong> @item.SpecialRequests
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer d-flex flex-wrap gap-2 justify-content-end bg-white">
+                        @if (item.Status == "Pending")
+                        {
+                            <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                <input type="hidden" name="id" value="@item.ReservationId" />
+                                <input type="hidden" name="newStatus" value="@ReservationStatus.Confirmed" />
+                                <input type="hidden" name="showAllDates" value="@Model.ShowAllDates.ToString()" />
+                                <button type="submit" class="btn btn-sm btn-success">Confirm</button>
+                            </form>
+                        }
+                        @if (item.Status == "Confirmed")
+                        {
+                            <form method="post" asp-page-handler="UpdateStatus" class="d-inline">
+                                <input type="hidden" name="id" value="@item.ReservationId" />
+                                <input type="hidden" name="newStatus" value="@ReservationStatus.Completed" />
+                                <input type="hidden" name="showAllDates" value="@Model.ShowAllDates.ToString()" />
+                                <button type="submit" class="btn btn-sm btn-primary">Complete</button>
+                            </form>
+                        }
+                        <a asp-page="Edit" asp-route-id="@item.ReservationId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

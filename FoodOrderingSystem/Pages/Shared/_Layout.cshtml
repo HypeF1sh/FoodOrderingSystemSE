@@ -80,6 +80,15 @@
                             </li>
                         }
 
+                        @if (User.IsInRole("Staff") || User.IsInRole("Administrator"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(currentPage.StartsWith("/Staff/Reservations") ? "active" : "")"
+                                   asp-area=""
+                                   asp-page="/Staff/Reservations/Index">Staff Reservations</a>
+                            </li>
+                        }
+
                         @* Role-aware links go here once Identity is merged (Carynn, PB04).
                            The pattern will be:
                                @if (User.IsInRole("Administrator")) { ...admin links... }
