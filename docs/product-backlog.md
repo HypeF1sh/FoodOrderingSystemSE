@@ -19,9 +19,9 @@ Update the Status column when an item changes. Owner domain: A = Carynn, B = Wal
 | PB11 | As a customer, I want to modify or cancel my reservation. | Medium | Basic | B | 2 | Todo |
 | PB12 | As a staff member, I want to view daily reservations and confirm, modify or cancel them. | High | Basic | B | 3 | Todo |
 | PB13 | As a staff member, I want to view customer requests, dining preferences and reservation history. | Medium | Basic | B | 3 | Todo |
-| PB14 | As a customer, I want to place a food and beverage order. | High | Basic | C | 3 | Todo |
-| PB15 | As a staff member, I want to receive orders and update their status. | High | Intermediate | C | 3 | Todo |
-| PB16 | As a customer, I want to pay online and track my payment status. | High | Intermediate | C | 3 | Todo |
+| PB14 | As a customer, I want to place a food and beverage order. | High | Basic | C | 3 | In progress |
+| PB15 | As a staff member, I want to receive orders and update their status. | High | Intermediate | C | 3 | In progress |
+| PB16 | As a customer, I want to pay online and track my payment status. | High | Intermediate | C | 3 | In progress |
 | PB17 | As a staff member, I want to record payment status and manage billing. | Medium | Basic | B | 3 | Todo |
 | PB18 | As a customer, I want to view my reservation, order and payment history and track status in real time. | Medium | Basic + Intermediate | C | 4 | Todo |
 | PB19 | As a customer, I want to submit ratings and feedback after a completed meal. | Medium | Basic | B | 4 | Todo |

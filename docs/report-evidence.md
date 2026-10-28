@@ -23,6 +23,41 @@ Each report must state which AI tools were used and for what. Keep a note of how
 |---|---|---|
 | 2026-10-11 | Layout shell (Sprint 1) | See the detailed entry below |
 | 2026-10-20 | PB06 + PB08 menu v1 (Sprint 2) | See the detailed entry below — TC-M01–M10 passed 21/10 |
+| 2026-10-22 | PB16 payment + receipt v1 (Sprint 3) | See the detailed entry below — manual run of TC-P01–P13 still to do |
+
+### 2026-10-22 — PB16 payment + receipt (`feature/PB16-payment`)
+
+**Ch.5 screenshots to capture**
+1. Confirmation page with **Unpaid** badge + **Pay now**; the same page after paying (**Paid** + View receipt).
+2. `/Payments/Pay` at 375px — Card / E-wallet tiles, card form, "Pay RM x" button, Demo mode note.
+3. Pay page after a declined card — error message, Failed row in "Payment attempts", card number and CVV boxes empty.
+4. Receipt on screen, then the browser **print preview** (no navbar, footer or buttons).
+5. Staff order board with Paid / Unpaid badges on the cards.
+6. Code excerpts: `PaymentService.PayOnlineAsync` (transaction + row lock + amount from DB),
+   `PassesLuhnCheck`, and `IPaymentGateway` (swappable provider — dependency injection point).
+
+**Ch.6 test cases** (full list in the spec §11)
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-P02 | Pay with `4242 4242 4242 4242`, future expiry, CVV 123 | Receipt shown; Payments row Card / Paid / amount = order total / `SIM-…` ref | |
+| TC-P03 | Pay with `4000 0000 0000 0002` | "Card declined by issuer."; Failed attempt listed; card fields empty | |
+| TC-P05 | `4242 4242 4242 4241` (bad Luhn); expiry `01/24` | "not valid" / "has expired"; nothing saved | |
+| TC-P07 | Paid order: open Pay page; resubmit the old form | "already been paid", no form; still one Paid row | |
+| TC-P10 | Staff: cancel a paid order | "has been paid. Refund it first." | |
+
+**Ch.7 reflection notes**
+- *Double payment race.* Checking "is it paid?" then saving leaves a gap where two tabs both pass the check.
+  Fixed by doing check + save in one transaction after an UPDATE that locks the order row, so the second request waits.
+- *Never echo card data.* `ModelState.Remove` would also delete the field's error message;
+  `ModelState.SetModelValue(key, null, "")` blanks the box but keeps the error.
+- *Simulated gateway behind an interface.* A real provider would replace one class in `Program.cs`;
+  real systems never see raw card numbers at all (hosted payment form, PCI DSS).
+- *Amount never from the form.* A crafted POST with `Amount=1.00` is ignored — `PaymentInput` has no amount field.
+- *TempData cannot hold decimals*, so cash tendered/change are passed to the receipt as strings.
+
+**AI use declaration note:** Claude Code drafted the payment spec, the service and page code, and ran an
+automated smoke test on a throwaway database. The simulated-gateway choice, spec decisions and review were mine.
 
 ### 2026-10-20 — PB06 + PB08 menu (`feature/PB06-PB08-menu`)
 

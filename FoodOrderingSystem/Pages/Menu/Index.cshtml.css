@@ -214,3 +214,16 @@
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+/* ---- PB14: Add button + sticky cart bar ---------------------------------- */
+.menu-card-add {
+    margin-top: 0.5rem;
+}
+
+.menu-cart-bar {
+    position: sticky;
+    bottom: 0;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid #dee2e6;
+}

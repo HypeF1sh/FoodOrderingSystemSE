@@ -1,0 +1,202 @@
+@page "{orderId:int}"
+@using FoodOrderingSystem.Models.Enums
+@using FoodOrderingSystem.ViewModels
+@model FoodOrderingSystem.Pages.Payments.PayModel
+@{
+    ViewData["Title"] = "Pay";
+    var order = Model.Order!; // ! is safe: OnGet/OnPost return NotFound before rendering when Order is null
+    var itemCount = order.Lines.Sum(l => l.Quantity);
+}
+
+<div class="container mt-4">
+    <h1>Pay for order #@order.OrderId</h1>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <span>Order #@order.OrderId</span>
+                    <partial name="_PaymentStatusBadge" model="order.Payment.Status" />
+                </div>
+                <div class="card-body">
+                    <!-- Order summary: folded away so the form is near the top on a phone -->
+                    <details class="mb-3">
+                        <summary>@itemCount item@(itemCount == 1 ? "" : "s")</summary>
+                        <ul class="list-unstyled mt-2 mb-0">
+                            @foreach (var line in order.Lines)
+                            {
+                                <li class="d-flex justify-content-between gap-2 py-1 border-bottom">
+                                    <span>@line.Quantity × @line.Name</span>
+                                    <span class="text-nowrap">RM @line.LineTotal.ToString("0.00")</span>
+                                </li>
+                            }
+                        </ul>
+                    </details>
+                    <div class="d-flex justify-content-between fw-semibold fs-5 mb-4">
+                        <span>Total</span>
+                        <span>RM @order.TotalAmount.ToString("0.00")</span>
+                    </div>
+
+                    @if (!order.CanPay)
+                    {
+                        <div class="alert alert-info">@order.CannotPayReason</div>
+                        @if (order.Payment.PaidPaymentId != null)
+                        {
+                            <a asp-page="./Receipt" asp-route-paymentId="@order.Payment.PaidPaymentId" class="btn btn-primary">View receipt</a>
+                        }
+                        <a asp-page="/Orders/Confirmation" asp-route-id="@order.OrderId" class="btn btn-secondary">Back to my order</a>
+                    }
+                    else
+                    {
+                        <form method="post" id="payForm">
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <!-- Method chooser: two big radio "tiles" -->
+                            <div class="row g-2 mb-3" role="radiogroup" aria-label="Payment method">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" asp-for="Input.Method" id="methodCard"
+                                           value="@PaymentMethod.Card" />
+                                    <label class="btn btn-outline-primary w-100 py-3" for="methodCard">Card</label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" asp-for="Input.Method" id="methodWallet"
+                                           value="@PaymentMethod.EWallet" />
+                                    <label class="btn btn-outline-primary w-100 py-3" for="methodWallet">E-wallet</label>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Input.Method" class="text-danger"></span>
+
+                            <!-- Card fields. Without JavaScript both fieldsets show and the radio decides. -->
+                            <fieldset id="cardFields" data-method="@PaymentMethod.Card">
+                                <legend class="visually-hidden">Card details</legend>
+                                <div class="mb-3">
+                                    <label asp-for="Input.CardHolderName" class="form-label"></label>
+                                    <input asp-for="Input.CardHolderName" class="form-control" autocomplete="cc-name" />
+                                    <span asp-validation-for="Input.CardHolderName" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="Input.CardNumber" class="form-label"></label>
+                                    <input asp-for="Input.CardNumber" class="form-control" id="cardNumber"
+                                           autocomplete="cc-number" inputmode="numeric" maxlength="23"
+                                           placeholder="1234 5678 9012 3456" />
+                                    <span asp-validation-for="Input.CardNumber" class="text-danger"></span>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label asp-for="Input.Expiry" class="form-label"></label>
+                                        <input asp-for="Input.Expiry" class="form-control" id="cardExpiry"
+                                               autocomplete="cc-exp" inputmode="numeric" maxlength="5" placeholder="MM/YY" />
+                                        <span asp-validation-for="Input.Expiry" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-6">
+                                        <label asp-for="Input.Cvv" class="form-label"></label>
+                                        <input asp-for="Input.Cvv" type="password" class="form-control"
+                                               autocomplete="cc-csc" inputmode="numeric" maxlength="4" />
+                                        <span asp-validation-for="Input.Cvv" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <!-- E-wallet fields -->
+                            <fieldset id="walletFields" data-method="@PaymentMethod.EWallet">
+                                <legend class="visually-hidden">E-wallet details</legend>
+                                <div class="mb-3">
+                                    <label asp-for="Input.WalletPhone" class="form-label"></label>
+                                    <input asp-for="Input.WalletPhone" class="form-control" autocomplete="tel"
+                                           inputmode="numeric" maxlength="11" placeholder="0123456789" />
+                                    <span asp-validation-for="Input.WalletPhone" class="text-danger"></span>
+                                </div>
+                            </fieldset>
+
+                            <button type="submit" id="payButton" class="btn btn-success btn-lg w-100 mb-3">
+                                Pay RM @order.TotalAmount.ToString("0.00")
+                            </button>
+
+                            <div class="alert alert-light border small mb-0">
+                                <strong>Demo mode</strong> — no real money is taken.
+                                Card <code>4242 4242 4242 4242</code> is approved, <code>4000 0000 0000 0002</code> is declined.
+                                Any e-wallet number ending in <code>0000</code> is declined.
+                            </div>
+                        </form>
+
+                        <p class="text-muted mt-3 mb-0">Prefer cash? Pay at the counter.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment attempts: this is how the customer tracks payment status -->
+        @if (order.Attempts.Count > 0)
+        {
+            <div class="col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-header">Payment attempts</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 align-middle">
+                            <thead>
+                                <tr><th>Time</th><th>Method</th><th>Status</th><th>Reference</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var attempt in order.Attempts)
+                                {
+                                    <tr>
+                                        <td class="text-nowrap">@attempt.AttemptedAt.ToString("hh:mm tt")</td>
+                                        <td>@PaymentStatusDisplay.MethodLabel(attempt.Method)</td>
+                                        <td><partial name="_PaymentStatusBadge" model="attempt.Status" /></td>
+                                        <td class="small text-break">@attempt.TransactionRef</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var form = document.getElementById('payForm');
+            if (!form) return;
+
+            // Show only the fieldset for the chosen method. Hidden fields are skipped by
+            // jQuery Validation, and the server ignores them too (PayModel step 1).
+            var fieldsets = [document.getElementById('cardFields'), document.getElementById('walletFields')];
+            function showChosenMethod() {
+                var chosen = form.querySelector('input[name="Input.Method"]:checked');
+                fieldsets.forEach(function (fs) {
+                    fs.classList.toggle('d-none', !chosen || fs.dataset.method !== chosen.value);
+                });
+            }
+            form.querySelectorAll('input[name="Input.Method"]').forEach(function (radio) {
+                radio.addEventListener('change', showChosenMethod);
+            });
+            showChosenMethod();
+
+            // Card number in groups of four as it is typed: 4242 4242 4242 4242
+            var cardNumber = document.getElementById('cardNumber');
+            cardNumber.addEventListener('input', function () {
+                var digits = cardNumber.value.replace(/\D/g, '').slice(0, 19);
+                cardNumber.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+            });
+
+            // Expiry: add the slash after the month
+            var expiry = document.getElementById('cardExpiry');
+            expiry.addEventListener('input', function () {
+                var digits = expiry.value.replace(/\D/g, '').slice(0, 4);
+                expiry.value = digits.length > 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits;
+            });
+
+            // Stop a double click paying twice (the server also refuses a second payment)
+            form.addEventListener('submit', function () {
+                if (window.jQuery && !jQuery(form).valid()) return;
+                var button = document.getElementById('payButton');
+                button.disabled = true;
+                button.textContent = 'Processing…';
+            });
+        })();
+    </script>
+}

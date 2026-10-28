@@ -1,0 +1,92 @@
+@page "{paymentId:int}"
+@using FoodOrderingSystem.Models.Enums
+@using FoodOrderingSystem.ViewModels
+@model FoodOrderingSystem.Pages.Payments.ReceiptModel
+@{
+    ViewData["Title"] = "Receipt";
+    var receipt = Model.Receipt!; // ! is safe: OnGetAsync returns NotFound before rendering when Receipt is null
+}
+
+@* Print only the receipt. This has to be a plain <style> block rather than Receipt.cshtml.css:
+   scoped CSS cannot reach the layout's header and footer, and the shared _Layout.cshtml stays unchanged. *@
+<style>
+    @@media print {
+        header, footer, .rr-banner { display: none !important; }
+        .receipt { box-shadow: none !important; border: 0 !important; }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="card shadow receipt mx-auto">
+        <div class="card-body">
+            <div class="text-center mb-3">
+                <h1 class="h4 mb-1">@receipt.RestaurantName</h1>
+                <div class="text-muted">Receipt @receipt.ReceiptNumber</div>
+                <span class="badge @PaymentStatusDisplay.BadgeClass(receipt.Status) fs-6 mt-2">@receipt.Status.ToString().ToUpper()</span>
+            </div>
+
+            <dl class="row small mb-3">
+                <dt class="col-5 fw-normal text-muted">Date</dt>
+                <dd class="col-7 text-end mb-1">@receipt.PaidAt.ToString("dd/MM/yyyy hh:mm tt")</dd>
+                <dt class="col-5 fw-normal text-muted">Order</dt>
+                <dd class="col-7 text-end mb-1">#@receipt.OrderId</dd>
+                <dt class="col-5 fw-normal text-muted">Customer</dt>
+                <dd class="col-7 text-end mb-0">@receipt.CustomerName</dd>
+            </dl>
+
+            <ul class="list-unstyled border-top border-bottom py-2 mb-2">
+                @foreach (var line in receipt.Lines)
+                {
+                    <li class="d-flex justify-content-between gap-2 py-1">
+                        <span>@line.Quantity × @line.Name</span>
+                        <span class="text-nowrap">RM @line.LineTotal.ToString("0.00")</span>
+                    </li>
+                }
+            </ul>
+
+            <div class="d-flex justify-content-between fw-semibold fs-5 mb-3">
+                <span>Total</span>
+                <span>RM @receipt.Amount.ToString("0.00")</span>
+            </div>
+
+            <dl class="row small mb-3">
+                <dt class="col-5 fw-normal text-muted">Paid by</dt>
+                <dd class="col-7 text-end mb-1">@PaymentStatusDisplay.MethodLabel(receipt.Method)</dd>
+                @if (receipt.AmountTendered != null && receipt.Change != null)
+                {
+                    <dt class="col-5 fw-normal text-muted">Cash received</dt>
+                    <dd class="col-7 text-end mb-1">RM @receipt.AmountTendered.Value.ToString("0.00")</dd>
+                    <dt class="col-5 fw-normal text-muted">Change</dt>
+                    <dd class="col-7 text-end mb-1">RM @receipt.Change.Value.ToString("0.00")</dd>
+                }
+                <dt class="col-5 fw-normal text-muted">Reference</dt>
+                <dd class="col-7 text-end mb-1 text-break">@receipt.TransactionRef</dd>
+                @if (receipt.RecordedByName != null)
+                {
+                    <dt class="col-5 fw-normal text-muted">Served by</dt>
+                    <dd class="col-7 text-end mb-0">@receipt.RecordedByName</dd>
+                }
+            </dl>
+
+            @if (receipt.Status == PaymentStatus.Refunded)
+            {
+                <div class="alert alert-secondary small">This payment has been refunded.</div>
+            }
+
+            <p class="text-center text-muted mb-3">Thank you for dining with us.</p>
+
+            <div class="d-flex gap-2 d-print-none">
+                <button type="button" class="btn btn-primary flex-fill" onclick="window.print()">Print</button>
+                @if (Model.IsStaffOrAdmin)
+                {
+                    @* TODO(PB17): point to Wallace's billing page once it exists *@
+                    <a asp-page="/Staff/Orders/Index" class="btn btn-secondary flex-fill">Back to orders</a>
+                }
+                else
+                {
+                    <a asp-page="/Orders/Confirmation" asp-route-id="@receipt.OrderId" class="btn btn-secondary flex-fill">Back to my order</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
