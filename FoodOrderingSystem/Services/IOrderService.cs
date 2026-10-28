@@ -30,6 +30,6 @@ public interface IOrderService
     /// if the order has moved on since, nothing changes. Returns (success, message).</summary>
     Task<(bool Success, string Message)> AdvanceStatusAsync(int orderId, OrderStatus currentStatus);
 
-    /// <summary>Cancels an order that is still Pending or Preparing. Returns (success, message).</summary>
+    /// <summary>Cancels an order that is still Pending or Preparing and has not been paid. Returns (success, message).</summary>
     Task<(bool Success, string Message)> CancelOrderAsync(int orderId, OrderStatus currentStatus);
 }

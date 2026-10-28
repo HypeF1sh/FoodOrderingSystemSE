@@ -27,7 +27,11 @@
                         }
                     </ul>
 
-                    @if (!order.CanCancel)
+                    @if (order.IsPaid)
+                    {
+                        <div class="alert alert-warning">This order has been paid. Refund it first.</div>
+                    }
+                    else if (!order.CanCancel)
                     {
                         <div class="alert alert-warning">This order can no longer be cancelled — only Pending or Preparing orders can.</div>
                     }

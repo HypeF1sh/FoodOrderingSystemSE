@@ -1,4 +1,5 @@
 @page "{id:int}"
+@using FoodOrderingSystem.Models.Enums
 @model FoodOrderingSystem.Pages.Orders.ConfirmationModel
 @{
     ViewData["Title"] = "Order Placed";
@@ -13,7 +14,10 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">@order.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span>
-                        <partial name="_OrderStatusBadge" model="order.Status" />
+                        <span class="d-flex gap-1">
+                            <partial name="_OrderStatusBadge" model="order.Status" />
+                            <partial name="/Pages/Payments/_PaymentStatusBadge.cshtml" model="Model.Payment.Status" />
+                        </span>
                     </div>
 
                     <ul class="list-unstyled mb-3">
@@ -37,8 +41,21 @@
 
                     <p class="text-muted">The kitchen has your order. You can pay at the counter or online.</p>
 
-                    @* PB16 adds a "Pay now" button here, linking to the payment page for this order *@
-                    <a asp-page="/Menu/Index" class="btn btn-secondary">Back to menu</a>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.Payment.IsPaid)
+                        {
+                            <a asp-page="/Payments/Receipt" asp-route-paymentId="@Model.Payment.PaidPaymentId" class="btn btn-primary">View receipt</a>
+                        }
+                        else if (order.Status != OrderStatus.Cancelled && Model.Payment.Status != PaymentStatus.Refunded)
+                        {
+                            <a asp-page="/Payments/Pay" asp-route-orderId="@order.OrderId" class="btn btn-primary">Pay now</a>
+                        }
+                        <a asp-page="/Menu/Index" class="btn btn-secondary">Back to menu</a>
+                    </div>
+                    @if (!Model.Payment.IsPaid && order.Status != OrderStatus.Cancelled)
+                    {
+                        <p class="text-muted small mt-2 mb-0">Prefer cash? Pay at the counter.</p>
+                    }
                 </div>
             </div>
         </div>

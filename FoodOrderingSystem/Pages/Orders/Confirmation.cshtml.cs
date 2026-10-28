@@ -12,13 +12,18 @@ namespace FoodOrderingSystem.Pages.Orders;
 public class ConfirmationModel : PageModel
 {
     private readonly IOrderService _orderService;
+    private readonly IPaymentService _paymentService;
 
-    public ConfirmationModel(IOrderService orderService)
+    public ConfirmationModel(IOrderService orderService, IPaymentService paymentService)
     {
         _orderService = orderService;
+        _paymentService = paymentService;
     }
 
     public OrderConfirmationViewModel? Order { get; set; }
+
+    // PB16: decides between "Pay now" and "View receipt"
+    public OrderPaymentSummary Payment { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -28,6 +33,7 @@ public class ConfirmationModel : PageModel
         Order = await _orderService.GetConfirmationAsync(id, customerId);
         if (Order == null) return NotFound();
 
+        Payment = await _paymentService.GetPaymentSummaryAsync(id);
         return Page();
     }
 }

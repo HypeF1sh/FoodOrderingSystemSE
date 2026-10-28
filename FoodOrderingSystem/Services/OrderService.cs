@@ -172,7 +172,11 @@ public class OrderService : IOrderService
         if (!CanBeCancelled(currentStatus))
             return (false, $"Order #{orderId} is {OrderStatusDisplay.Label(currentStatus).ToLower()} and can no longer be cancelled.");
 
-        // 2. Same one-statement check-and-update as AdvanceStatusAsync
+        // 2. A paid order keeps the customer's money, so it must be refunded before it is cancelled (PB16)
+        if (await _context.Payments.AnyAsync(p => p.OrderId == orderId && p.Status == PaymentStatus.Paid))
+            return (false, $"Order #{orderId} has been paid. Refund it first.");
+
+        // 3. Same one-statement check-and-update as AdvanceStatusAsync
         var updated = await _context.Orders
             .Where(o => o.OrderId == orderId && o.Status == currentStatus)
             .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, OrderStatus.Cancelled));
@@ -200,7 +204,7 @@ public class OrderService : IOrderService
     private static void SetAllowedActions(StaffOrderViewModel order)
     {
         order.NextStatus = GetNextStatus(order.Status);
-        order.CanCancel = CanBeCancelled(order.Status);
+        order.CanCancel = CanBeCancelled(order.Status) && !order.IsPaid;
     }
 
     // Nothing was updated: either the order does not exist, or someone else changed it first
@@ -229,6 +233,11 @@ public class OrderService : IOrderService
             Status = o.Status,
             TotalAmount = o.TotalAmount,
             Notes = o.Notes,
+            // Same order of precedence as PaymentService: any Paid wins, then Refunded, then Failed
+            PaymentStatus = o.Payments.Any(p => p.Status == PaymentStatus.Paid) ? PaymentStatus.Paid
+                : o.Payments.Any(p => p.Status == PaymentStatus.Refunded) ? PaymentStatus.Refunded
+                : o.Payments.Any(p => p.Status == PaymentStatus.Failed) ? PaymentStatus.Failed
+                : PaymentStatus.Unpaid,
             Lines = o.OrderItems
                 .OrderBy(oi => oi.OrderItemId)
                 .Select(oi => new OrderLineViewModel

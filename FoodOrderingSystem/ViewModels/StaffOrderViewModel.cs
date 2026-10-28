@@ -14,6 +14,10 @@ public class StaffOrderViewModel
     public string Notes { get; set; } = string.Empty;
     public List<OrderLineViewModel> Lines { get; set; } = new();
 
+    // PB16: shown as a badge so staff can see who still owes. Paid if any payment attempt succeeded.
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
+    public bool IsPaid => PaymentStatus == PaymentStatus.Paid;
+
     // Worked out by the service from the transition rules, so the page never decides what is allowed
     public OrderStatus? NextStatus { get; set; }
     public bool CanCancel { get; set; }

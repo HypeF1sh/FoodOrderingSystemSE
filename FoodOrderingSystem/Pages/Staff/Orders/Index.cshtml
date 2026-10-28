@@ -72,7 +72,10 @@
                             <div class="alert alert-warning py-2 mb-2">@order.Notes</div>
                         }
 
-                        <div class="text-muted">Total RM @order.TotalAmount.ToString("0.00")</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Total RM @order.TotalAmount.ToString("0.00")</span>
+                            <partial name="/Pages/Payments/_PaymentStatusBadge.cshtml" model="order.PaymentStatus" />
+                        </div>
                     </div>
 
                     @if (order.NextStatus != null || order.CanCancel)
