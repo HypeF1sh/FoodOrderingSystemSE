@@ -1,0 +1,120 @@
+﻿@page "{customerId}"
+@model FoodOrderingSystem.Pages.Staff.Reservations.CustomerHistoryModel
+@{
+    ViewData["Title"] = "Customer Preferences & History";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">@Model.Profile!.CustomerName</h1>
+            <p class="text-muted mb-0">@Model.Profile.CustomerEmail</p>
+        </div>
+        <a asp-page="Index" class="btn btn-outline-secondary">Back to Reservations</a>
+    </div>
+
+    <!-- Summary & Dining Preferences Cards (PB13) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <strong>Dining Preferences &amp; Summary</strong>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Preferred Area</dt>
+                        <dd class="col-sm-7">@Model.Profile.PreferredDiningArea</dd>
+
+                        <dt class="col-sm-5">Typical Party Size</dt>
+                        <dd class="col-sm-7">
+                            @(Model.Profile.TypicalPartySize > 0 ? $"{Model.Profile.TypicalPartySize} guest(s)" : "N/A")
+                        </dd>
+
+                        <dt class="col-sm-5">Booking Record</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-dark me-1">Total: @Model.Profile.TotalBookings</span>
+                            <span class="badge bg-primary me-1">Completed: @Model.Profile.CompletedCount</span>
+                            <span class="badge bg-secondary me-1">Cancelled: @Model.Profile.CancelledCount</span>
+                            <span class="badge bg-danger">No-Show: @Model.Profile.NoShowCount</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <strong>Notable Special Requests &amp; Dietary Notes</strong>
+                </div>
+                <div class="card-body">
+                    @if (!Model.Profile.NotableRequests.Any())
+                    {
+                        <p class="text-muted mb-0">No special requests recorded across past bookings.</p>
+                    }
+                    else
+                    {
+                        <ul class="mb-0 ps-3">
+                            @foreach (var note in Model.Profile.NotableRequests)
+                            {
+                                <li class="mb-1">@note</li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Reservation History Table (PB13) -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <strong>Full Reservation History (@Model.Profile.Reservations.Count)</strong>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">Ref #</th>
+                            <th>Date</th>
+                            <th>Time Slot</th>
+                            <th>Table &amp; Area</th>
+                            <th>Party Size</th>
+                            <th>Status</th>
+                            <th>Special Requests</th>
+                            <th class="text-end pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.Profile.Reservations)
+                    {
+                        var badgeClass = item.Status switch
+                        {
+                            "Confirmed" => "bg-success",
+                            "Pending" => "bg-warning text-dark",
+                            "Completed" => "bg-primary",
+                            "Cancelled" => "bg-secondary",
+                            "NoShow" => "bg-danger",
+                            _ => "bg-dark"
+                        };
+
+                        <tr>
+                            <td class="ps-3">#@item.ReservationId</td>
+                            <td>@item.ReservationDate.ToString("dd/MM/yyyy")</td>
+                            <td>@item.StartTime.ToString("hh:mm tt") – @item.EndTime.ToString("hh:mm tt")</td>
+                            <td>Table @item.TableNumber (@item.DiningAreaName)</td>
+                            <td>@item.PartySize</td>
+                            <td><span class="badge @badgeClass">@item.Status</span></td>
+                            <td class="text-muted small">@(string.IsNullOrWhiteSpace(item.SpecialRequests) ? "-" : item.SpecialRequests)</td>
+                            <td class="text-end pe-3">
+                                <a asp-page="Edit" asp-route-id="@item.ReservationId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

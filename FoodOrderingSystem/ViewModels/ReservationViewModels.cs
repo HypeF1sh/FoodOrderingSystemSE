@@ -25,6 +25,7 @@ public class ReservationDetailViewModel
     public int RestaurantTableId { get; set; }
     public string TableNumber { get; set; } = string.Empty;
     public int TableCapacity { get; set; }
+    public int DiningAreaId { get; set; }
     public string DiningAreaName { get; set; } = string.Empty;
     public DateOnly ReservationDate { get; set; }
     public TimeOnly StartTime { get; set; }
@@ -36,4 +37,23 @@ public class ReservationDetailViewModel
 
     public bool CanModifyOrCancel { get; set; }
     public string? LockReason { get; set; }
+}
+
+// PB13: Holds a customer's dining preferences, special requests, and full reservation history for staff review.
+public class CustomerReservationProfileViewModel
+{
+    public string CustomerId { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+
+    public int TotalBookings { get; set; }
+    public int CompletedCount { get; set; }
+    public int CancelledCount { get; set; }
+    public int NoShowCount { get; set; }
+
+    public string PreferredDiningArea { get; set; } = "No preference yet";
+    public int TypicalPartySize { get; set; }
+    public List<string> NotableRequests { get; set; } = new();
+
+    public List<ReservationDetailViewModel> Reservations { get; set; } = new();
 }
