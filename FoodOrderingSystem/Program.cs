@@ -62,6 +62,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// PB16 payment. Swap SimulatedPaymentGateway for a real provider here; nothing else changes.
+builder.Services.AddScoped<IPaymentGateway, SimulatedPaymentGateway>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
