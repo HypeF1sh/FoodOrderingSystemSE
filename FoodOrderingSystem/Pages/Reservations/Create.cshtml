@@ -33,8 +33,8 @@
                 </div>
 
                 <div class="col-md-2">
-                    <label asp-for="Search.PartySize" class="form-label">Party Size</label>
-                    <input asp-for="Search.PartySize" type="number" min="1" max="20" class="form-control" />
+                    <label asp-for="Search.PartySize" class="form-label">Party Size (1–8)</label>
+                    <input asp-for="Search.PartySize" type="number" min="1" max="8" class="form-control" />
                 </div>
 
                 <div class="col-md-3">
@@ -46,6 +46,9 @@
                     <button type="submit" class="btn btn-primary">Check Tables</button>
                 </div>
             </form>
+            <div class="form-text mt-2">
+                Maximum online party size is 8 guests. Planning a larger gathering? Please call us directly so we can arrange combined seating.
+            </div>
         </div>
     </div>
 
@@ -62,8 +65,8 @@
                 <div class="card-header bg-light">
                     <strong>2. Select a Table &amp; Confirm (@Model.AvailableTables.Count available)</strong>
                     <span class="text-muted small ms-2">
-                        for @Model.Search.PartySize guest(s) on @Model.Search.Date.ToString("dd MMM yyyy"),
-                        @Model.Search.StartTime.ToString("HH:mm") – @Model.Search.StartTime.AddMinutes(90).ToString("HH:mm")
+                        for @Model.Search.PartySize guest(s) on @Model.Search.Date.ToString("dd/MM/yyyy"),
+                        @Model.Search.StartTime.ToString("hh:mm tt") – @Model.Search.StartTime.AddMinutes(90).ToString("hh:mm tt")
                     </span>
                 </div>
                 <div class="card-body">
@@ -106,7 +109,7 @@
                             <span asp-validation-for="Input.SpecialRequests" class="text-danger"></span>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Confirm Reservation</button>
+                        <button type="submit" class="btn btn-primary">Submit Reservation Request</button>
                     </form>
                 </div>
             </div>

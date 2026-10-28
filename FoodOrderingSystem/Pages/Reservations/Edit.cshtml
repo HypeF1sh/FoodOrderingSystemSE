@@ -35,21 +35,24 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Party Size</label>
+                            <label class="form-label">Party Size (1–8)</label>
                             <input type="number" name="partySize" value="@Model.Input.PartySize"
-                                   min="1" max="20" class="form-control" />
+                                   min="1" max="8" class="form-control" />
                         </div>
 
                         <div class="col-12">
                             <button type="submit" class="btn btn-sm btn-outline-primary">
                                 Update Available Tables for This Slot
                             </button>
+                            <div class="form-text mt-1">
+                                Maximum online party size is 8 guests. Please call us directly for larger groups.
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Step 2: Select Table & Save Changes (POST) -->
+            <!-- Step 2: Confirm Table & Save Changes (POST) -->
             <div class="card">
                 <div class="card-header bg-light">
                     <strong>2. Confirm Table &amp; Save Changes</strong>
@@ -71,8 +74,8 @@
                         <div class="mb-3">
                             <label class="form-label text-muted small">Selected Slot</label>
                             <div class="fw-bold">
-                                @Model.Input.Date.ToString("dd MMM yyyy"),
-                                @Model.Input.StartTime.ToString("HH:mm") – @Model.Input.StartTime.AddMinutes(90).ToString("HH:mm")
+                                @Model.Input.Date.ToString("dd/MM/yyyy"),
+                                @Model.Input.StartTime.ToString("hh:mm tt") – @Model.Input.StartTime.AddMinutes(90).ToString("hh:mm tt")
                                 (@Model.Input.PartySize guest(s))
                             </div>
                         </div>

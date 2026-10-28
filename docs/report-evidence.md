@@ -149,7 +149,40 @@ Design direction, the decision to cap the content width and all review of the ou
 
 | Date | Item | Evidence / note |
 |---|---|---|
-| | | |
+| 2026-10-14 | ER diagram (`docs/diagrams/ERD.drawio`, `ERD.png`) | 15-table normalized schema; updated `User` to `ApplicationUser` (`Id` string PK) and exported on white background |
+| 2026-10-14 | Core database schema & seed (`feature/schema`) | 4 enums, 14 entity models, `AddCoreSchema` migration, `DbSeeder` (2 areas, 8 tables, 7 operating hours, 4 categories, 15 items) |
+| 2026-10-22 | PB09 + PB10 + PB11 customer reservations (`feature/PB09-11-reservations` & `fix/sprint2-tidyup-wallace`) | See detailed entry below — TC-R01–R09 passed |
+
+### 2026-10-22 — PB09 + PB10 + PB11 customer reservations (`feature/PB09-11-reservations`)
+
+**Ch.5 screenshots to capture**
+1. `/Reservations/Create` after searching for 2 guests — showing available tables (`G1`, `M1`, `M2`, `G2`, `M3`, `M4`) with 6- and 8-seater tables hidden to prevent capacity waste.
+2. `/Reservations/Confirmation/{id}` — showing a newly created reservation in `Pending` status with `dd/MM/yyyy` and `hh:mm tt` formatting.
+3. `/Reservations` (My Reservations) at desktop width (1280px) vs phone width (375px) — showing the responsive table-to-card switch (`d-none d-md-block` vs `d-md-none`).
+4. `/Reservations/Edit/{id}` — modifying a reservation slot and re-checking available tables while excluding the current reservation ID from self-conflict.
+5. Code excerpt: `ReservationService.GetAvailableTablesAsync` (90-minute dining slot + 15-minute turnover buffer overlap formula and cross-domain calls to `IDiningAreaService` and `IOperatingHoursService`).
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-R01 | Logged out, navigate to `/Reservations/Create` | Redirected to `/Identity/Account/Login` via folder authorization | Pass |
+| TC-R02 | Log in as `customer@rroms.com`, search valid future date at 06:00 PM for 2 guests | Available 2- and 4-seater tables displayed; 6- and 8-seater tables excluded | Pass |
+| TC-R03 | Select Table G1, enter special request, submit booking | Saved with `Pending` status; redirected to Confirmation page with green `TempData` banner | Pass |
+| TC-R04 | Search the same date at 06:30 PM (or 07:35 PM inside the 15-min buffer) | Table G1 is excluded from available tables due to the 90m + 15m overlap window | Pass |
+| TC-R05 | Attempt to book a second table with the same customer account at 06:30 PM | Refused with "You already have an active reservation during this time window." | Pass |
+| TC-R06 | Enter party size > 8 or time outside opening hours (e.g., 10:00 PM when closing is 11:00 PM) | Friendly validation error shown; last seating enforces 90m before closing | Pass |
+| TC-R07 | Open `/Reservations` at 375px phone width | Table collapses into stacked mobile cards with no horizontal scrollbar | Pass |
+| TC-R08 | Click Modify on an upcoming booking (> 2h away), change table/time, save | Reservation updated; self-conflict excluded via `excludeReservationId` | Pass |
+| TC-R09 | Click Cancel on an upcoming booking (> 2h away) | Status changes to `Cancelled`; Modify/Cancel buttons hidden; table freed for other bookings | Pass |
+
+**Ch.7 reflection notes**
+- *Why exact-time matching fails for reservations.* Checking `StartTime == requestedStartTime` would allow a 6:30 PM booking to double-book a table already reserved from 6:00 PM to 7:30 PM. Implemented interval overlap logic (`r.StartTime < windowEnd && r.EndTime > windowStart`) with a 90-minute dining slot plus a 15-minute turnover buffer on both ends.
+- *Cross-domain service boundaries.* Initially `ReservationService` queried `_context.DiningAreas`, `_context.RestaurantTables`, and `_context.OperatingHours` directly. Refactored to inject `IDiningAreaService` and `IOperatingHoursService` so Domain B respects Domain A's service boundary.
+- *SQL Server multiple cascade paths.* During `AddCoreSchema`, having `Reservation`, `Order`, and `Feedback` all cascade-delete from `ApplicationUser` caused SQL Server cycle errors. Solved by configuring `DeleteBehavior.Restrict` / `NoAction` in `OnModelCreating`.
+- *Midnight wrap-around with `TimeOnly`.* Calling `StartTime.AddMinutes(90)` on a late time like `23:00` wraps past midnight to `00:30`, making `endTime > CloseTime` evaluate falsely. Fixed by comparing `startTime > hours.CloseTime.AddMinutes(-90)` (`lastSeatingTime`) directly.
+
+**AI use declaration note:** Gemini was used to review EF Core `OnModelCreating` cascade configurations, verify edge cases in the time-interval overlap math, and assist with scaffolding Razor Page markup and test case tables. Schema design, business rules, and testing were verified by me.
 
 ## Caryn — Domain A
 
