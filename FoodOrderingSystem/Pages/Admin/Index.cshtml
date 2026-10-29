@@ -1,0 +1,85 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<div class="container py-4">
+    <h1 class="mb-1">Admin</h1>
+    <p class="text-muted mb-4">Manage the restaurant from one place.</p>
+
+    <div class="row g-3">
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Users</h5>
+                    <p class="card-text text-muted">Accounts, roles, and who can log in.</p>
+                    <a asp-page="/Admin/Users/Index" class="btn btn-outline-primary mt-auto">Manage users</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Dining areas</h5>
+                    <p class="card-text text-muted">Indoor, outdoor and other seating areas.</p>
+                    <a asp-page="/Admin/DiningAreas/Index" class="btn btn-outline-primary mt-auto">Manage areas</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Tables</h5>
+                    <p class="card-text text-muted">Table numbers, capacity and availability.</p>
+                    <a asp-page="/Admin/Tables/Index" class="btn btn-outline-primary mt-auto">Manage tables</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Menu</h5>
+                    <p class="card-text text-muted">Categories, items, prices and availability.</p>
+                    <a asp-page="/Admin/Menu/Index" class="btn btn-outline-primary mt-auto">Manage menu</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Operating hours</h5>
+                    <p class="card-text text-muted">Opening and closing times for each day.</p>
+                    <a asp-page="/Admin/OperatingHours/Index" class="btn btn-outline-primary mt-auto">Edit hours</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Promotions</h5>
+                    <p class="card-text text-muted">Discounts and special offers.</p>
+                    <a asp-page="/Admin/Promotions/Index" class="btn btn-outline-primary mt-auto">Manage promotions</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Announcements</h5>
+                    <p class="card-text text-muted">News and notices for customers.</p>
+                    <a asp-page="/Admin/Announcements/Index" class="btn btn-outline-primary mt-auto">Manage announcements</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Settings</h5>
+                    <p class="card-text text-muted">Restaurant name, phone, address and more.</p>
+                    <a asp-page="/Admin/Settings/Index" class="btn btn-outline-primary mt-auto">Edit settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

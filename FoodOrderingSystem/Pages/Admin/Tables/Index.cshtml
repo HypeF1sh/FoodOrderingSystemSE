@@ -1,0 +1,60 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.Tables.IndexModel
+@{
+    ViewData["Title"] = "Tables";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Tables</h1>
+        <a asp-page="Create" class="btn btn-primary">Add table</a>
+    </div>
+
+    @foreach (var group in Model.Groups)
+    {
+        <h4 class="mt-4">@group.Key</h4>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Table</th>
+                        <th>Capacity</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var table in group)
+                    {
+                        <tr>
+                            <td>@table.TableNumber</td>
+                            <td>@table.Capacity seats</td>
+                            <td>
+                                @if (table.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-page="Edit" asp-route-id="@table.RestaurantTableId" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@table.RestaurantTableId" class="d-inline"
+                                      onsubmit="return confirm('Delete this table? If it has reservations it will be deactivated instead.');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (!Model.Groups.Any())
+    {
+        <p class="text-muted">No tables yet.</p>
+    }
+</div>

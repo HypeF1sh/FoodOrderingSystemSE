@@ -1,0 +1,107 @@
+﻿@page "{id:int}"
+@model FoodOrderingSystem.Pages.Staff.Reservations.EditModel
+@{
+    ViewData["Title"] = "Staff Edit Reservation";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">Edit Reservation #@Model.Input.ReservationId</h1>
+            <p class="text-muted small mb-0">
+                Customer: <strong>@Model.ReservationInfo?.CustomerName</strong> (@Model.ReservationInfo?.CustomerEmail)
+            </p>
+        </div>
+        <a asp-page="Index" asp-route-FilterDate="@Model.Input.Date.ToString("yyyy-MM-dd")" class="btn btn-outline-secondary">
+            Back to Daily List
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <!-- Step 1: Check Slot Availability -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <strong>1. Check Slot &amp; Party Size</strong>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="date" value="@Model.Input.Date.ToString("yyyy-MM-dd")" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" name="startTime" value="@Model.Input.StartTime.ToString("HH:mm")" step="900" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Party Size (1–8)</label>
+                            <input type="number" name="partySize" value="@Model.Input.PartySize" min="1" max="8" class="form-control" />
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                Refresh Available Tables for This Slot
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Step 2: Save Changes -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <strong>2. Table, Status &amp; Special Requests</strong>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.AvailabilityWarning))
+                    {
+                        <div class="alert alert-warning">@Model.AvailabilityWarning</div>
+                    }
+
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <input type="hidden" asp-for="Input.ReservationId" />
+                        <input type="hidden" asp-for="Input.Date" value="@Model.Input.Date.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" asp-for="Input.StartTime" value="@Model.Input.StartTime.ToString("HH:mm")" />
+                        <input type="hidden" asp-for="Input.PartySize" />
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Selected Slot</label>
+                            <div class="fw-bold">
+                                @Model.Input.Date.ToString("dd/MM/yyyy"),
+                                @Model.Input.StartTime.ToString("hh:mm tt") – @Model.Input.StartTime.AddMinutes(90).ToString("hh:mm tt")
+                                (@Model.Input.PartySize guest(s))
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.RestaurantTableId" class="form-label">Assigned Table</label>
+                            <select asp-for="Input.RestaurantTableId" asp-items="Model.TableOptions" class="form-select"></select>
+                            <span asp-validation-for="Input.RestaurantTableId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Status" class="form-label">Reservation Status</label>
+                            <select asp-for="Input.Status" asp-items="Model.StatusOptions" class="form-select"></select>
+                            <span asp-validation-for="Input.Status" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.SpecialRequests" class="form-label">Customer Special Requests / Staff Notes</label>
+                            <textarea asp-for="Input.SpecialRequests" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Input.SpecialRequests" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a asp-page="Index" asp-route-FilterDate="@Model.Input.Date.ToString("yyyy-MM-dd")" class="btn btn-outline-secondary ms-1">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

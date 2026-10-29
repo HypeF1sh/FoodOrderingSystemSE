@@ -1,0 +1,52 @@
+@page
+@model FoodOrderingSystem.Pages.Orders.CheckoutModel
+@{
+    ViewData["Title"] = "Checkout";
+    var cart = Model.Cart;
+}
+
+<div class="container mt-4">
+    <h1>Checkout</h1>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">Your order</div>
+                <div class="card-body">
+                    <!-- Read-only summary: what is ordered and the price come from the cart, not this form -->
+                    <ul class="list-unstyled mb-3">
+                        @foreach (var line in cart.Lines)
+                        {
+                            <li class="d-flex justify-content-between gap-2 py-1 border-bottom">
+                                <span>@line.Quantity × @line.Name</span>
+                                <span class="text-nowrap">RM @line.LineTotal.ToString("0.00")</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="d-flex justify-content-between fw-semibold mb-4">
+                        <span>Total</span>
+                        <span>RM @cart.Total.ToString("0.00")</span>
+                    </div>
+
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Notes" class="form-label"></label>
+                            <textarea asp-for="Input.Notes" class="form-control" rows="3" maxlength="500"
+                                      placeholder="e.g. no chilli, extra napkins"></textarea>
+                            <span asp-validation-for="Input.Notes" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Place order</button>
+                        <a asp-page="./Cart" class="btn btn-secondary">Back to cart</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

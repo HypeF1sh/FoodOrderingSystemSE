@@ -1,0 +1,5 @@
+@using FoodOrderingSystem.Models.Enums
+@using FoodOrderingSystem.ViewModels
+@model OrderStatus
+@* Status badge used by the customer confirmation page and the staff order board *@
+<span class="badge @OrderStatusDisplay.BadgeClass(Model)">@OrderStatusDisplay.Label(Model)</span>

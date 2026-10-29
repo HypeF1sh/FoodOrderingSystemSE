@@ -1,0 +1,53 @@
+﻿@page "{id:int}"
+@model FoodOrderingSystem.Pages.Reservations.ConfirmationModel
+@{
+    ViewData["Title"] = "Reservation Submitted";
+    var statusBadge = Model.Reservation?.Status == "Confirmed" ? "bg-success" : "bg-warning text-dark";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Reservation Request Submitted</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Your booking reference is <strong>#@Model.Reservation!.ReservationId</strong>.
+                        Our staff will review and confirm your booking shortly.
+                    </p>
+
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Date</dt>
+                        <dd class="col-sm-8">@Model.Reservation.ReservationDate.ToString("dd/MM/yyyy") (@Model.Reservation.ReservationDate.ToString("dddd"))</dd>
+
+                        <dt class="col-sm-4">Time Slot</dt>
+                        <dd class="col-sm-8">@Model.Reservation.StartTime.ToString("hh:mm tt") – @Model.Reservation.EndTime.ToString("hh:mm tt")</dd>
+
+                        <dt class="col-sm-4">Party Size</dt>
+                        <dd class="col-sm-8">@Model.Reservation.PartySize guest(s)</dd>
+
+                        <dt class="col-sm-4">Table &amp; Area</dt>
+                        <dd class="col-sm-8">Table @Model.Reservation.TableNumber (@Model.Reservation.DiningAreaName)</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8"><span class="badge @statusBadge">@Model.Reservation.Status</span></dd>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Reservation.SpecialRequests))
+                        {
+                            <dt class="col-sm-4">Special Requests</dt>
+                            <dd class="col-sm-8">@Model.Reservation.SpecialRequests</dd>
+                        }
+                    </dl>
+                </div>
+                <div class="card-footer d-flex flex-wrap gap-2">
+                    <a asp-page="Index" class="btn btn-primary">View My Reservations</a>
+                    <a asp-page="Edit" asp-route-id="@Model.Reservation.ReservationId" class="btn btn-outline-secondary">Modify Reservation</a>
+                    <a asp-page="Create" class="btn btn-outline-secondary">Book Another</a>
+                    <button type="button" class="btn btn-outline-dark" onclick="window.print()">Print Confirmation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

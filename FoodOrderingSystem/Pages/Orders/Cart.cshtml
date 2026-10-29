@@ -1,0 +1,80 @@
+@page
+@model FoodOrderingSystem.Pages.Orders.CartModel
+@{
+    ViewData["Title"] = "Your Cart";
+    var cart = Model.Cart;
+}
+
+<div class="container mt-4 cart-page">
+    <h1>Your Cart</h1>
+
+    @if (cart.IsEmpty)
+    {
+        <div class="cart-empty">
+            <p class="mb-3">Your cart is empty.</p>
+            <a asp-page="/Menu/Index" class="btn btn-primary">Browse the menu</a>
+        </div>
+    }
+    else
+    {
+        <!-- One row per dish. Each button is its own small POST form, so it works without JavaScript -->
+        <ul class="cart-lines">
+            @foreach (var line in cart.Lines)
+            {
+                <li class="cart-line @(line.IsAvailable ? "" : "is-unavailable")">
+                    <img src="@line.ImageUrl" alt="" class="cart-line-img" />
+
+                    <div class="cart-line-body">
+                        <div class="cart-line-head">
+                            <span class="cart-line-name">@line.Name</span>
+                            <span class="cart-line-total">RM @line.LineTotal.ToString("0.00")</span>
+                        </div>
+                        <div class="text-muted cart-line-unit">RM @line.UnitPrice.ToString("0.00") each</div>
+
+                        @if (!line.IsAvailable)
+                        {
+                            <div class="text-danger cart-line-warning">No longer available — remove it to continue.</div>
+                        }
+
+                        <div class="cart-line-actions">
+                            @if (line.IsAvailable)
+                            {
+                                <div class="cart-stepper" aria-label="Quantity of @line.Name">
+                                    <form method="post" asp-page-handler="Decrease" asp-route-menuItemId="@line.MenuItemId">
+                                        <button type="submit" class="btn btn-outline-secondary" aria-label="One less">−</button>
+                                    </form>
+                                    <span class="cart-stepper-qty">@line.Quantity</span>
+                                    <form method="post" asp-page-handler="Increase" asp-route-menuItemId="@line.MenuItemId">
+                                        <button type="submit" class="btn btn-outline-secondary" aria-label="One more">+</button>
+                                    </form>
+                                </div>
+                            }
+                            <form method="post" asp-page-handler="Remove" asp-route-menuItemId="@line.MenuItemId">
+                                <button type="submit" class="btn btn-link text-danger p-0">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+            }
+        </ul>
+
+        <!-- Total + actions. Checkout stays disabled while a sold-out dish is still in the cart -->
+        <div class="cart-summary">
+            <div class="cart-summary-total">
+                <span>Total (@cart.ItemCount @(cart.ItemCount == 1 ? "item" : "items"))</span>
+                <strong>RM @cart.Total.ToString("0.00")</strong>
+            </div>
+            <div class="cart-summary-actions">
+                @if (cart.HasUnavailableItems)
+                {
+                    <button type="button" class="btn btn-primary" disabled>Checkout</button>
+                }
+                else
+                {
+                    <a asp-page="./Checkout" class="btn btn-primary">Checkout</a>
+                }
+                <a asp-page="/Menu/Index" class="btn btn-secondary">Add more dishes</a>
+            </div>
+        </div>
+    }
+</div>

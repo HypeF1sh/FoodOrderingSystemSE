@@ -1,0 +1,47 @@
+/* ===========================================================================
+   Styles scoped to Admin/Menu/Index.cshtml (CSS isolation).
+   Tablet/PC-first page: the table shows from 768px up (Bootstrap d-md-block),
+   phones get stacked cards (d-md-none). These rules only add the small bits
+   Bootstrap does not cover.
+   =========================================================================== */
+
+.admin-menu-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.admin-menu-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.admin-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--rr-radius);
+    background: var(--rr-surface);
+}
+
+/* Buttons in a row; the toggle is a tiny form, so it needs flex to sit inline */
+.admin-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.admin-card {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.admin-card-text {
+    min-width: 0;
+}
