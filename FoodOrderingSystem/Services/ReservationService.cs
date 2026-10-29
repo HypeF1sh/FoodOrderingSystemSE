@@ -11,6 +11,7 @@ public class ReservationService : IReservationService
     private readonly ApplicationDbContext _context;
     private readonly IDiningAreaService _diningAreaService;
     private readonly IOperatingHoursService _operatingHoursService;
+    private readonly INotificationService _notificationService;
 
     public const int DiningDurationMinutes = 90;
     public const int TurnoverBufferMinutes = 15;
@@ -22,11 +23,13 @@ public class ReservationService : IReservationService
     public ReservationService(
         ApplicationDbContext context,
         IDiningAreaService diningAreaService,
-        IOperatingHoursService operatingHoursService)
+        IOperatingHoursService operatingHoursService,
+        INotificationService notificationService)
     {
         _context = context;
         _diningAreaService = diningAreaService;
         _operatingHoursService = operatingHoursService;
+        _notificationService = notificationService;
     }
 
     public async Task<List<DiningAreaOptionViewModel>> GetDiningAreasAsync()
@@ -182,6 +185,12 @@ public class ReservationService : IReservationService
         _context.Reservations.Add(reservation);
         await _context.SaveChangesAsync();
 
+        // PB20: Notify customer of reservation submission
+        await _notificationService.SendAsync(
+            customerId,
+            "Reservation",
+            $"Reservation #{reservation.ReservationId} for Table {selectedTable.TableNumber} on {date:dd/MM/yyyy} at {startTime:hh\\:mm tt} has been submitted and is pending staff confirmation.");
+
         return (true,
             $"Reservation request submitted for Table {selectedTable.TableNumber} on {date:dd/MM/yyyy} at {startTime:hh\\:mm tt} (Pending staff confirmation).",
             reservation.ReservationId);
@@ -290,6 +299,12 @@ public class ReservationService : IReservationService
         reservation.Status = ReservationStatus.Cancelled;
         await _context.SaveChangesAsync();
 
+        // PB20: Notify customer of cancellation
+        await _notificationService.SendAsync(
+            customerId,
+            "Reservation",
+            $"Your Reservation #{reservationId} on {reservation.ReservationDate:dd/MM/yyyy} at {reservation.StartTime:hh\\:mm tt} has been cancelled.");
+
         return (true, $"Reservation #{reservationId} has been cancelled.");
     }
 
@@ -355,7 +370,6 @@ public class ReservationService : IReservationService
         if (reservation.Status == newStatus)
             return (false, $"Reservation #{reservationId} is already marked as {newStatus}.");
 
-        // If reactivating a Cancelled or NoShow booking to Pending/Confirmed, verify the table hasn't been taken
         if ((reservation.Status == ReservationStatus.Cancelled || reservation.Status == ReservationStatus.NoShow) &&
             (newStatus == ReservationStatus.Confirmed || newStatus == ReservationStatus.Pending))
         {
@@ -375,6 +389,23 @@ public class ReservationService : IReservationService
 
         reservation.Status = newStatus;
         await _context.SaveChangesAsync();
+
+        // PB20: Notify customer when staff confirms, cancels, or updates their booking status
+        if (newStatus == ReservationStatus.Confirmed || newStatus == ReservationStatus.Cancelled || newStatus == ReservationStatus.Completed)
+        {
+            var actionText = newStatus switch
+            {
+                ReservationStatus.Confirmed => "has been confirmed by our staff",
+                ReservationStatus.Cancelled => "has been cancelled by our staff",
+                ReservationStatus.Completed => "is now marked as completed. Thank you for dining with us! You can now leave a rating and feedback",
+                _ => $"status was updated to {newStatus}"
+            };
+
+            await _notificationService.SendAsync(
+                reservation.CustomerId,
+                "Reservation",
+                $"Reservation #{reservation.ReservationId} (Table {reservation.RestaurantTable?.TableNumber} on {reservation.ReservationDate:dd/MM/yyyy} at {reservation.StartTime:hh\\:mm tt}) {actionText}.");
+        }
 
         return (true, $"Reservation #{reservationId} status updated to {newStatus}.");
     }
@@ -397,11 +428,12 @@ public class ReservationService : IReservationService
         if (reservation == null)
             return (false, "Reservation not found.");
 
+        var previousStatus = reservation.Status;
+
         var (isOpen, hoursError) = await ValidateOperatingHoursAsync(date, startTime, bypassAdvanceNotice: true);
         if (!isOpen)
             return (false, hoursError);
 
-        // Only check table conflicts if the reservation is active (not Cancelled or NoShow)
         if (status != ReservationStatus.Cancelled && status != ReservationStatus.NoShow)
         {
             var availableTables = await GetAvailableTablesAsync(
@@ -422,6 +454,15 @@ public class ReservationService : IReservationService
         reservation.SpecialRequests = specialRequests?.Trim() ?? string.Empty;
 
         await _context.SaveChangesAsync();
+
+        if (previousStatus != status && (status == ReservationStatus.Confirmed || status == ReservationStatus.Cancelled))
+        {
+            await _notificationService.SendAsync(
+                reservation.CustomerId,
+                "Reservation",
+                $"Your Reservation #{reservationId} for {date:dd/MM/yyyy} at {startTime:hh\\:mm tt} has been updated to {status}.");
+        }
+
         return (true, $"Reservation #{reservationId} updated by staff.");
     }
 
@@ -446,7 +487,6 @@ public class ReservationService : IReservationService
 
         var mapped = reservations.Select(MapToDetailViewModel).ToList();
 
-        // Compute preferred dining area from past non-cancelled bookings
         var activeOrCompleted = mapped.Where(r => r.Status != "Cancelled").ToList();
         var preferredArea = activeOrCompleted
             .Where(r => !string.IsNullOrEmpty(r.DiningAreaName))
@@ -498,6 +538,42 @@ public class ReservationService : IReservationService
         var list = await query
             .OrderBy(r => r.ReservationDate)
             .ThenBy(r => r.StartTime)
+            .ToListAsync();
+
+        return list.Select(MapToDetailViewModel).ToList();
+    }
+
+    // ---- Sprint 4: Cross-domain query for PB21 & PB22 ----
+
+    public async Task<List<ReservationDetailViewModel>> GetReservationsAsync(
+        DateOnly? from = null,
+        DateOnly? to = null,
+        ReservationStatus? status = null)
+    {
+        var query = _context.Reservations
+            .Include(r => r.RestaurantTable)
+                .ThenInclude(t => t!.DiningArea)
+            .Include(r => r.Customer)
+            .AsQueryable();
+
+        if (from.HasValue)
+        {
+            query = query.Where(r => r.ReservationDate >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(r => r.ReservationDate <= to.Value);
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(r => r.Status == status.Value);
+        }
+
+        var list = await query
+            .OrderByDescending(r => r.ReservationDate)
+            .ThenByDescending(r => r.StartTime)
             .ToListAsync();
 
         return list.Select(MapToDetailViewModel).ToList();

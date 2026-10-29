@@ -41,6 +41,7 @@ builder.Services.AddRazorPages(options =>
 });
 
 builder.Services.AddScoped<IUserAdminService, UserAdminService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IDiningAreaService, DiningAreaService>();
 builder.Services.AddScoped<IOperatingHoursService, OperatingHoursService>();

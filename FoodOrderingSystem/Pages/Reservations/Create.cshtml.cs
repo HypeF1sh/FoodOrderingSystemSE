@@ -36,7 +36,7 @@ public class CreateModel : PageModel
         [DataType(DataType.Time)]
         public TimeOnly StartTime { get; set; } = new TimeOnly(18, 0);
 
-        [Range(1, 20, ErrorMessage = "Party size must be between 1 and 20.")]
+        [Range(1, 8, ErrorMessage = "Online bookings are for 1 to 8 guests. Please call us for larger groups.")]
         public int PartySize { get; set; } = 2;
 
         public int? DiningAreaId { get; set; }
@@ -53,7 +53,7 @@ public class CreateModel : PageModel
         [Required]
         public TimeOnly StartTime { get; set; }
 
-        [Range(1, 20)]
+        [Range(1, 8, ErrorMessage = "Online bookings are for 1 to 8 guests. Please call us for larger groups.")]
         public int PartySize { get; set; }
 
         public int? DiningAreaId { get; set; }
