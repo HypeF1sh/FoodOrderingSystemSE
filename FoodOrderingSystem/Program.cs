@@ -38,6 +38,8 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
     options.Conventions.AuthorizeFolder("/Staff", "StaffOrAdmin");
     options.Conventions.AuthorizeFolder("/Reservations");
+    options.Conventions.AuthorizeFolder("/Notifications");
+    options.Conventions.AuthorizeFolder("/Feedback");
 });
 
 builder.Services.AddScoped<IUserAdminService, UserAdminService>();
