@@ -22,6 +22,10 @@ public interface IPaymentService
     /// <summary>Unpaid / Paid / Failed / Refunded for one order, for badges on other pages.</summary>
     Task<OrderPaymentSummary> GetPaymentSummaryAsync(int orderId);
 
+    /// <summary>The same summary for many orders in one query, keyed by order id (PB18 "My orders").
+    /// Every id asked for is in the result; an order with no payments is Unpaid.</summary>
+    Task<Dictionary<int, OrderPaymentSummary>> GetPaymentSummariesAsync(IEnumerable<int> orderIds);
+
     // ---- Receipt (D4) ----
 
     /// <summary>The receipt for a Paid or Refunded payment. Customers only get their own; staff and admins any.

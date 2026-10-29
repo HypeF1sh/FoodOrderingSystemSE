@@ -1,0 +1,102 @@
+@page
+@using FoodOrderingSystem.ViewModels
+@model FoodOrderingSystem.Pages.Orders.IndexModel
+@{
+    ViewData["Title"] = "My orders";
+}
+
+<div class="container mt-4" id="myOrders"
+     data-status-url="@Url.Page("./Index", "Status")"
+     data-has-active="@(Model.ActiveOrders.Count > 0 ? "true" : "false")">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h1 class="mb-0">My orders</h1>
+        <a asp-page="/Menu/Index" class="btn btn-primary">Order food</a>
+    </div>
+
+    <!-- Active orders: their badges refresh every 15 seconds (PB18 real-time tracking) -->
+    <section id="activeOrders" class="mb-4" aria-labelledby="activeHeading">
+        <div class="d-flex justify-content-between align-items-baseline">
+            <h2 id="activeHeading" class="h4">In progress</h2>
+            @if (Model.ActiveOrders.Count > 0)
+            {
+                <span class="text-muted small" aria-live="polite">Updates automatically · <span id="lastUpdated"></span></span>
+            }
+        </div>
+
+        @if (Model.ActiveOrders.Count == 0)
+        {
+            <p class="text-muted">No orders in progress.</p>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var order in Model.ActiveOrders)
+                {
+                    <partial name="_CustomerOrderRow" model="order" />
+                }
+            </div>
+        }
+    </section>
+
+    <section class="mb-4" aria-labelledby="pastHeading">
+        <h2 id="pastHeading" class="h4">Past orders</h2>
+
+        @if (Model.PastOrders.Count == 0)
+        {
+            <p class="text-muted">No past orders yet.</p>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var order in Model.PastOrders)
+                {
+                    <partial name="_CustomerOrderRow" model="order" />
+                }
+            </div>
+        }
+    </section>
+
+    <!-- Latest reservations, read through Wallace's IReservationService -->
+    <section class="mb-4" aria-labelledby="reservationsHeading">
+        <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+            <h2 id="reservationsHeading" class="h4">My reservations</h2>
+            <a asp-page="/Reservations/Index">Manage reservations →</a>
+        </div>
+
+        @if (Model.Reservations.Count == 0)
+        {
+            <p class="text-muted">No reservations yet. <a asp-page="/Reservations/Create">Book a table</a>.</p>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var r in Model.Reservations)
+                {
+                    <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <div class="fw-semibold">
+                                @r.ReservationDate.ToString("dd/MM/yyyy") · @r.StartTime.ToString("hh:mm tt")
+                            </div>
+                            <div class="text-muted small">
+                                Table @r.TableNumber, @r.DiningAreaName · @r.PartySize @(r.PartySize == 1 ? "guest" : "guests")
+                            </div>
+                        </div>
+                        <span class="badge @IndexModel.ReservationBadgeClass(r.Status)">@r.Status</span>
+                    </div>
+                }
+            </div>
+            @if (Model.TotalReservations > Model.Reservations.Count)
+            {
+                <p class="text-muted small mt-2 mb-0">
+                    Showing your latest @Model.Reservations.Count of @Model.TotalReservations.
+                    <a asp-page="/Reservations/Index">See all</a>
+                </p>
+            }
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/my-orders.js" asp-append-version="true"></script>
+}

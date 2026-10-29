@@ -100,6 +100,37 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync();
     }
 
+    public async Task<List<CustomerOrderRowViewModel>> GetCustomerOrdersAsync(string customerId)
+    {
+        // Filtering by customerId means a customer only ever sees their own orders
+        var orders = await _context.Orders
+            .AsNoTracking()
+            .Where(o => o.CustomerId == customerId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ThenByDescending(o => o.OrderId)
+            .Select(o => new CustomerOrderRowViewModel
+            {
+                OrderId = o.OrderId,
+                CreatedAt = o.CreatedAt,
+                Status = o.Status,
+                TotalAmount = o.TotalAmount,
+                Lines = o.OrderItems
+                    .OrderBy(oi => oi.OrderItemId)
+                    .Select(oi => new OrderLineViewModel
+                    {
+                        Name = oi.MenuItem != null ? oi.MenuItem.Name : "(removed dish)",
+                        Quantity = oi.Quantity,
+                        UnitPrice = oi.UnitPrice
+                    })
+                    .ToList()
+            })
+            .ToListAsync();
+
+        // Same "still with the kitchen" rule as the staff board's Active filter
+        orders.ForEach(o => o.IsActive = ActiveStatuses.Contains(o.Status));
+        return orders;
+    }
+
     // =====================================================================
     // Staff (PB15)
     // =====================================================================
