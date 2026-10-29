@@ -23,7 +23,24 @@ Each report must state which AI tools were used and for what. Keep a note of how
 |---|---|---|
 | 2026-10-11 | Layout shell (Sprint 1) | See the detailed entry below |
 | 2026-10-20 | PB06 + PB08 menu v1 (Sprint 2) | See the detailed entry below — TC-M01–M10 passed 21/10 |
-| 2026-10-22 | PB16 payment + receipt v1 (Sprint 3) | See the detailed entry below — manual run of TC-P01–P13 still to do |
+| 2026-10-22 | PB16 payment + receipt v1 (Sprint 3) | See the detailed entry below — manual run-through done 28/10, merged PR #15 |
+| 2026-10-28 | BUG4 home hours + BUG5 palette | See the detailed entry below |
+
+### 2026-10-28 — BUG4 home opening hours + BUG5 palette (`fix/BUG4-BUG5-home-hours-palette`)
+
+**Ch.5 screenshots:** home page hours before (hard-coded) and after; set a day to Closed in `/Admin/OperatingHours`
+and show "Closed" on the home page; Pay page tiles and Checkout header before (blue) / after (palette).
+
+**Ch.6 test cases**
+| ID | Steps | Expected |
+|---|---|---|
+| TC-H01 | Admin changes Monday to 09:00–21:00, save, open `/` | Home shows Monday 09:00 AM - 09:00 PM |
+| TC-H02 | Admin ticks Sunday Closed, save, open `/` | Home shows Sunday: Closed |
+
+**Ch.7 reflection:** the home page was a layout-shell placeholder that was never wired to real data. It went unnoticed
+because the page looked finished. Fixed by reading Carynn's `IOperatingHoursService` through its interface, not her table
+(the 3-tier and domain rules). BUG5: a theme gap (Bootstrap "primary" not re-themed) that the proper fix would solve in the
+shared `site.css`. I fixed only my own pages so I wouldn't edit a shared file without group agreement.
 
 ### 2026-10-22 — PB16 payment + receipt (`feature/PB16-payment`)
 

@@ -25,23 +25,26 @@
         </div>
     </div>
 
-    <!-- Opening hours. Placeholder values until the administrator can set them
-         through the OperatingHours table (Carynn, PB05). -->
+    <!-- Opening hours, as set by the administrator on /Admin/OperatingHours (BUG4) -->
     <section class="rr-hours">
         <h2>Opening hours</h2>
         <dl class="rr-hours-list">
-            <div>
-                <dt>Monday to Thursday</dt>
-                <dd>11:30 am - 10:00 pm</dd>
-            </div>
-            <div>
-                <dt>Friday and Saturday</dt>
-                <dd>11:30 am - 11:00 pm</dd>
-            </div>
-            <div>
-                <dt>Sunday</dt>
-                <dd>5:00 pm - 10:00 pm</dd>
-            </div>
+            @foreach (var day in Model.OpeningHours)
+            {
+                <div>
+                    <dt>@day.DayName</dt>
+                    <dd>
+                        @if (day.IsClosed)
+                        {
+                            <span>Closed</span>
+                        }
+                        else
+                        {
+                            @day.OpenTime.ToString("hh:mm tt") <text>-</text> @day.CloseTime.ToString("hh:mm tt")
+                        }
+                    </dd>
+                </div>
+            }
         </dl>
     </section>
 </div>

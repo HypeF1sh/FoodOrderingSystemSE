@@ -1,0 +1,13 @@
+/* Card / E-wallet tiles (BUG5). Bootstrap's btn-outline-primary is default blue, so the
+   tiles get their own colours from the site palette: quiet outline at rest, accent when picked. */
+.rr-method {
+    --bs-btn-color: var(--rr-ink);
+    --bs-btn-border-color: var(--rr-line);
+    --bs-btn-hover-color: var(--rr-ink);
+    --bs-btn-hover-bg: var(--rr-surface);
+    --bs-btn-hover-border-color: var(--rr-muted);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--rr-accent);
+    --bs-btn-active-border-color: var(--rr-accent);
+    --bs-btn-focus-shadow-rgb: 163, 51, 74;
+}
