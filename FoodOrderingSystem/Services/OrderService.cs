@@ -198,6 +198,36 @@ public class OrderService : IOrderService
         _ => null   // Completed and Cancelled are final
     };
 
+    // =====================================================================
+    // Admin monitoring (for PB21 / PB23)
+    // =====================================================================
+
+    public async Task<List<StaffOrderViewModel>> GetOrdersAsync(DateOnly from, DateOnly to, OrderStatus? status)
+    {
+        if (from > to) return new List<StaffOrderViewModel>();
+
+        // 1. Both days included: from midnight on 'from' up to (not including) midnight after 'to'
+        var rangeStart = from.ToDateTime(TimeOnly.MinValue);
+        var rangeEnd = to.ToDateTime(TimeOnly.MinValue).AddDays(1);
+
+        var query = _context.Orders
+            .AsNoTracking()
+            .Where(o => o.CreatedAt >= rangeStart && o.CreatedAt < rangeEnd);
+
+        if (status.HasValue)
+            query = query.Where(o => o.Status == status.Value);
+
+        // 2. Same projection as the staff board, but SetAllowedActions is not called: this list is read-only
+        return await ProjectToStaffView(query
+                .OrderByDescending(o => o.CreatedAt)
+                .ThenByDescending(o => o.OrderId))
+            .ToListAsync();
+    }
+
+    // =====================================================================
+    // Rules shared by the methods above
+    // =====================================================================
+
     private static bool CanBeCancelled(OrderStatus status) =>
         status == OrderStatus.Pending || status == OrderStatus.Preparing;
 
@@ -226,6 +256,7 @@ public class OrderService : IOrderService
         {
             OrderId = o.OrderId,
             CreatedAt = o.CreatedAt,
+            CustomerId = o.CustomerId,
             // Display only, through the order's own Customer link; nothing in Domain A is changed
             CustomerName = o.Customer == null ? "(unknown)"
                 : o.Customer.FullName != "" ? o.Customer.FullName : (o.Customer.Email ?? "(unknown)"),

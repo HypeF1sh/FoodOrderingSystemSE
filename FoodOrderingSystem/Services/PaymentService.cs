@@ -334,6 +334,47 @@ public class PaymentService : IPaymentService
     }
 
     // =====================================================================
+    // Admin monitoring (for PB21 / PB23)
+    // =====================================================================
+
+    public async Task<List<PaymentListItemViewModel>> GetPaymentsAsync(DateOnly from, DateOnly to, PaymentStatus? status)
+    {
+        if (from > to) return new List<PaymentListItemViewModel>();
+
+        // 1. Both days included: from midnight on 'from' up to (not including) midnight after 'to'
+        var rangeStart = from.ToDateTime(TimeOnly.MinValue);
+        var rangeEnd = to.ToDateTime(TimeOnly.MinValue).AddDays(1);
+
+        var query = _context.Payments
+            .AsNoTracking()
+            .Where(p => p.PaidAt >= rangeStart && p.PaidAt < rangeEnd);
+
+        // 2. No status = every attempt, Failed ones too
+        if (status.HasValue)
+            query = query.Where(p => p.Status == status.Value);
+
+        // 3. Newest first; PaymentId breaks ties when two attempts share a time
+        // (p.Order! is safe: OrderId is a required foreign key, so every payment has an order)
+        return await query
+            .OrderByDescending(p => p.PaidAt)
+            .ThenByDescending(p => p.PaymentId)
+            .Select(p => new PaymentListItemViewModel
+            {
+                PaymentId = p.PaymentId,
+                OrderId = p.OrderId,
+                CustomerId = p.Order!.CustomerId,
+                CustomerName = p.Order.Customer == null ? "(unknown)"
+                    : p.Order.Customer.FullName != "" ? p.Order.Customer.FullName : (p.Order.Customer.Email ?? "(unknown)"),
+                Amount = p.Amount,
+                Method = p.Method,
+                Status = p.Status,
+                TransactionRef = p.TransactionRef,
+                PaidAt = p.PaidAt
+            })
+            .ToListAsync();
+    }
+
+    // =====================================================================
     // Rules shared by the methods above
     // =====================================================================
 
