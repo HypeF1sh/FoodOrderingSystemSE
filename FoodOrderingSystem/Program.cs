@@ -67,6 +67,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentGateway, SimulatedPaymentGateway>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+// PB22 admin dashboard
+builder.Services.AddScoped<IReportService, ReportService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

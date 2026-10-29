@@ -54,6 +54,15 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-10-30** — Jordan: PB22 v1 on `feature/PB22-dashboard` (spec: `docs/superpowers/specs/2026-10-30-dashboard-design.md`).
+  `/Admin/Dashboard`: quick ranges + from/to + group by Day/Week/Month, tiles (revenue, average order, orders,
+  bookings + guests), Chart.js bar charts for sales, bookings and top 5 dishes, a table under each chart.
+  `IReportService`/`ReportService`: revenue = Paid payments by payment date (refunds drop out), cancelled orders and
+  bookings excluded, reservations read through Wallace's `IReservationService`, max range 366 days. No schema change.
+  **Chart.js 4.4.1** added to `wwwroot/lib/chart.js` (Jordan OK'd). **`Program.cs`**: 1 `AddScoped` line. **Dashboard
+  card added to Carynn's Configurations hub (`Pages/Admin/Index`) → Carynn to OK in the PR.** Build clean, 0 warnings.
+  Smoke-tested against the dev DB (tiles, day/week grouping, bad-range messages, staff → Access denied); manual
+  run-through and phone-width check still to do.
 - **2026-10-30** — Jordan: PB18 v1 on `feature/PB18-history`. `/Orders` "My orders": in-progress and past orders
   (status + payment badges, receipt / pay links) and the latest 5 reservations through Wallace's `IReservationService`.
   In-progress badges refresh every 15 s (`wwwroot/js/my-orders.js` polls `?handler=Status`). Added the 3 files that
