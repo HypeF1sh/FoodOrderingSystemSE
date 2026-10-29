@@ -1,0 +1,233 @@
+﻿@page "{id:int}"
+@using FoodOrderingSystem.Models.Enums
+@model FoodOrderingSystem.Pages.Staff.Billing.BillModel
+@{
+    ViewData["Title"] = $"Order #{Model.Bill?.OrderId} Bill";
+    var bill = Model.Bill!;
+    var statusBadge = bill.Payment.Status switch
+    {
+        PaymentStatus.Paid => "bg-success",
+        PaymentStatus.Refunded => "bg-info text-dark",
+        PaymentStatus.Failed => "bg-danger",
+        _ => "bg-warning text-dark"
+    };
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h1 class="mb-0">Bill — Order #@bill.OrderId</h1>
+            <p class="text-muted small mb-0">
+                Customer: <strong>@bill.CustomerName</strong> &middot;
+                Placed: @bill.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy hh:mm tt") &middot;
+                Order Status: <span class="badge bg-secondary">@bill.OrderStatus</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge @statusBadge p-2 fs-6">Payment: @bill.Payment.Status</span>
+            <a asp-page="Index" class="btn btn-outline-secondary">Back to Billing List</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Itemized Order Lines -->
+        <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <strong>Itemized Bill</strong>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">Item</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end pe-3">Line Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var line in bill.Lines)
+                            {
+                                <tr>
+                                    <td class="ps-3">@line.Name</td>
+                                    <td class="text-center">@line.Quantity</td>
+                                    <td class="text-end">RM @line.UnitPrice.ToString("0.00")</td>
+                                    <td class="text-end pe-3 fw-semibold">RM @line.LineTotal.ToString("0.00")</td>
+                                </tr>
+                            }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="3" class="ps-3 fs-5">Total Due</th>
+                                    <th class="text-end pe-3 fs-5 text-primary">RM @bill.TotalAmount.ToString("0.00")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Attempts Log -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <strong>Payment History / Attempts (@bill.Attempts.Count)</strong>
+                </div>
+                <div class="card-body p-0">
+                    @if (!bill.Attempts.Any())
+                    {
+                        <p class="text-muted p-3 mb-0">No payment attempts recorded yet for this order.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3">Ref</th>
+                                        <th>Time</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Amount</th>
+                                        <th class="text-end pe-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var attempt in bill.Attempts)
+                                {
+                                    var attemptBadge = attempt.Status switch
+                                    {
+                                        PaymentStatus.Paid => "bg-success",
+                                        PaymentStatus.Refunded => "bg-info text-dark",
+                                        PaymentStatus.Failed => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+
+                                    <tr>
+                                        <td class="ps-3 small fw-semibold">@attempt.TransactionRef</td>
+                                        <td class="small">@attempt.AttemptedAt.ToLocalTime().ToString("dd/MM/yyyy hh:mm tt")</td>
+                                        <td>@attempt.Method</td>
+                                        <td><span class="badge @attemptBadge">@attempt.Status</span></td>
+                                        <td class="text-end">RM @attempt.Amount.ToString("0.00")</td>
+                                        <td class="text-end pe-3">
+                                            @if (attempt.Status == PaymentStatus.Paid || attempt.Status == PaymentStatus.Refunded)
+                                            {
+                                                <a asp-page="/Payments/Receipt" asp-route-id="@attempt.PaymentId"
+                                                   class="btn btn-sm btn-outline-secondary me-1">Receipt</a>
+                                            }
+                                            @if (attempt.Status == PaymentStatus.Paid)
+                                            {
+                                                <form method="post" asp-page-handler="Refund" asp-route-id="@bill.OrderId" class="d-inline"
+                                                      onsubmit="return confirm('Refund RM @attempt.Amount.ToString("0.00") for this payment?');">
+                                                    <input type="hidden" name="paymentId" value="@attempt.PaymentId" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Refund</button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Record Counter Cash Payment or View Settled Status -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <strong>Counter Cash Settlement (PB17)</strong>
+                </div>
+                <div class="card-body">
+                    @if (bill.CanRecordPayment)
+                    {
+                        <form method="post" asp-page-handler="RecordCash" asp-route-id="@bill.OrderId">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Bill Total</label>
+                                <div class="fs-4 fw-bold" id="billTotalDisplay" data-total="@bill.TotalAmount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)">
+                                    RM @bill.TotalAmount.ToString("0.00")
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="AmountTendered" class="form-label fw-semibold">Cash Amount Tendered (RM)</label>
+                                <input asp-for="AmountTendered" type="number" step="0.05" min="@bill.TotalAmount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                       class="form-control form-control-lg" id="tenderedInput" />
+                                <span asp-validation-for="AmountTendered" class="text-danger"></span>
+                            </div>
+
+                            <!-- Quick Cash Denominations -->
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <button type="button" class="btn btn-sm btn-outline-secondary quick-cash" data-amount="@bill.TotalAmount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)">Exact (RM @bill.TotalAmount.ToString("0.00"))</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary quick-cash" data-amount="20">RM 20</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary quick-cash" data-amount="50">RM 50</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary quick-cash" data-amount="100">RM 100</button>
+                            </div>
+
+                            <div class="p-3 bg-light rounded border mb-3 d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">Change Due:</span>
+                                <span class="fs-5 fw-bold text-success" id="changePreview">RM 0.00</span>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">
+                                Record Cash Payment &amp; Generate Receipt
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary mb-3">
+                            @(bill.CannotPayReason ?? "This bill cannot accept new payments.")
+                        </div>
+
+                        @if (bill.Payment.PaidPaymentId.HasValue)
+                        {
+                            <a asp-page="/Payments/Receipt" asp-route-id="@bill.Payment.PaidPaymentId.Value"
+                               class="btn btn-primary w-100">
+                                View Official Receipt
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const totalEl = document.getElementById('billTotalDisplay');
+            const inputEl = document.getElementById('tenderedInput');
+            const changeEl = document.getElementById('changePreview');
+            if (!totalEl || !inputEl || !changeEl) return;
+
+            const billTotal = parseFloat(totalEl.dataset.total || '0');
+
+            function updateChange() {
+                const tendered = parseFloat(inputEl.value || '0');
+                const diff = tendered - billTotal;
+                if (isNaN(diff) || diff < 0) {
+                    changeEl.textContent = 'Insufficient amount';
+                    changeEl.className = 'fs-6 fw-bold text-danger';
+                } else {
+                    changeEl.textContent = 'RM ' + diff.toFixed(2);
+                    changeEl.className = 'fs-5 fw-bold text-success';
+                }
+            }
+
+            inputEl.addEventListener('input', updateChange);
+            document.querySelectorAll('.quick-cash').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    inputEl.value = parseFloat(btn.dataset.amount).toFixed(2);
+                    updateChange();
+                });
+            });
+            updateChange();
+        })();
+    </script>
+}
