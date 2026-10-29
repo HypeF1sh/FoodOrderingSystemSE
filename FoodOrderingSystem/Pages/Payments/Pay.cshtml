@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-lg-7">
             <div class="card shadow mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Order #@order.OrderId</span>
                     <partial name="_PaymentStatusBadge" model="order.Payment.Status" />
                 </div>
@@ -56,12 +56,12 @@
                                 <div class="col-6">
                                     <input type="radio" class="btn-check" asp-for="Input.Method" id="methodCard"
                                            value="@PaymentMethod.Card" />
-                                    <label class="btn btn-outline-primary w-100 py-3" for="methodCard">Card</label>
+                                    <label class="btn rr-method w-100 py-3" for="methodCard">Card</label>
                                 </div>
                                 <div class="col-6">
                                     <input type="radio" class="btn-check" asp-for="Input.Method" id="methodWallet"
                                            value="@PaymentMethod.EWallet" />
-                                    <label class="btn btn-outline-primary w-100 py-3" for="methodWallet">E-wallet</label>
+                                    <label class="btn rr-method w-100 py-3" for="methodWallet">E-wallet</label>
                                 </div>
                             </div>
                             <span asp-validation-for="Input.Method" class="text-danger"></span>
