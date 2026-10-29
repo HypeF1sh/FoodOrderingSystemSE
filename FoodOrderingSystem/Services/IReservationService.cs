@@ -66,4 +66,11 @@ public interface IReservationService
     Task<CustomerReservationProfileViewModel?> GetCustomerReservationProfileAsync(string customerId);
 
     Task<List<ReservationDetailViewModel>> GetReservationsWithRequestsAsync(DateOnly? fromDate = null);
+
+    // ---- Sprint 4: Cross-domain query for PB21 (Admin Monitor) & PB22 (Dashboard Reports) ----
+
+    Task<List<ReservationDetailViewModel>> GetReservationsAsync(
+        DateOnly? from = null,
+        DateOnly? to = null,
+        ReservationStatus? status = null);
 }

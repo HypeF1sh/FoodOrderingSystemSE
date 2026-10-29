@@ -61,6 +61,13 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
   0 warnings. No schema change. **`_Layout.cshtml` "My orders" link enabled → needs group OK**; Staff/Admin still see it (BUG1).
   Logged **BUG6** (receipt → no way back to My orders), **BUG7** (admin can't see orders from the UI), **BUG8** (staff
   have no overview) and decision **D5** (one dashboard per role: what staff and admin can and can't see). Next after push.
+- **2026-10-29** — Jordan: Sprint 4 started. `feature/admin-list-methods` (unblocks Carynn's PB21/PB23): read-only
+  `IPaymentService.GetPaymentsAsync(from, to, status?)` + `PaymentListItemViewModel`, and
+  `IOrderService.GetOrdersAsync(from, to, status?)` reusing the staff projection (no staff actions set).
+  `CustomerId` added to `StaffOrderViewModel` for grouping by customer. Both date ends inclusive, newest first,
+  `AsNoTracking`. No schema change, no pages, no `Program.cs` edit. Build clean, 0 warnings. Smoke-tested
+  read-only against the dev DB. Checked: `INotificationService` does not exist yet (Wallace, PB20);
+  `IReservationService` has no date-range method (needed for PB22 reservations chart, ask Wallace).
 - **2026-10-28** — Jordan: on `fix/BUG4-BUG5-home-hours-palette`. **BUG4 fixed:** home page reads the 7 days through
   Carynn's `IOperatingHoursService` (Monday first, `hh:mm tt`, "Closed" when `IsClosed`). **BUG5 fixed on my pages (fallback):**
   Checkout / Confirmation / Pay headers now neutral, Card/E-wallet tiles use the palette (`Pay.cshtml.css`). No shared files,

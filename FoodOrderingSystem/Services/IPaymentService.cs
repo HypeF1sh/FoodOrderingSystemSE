@@ -1,3 +1,4 @@
+using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
@@ -49,4 +50,11 @@ public interface IPaymentService
 
     /// <summary>Marks a Paid payment as Refunded (whole amount only). Staff/Admin pages only.</summary>
     Task<(bool Success, string Message)> RefundPaymentAsync(int paymentId, string staffUserId);
+
+    // ---- Admin monitoring (for PB21 / PB23, Carynn) ----
+
+    /// <summary>Every payment attempt whose PaidAt falls between from and to (both days included),
+    /// newest first. status null = all statuses, including Failed attempts. Read-only.
+    /// Returns an empty list if from is after to.</summary>
+    Task<List<PaymentListItemViewModel>> GetPaymentsAsync(DateOnly from, DateOnly to, PaymentStatus? status);
 }

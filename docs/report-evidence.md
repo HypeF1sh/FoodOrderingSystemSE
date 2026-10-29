@@ -25,6 +25,7 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-20 | PB06 + PB08 menu v1 (Sprint 2) | See the detailed entry below — TC-M01–M10 passed 21/10 |
 | 2026-10-22 | PB16 payment + receipt v1 (Sprint 3) | See the detailed entry below — manual run-through done 28/10, merged PR #15 |
 | 2026-10-28 | BUG4 home hours + BUG5 palette | See the detailed entry below |
+| 2026-10-29 | Admin list methods for Carynn's PB21/PB23 (`feature/admin-list-methods`) | No UI. Ch.7: agreeing a service interface across domains (A reads C's data through `IPaymentService`/`IOrderService` only); inclusive date range done as `>= from 00:00` and `< to + 1 day` so the last day's evening rows are not lost |
 
 ### 2026-10-28 — BUG4 home opening hours + BUG5 palette (`fix/BUG4-BUG5-home-hours-palette`)
 
