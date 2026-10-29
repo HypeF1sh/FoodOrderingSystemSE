@@ -1,0 +1,32 @@
+@using FoodOrderingSystem.Models.Enums
+@using FoodOrderingSystem.ViewModels
+@model CustomerOrderRowViewModel
+@* One order on "My orders" (PB18). The data-* attributes let my-orders.js update the badges in place. *@
+<div class="list-group-item" data-order-id="@Model.OrderId">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <a asp-page="/Orders/Confirmation" asp-route-id="@Model.OrderId" class="fw-semibold">Order #@Model.OrderId</a>
+            <span class="text-muted small ms-1">@Model.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span>
+        </div>
+        <div class="d-flex gap-1">
+            <span class="badge @OrderStatusDisplay.BadgeClass(Model.Status)" data-role="status">@OrderStatusDisplay.Label(Model.Status)</span>
+            <span class="badge @PaymentStatusDisplay.BadgeClass(Model.Payment.Status)" data-role="payment">@Model.Payment.Status</span>
+        </div>
+    </div>
+
+    <div class="text-muted small mt-1">
+        @string.Join(", ", Model.Lines.Select(l => $"{l.Quantity} × {l.Name}"))
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+        <span class="fw-semibold">RM @Model.TotalAmount.ToString("0.00")</span>
+        @if (Model.Payment.IsPaid)
+        {
+            <a asp-page="/Payments/Receipt" asp-route-paymentId="@Model.Payment.PaidPaymentId" class="btn btn-sm btn-outline-secondary">View receipt</a>
+        }
+        else if (Model.Status != OrderStatus.Cancelled && Model.Payment.Status != PaymentStatus.Refunded)
+        {
+            <a asp-page="/Payments/Pay" asp-route-orderId="@Model.OrderId" class="btn btn-sm btn-outline-secondary">Pay now</a>
+        }
+    </div>
+</div>

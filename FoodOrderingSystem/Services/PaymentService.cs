@@ -157,6 +157,23 @@ public class PaymentService : IPaymentService
         return Summarise(payments.Select(p => (p.PaymentId, p.Status)));
     }
 
+    public async Task<Dictionary<int, OrderPaymentSummary>> GetPaymentSummariesAsync(IEnumerable<int> orderIds)
+    {
+        var ids = orderIds.Distinct().ToList();
+
+        // One query for every order, instead of one GetPaymentSummaryAsync call per order
+        var payments = await _context.Payments
+            .AsNoTracking()
+            .Where(p => ids.Contains(p.OrderId))
+            .Select(p => new { p.OrderId, p.PaymentId, p.Status })
+            .ToListAsync();
+
+        // Grouped in memory, then the same Summarise rule as above, so every page agrees on "Paid"
+        return ids.ToDictionary(
+            id => id,
+            id => Summarise(payments.Where(p => p.OrderId == id).Select(p => (p.PaymentId, p.Status))));
+    }
+
     // =====================================================================
     // Receipt (D4)
     // =====================================================================

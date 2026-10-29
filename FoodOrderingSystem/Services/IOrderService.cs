@@ -17,6 +17,10 @@ public interface IOrderService
     /// or belongs to a different customer.</summary>
     Task<OrderConfirmationViewModel?> GetConfirmationAsync(int orderId, string customerId);
 
+    /// <summary>Every order the customer has placed, newest first, with its dishes (PB18).
+    /// Only that customer's orders. Payment status is not included: get it from IPaymentService.</summary>
+    Task<List<CustomerOrderRowViewModel>> GetCustomerOrdersAsync(string customerId);
+
     // ---- Staff (PB15) ----
 
     /// <summary>Orders placed on one day, filtered for the staff board.

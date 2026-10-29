@@ -23,7 +23,7 @@ Update the Status column when an item changes. Owner domain: A = Carynn, B = Wal
 | PB15 | As a staff member, I want to receive orders and update their status. | High | Intermediate | C | 3 | Done |
 | PB16 | As a customer, I want to pay online and track my payment status. | High | Intermediate | C | 3 | Done |
 | PB17 | As a staff member, I want to record payment status and manage billing. | Medium | Basic | B | 3 | Todo |
-| PB18 | As a customer, I want to view my reservation, order and payment history and track status in real time. | Medium | Basic + Intermediate | C | 4 | Todo |
+| PB18 | As a customer, I want to view my reservation, order and payment history and track status in real time. | Medium | Basic + Intermediate | C | 4 | In progress |
 | PB19 | As a customer, I want to submit ratings and feedback after a completed meal. | Medium | Basic | B | 4 | Todo |
 | PB20 | As a customer, I want to receive notifications for reservation, order, payment and promotional updates. | Medium | Advanced | B | 4 | Todo |
 | PB21 | As an administrator, I want to monitor all reservations, orders and payment transactions. | High | Basic | A | 3 | Todo |
