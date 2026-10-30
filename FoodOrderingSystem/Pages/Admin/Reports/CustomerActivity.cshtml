@@ -1,0 +1,73 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.Reports.CustomerActivityModel
+@{
+    ViewData["Title"] = "Customer Activity";
+}
+
+<div class="container py-4">
+    <h1 class="mb-1">Customer Activity</h1>
+    <p class="text-muted mb-3">How active each customer was in the chosen period.</p>
+
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="From">From</label>
+            <input type="date" id="From" name="From" value="@Model.From?.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="To">To</label>
+            <input type="date" id="To" name="To" value="@Model.To?.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="Sort">Sort by</label>
+            <select id="Sort" name="Sort" asp-items="Model.SortOptions" class="form-select"></select>
+        </div>
+        <div class="col-6 col-md-3">
+            <button type="submit" class="btn btn-primary">Apply</button>
+            <a asp-page="CustomerActivity" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th class="text-end">Reservations</th>
+                    <th class="text-end">Orders</th>
+                    <th class="text-end">Total spent</th>
+                    <th>Last visit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Customers)
+                {
+                    <tr>
+                        <td>
+                            @c.CustomerName
+                            @if (!string.IsNullOrWhiteSpace(c.CustomerEmail))
+                            {
+                                <div class="small text-muted">@c.CustomerEmail</div>
+                            }
+                        </td>
+                        <td class="text-end">@c.ReservationCount</td>
+                        <td class="text-end">@c.OrderCount</td>
+                        <td class="text-end">RM @c.TotalSpent.ToString("N2")</td>
+                        <td>@(c.LastVisit?.ToString("dd MMM yyyy") ?? "-")</td>
+                    </tr>
+                }
+                @if (!Model.Customers.Any())
+                {
+                    <tr><td colspan="5" class="text-muted text-center">No customer activity in this period.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p class="small text-muted mb-0">
+        Reservations and orders do not include cancelled ones. Total spent is the sum of Paid payments
+        (refunded and failed payments are left out). Last visit is the latest completed reservation or
+        paid payment in the period.
+    </p>
+</div>

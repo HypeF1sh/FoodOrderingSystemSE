@@ -78,8 +78,12 @@ All mutating methods return a tuple, same shape as `IOrderService` / `IUserAdmin
 | `RecordCashPaymentAsync(int orderId, decimal amountTendered, string staffUserId)` → `(bool Success, string Message, int? PaymentId, decimal Change)` | Saves `Method = Cash`, `Status = Paid`, `Amount = Order.TotalAmount`, `RecordedByUserId = staffUserId`, `TransactionRef = "CASH-yyyyMMdd-XXXXXXXX"`. `Change = amountTendered − total`. Tendered/change are **returned, not stored** (no column) — the receipt page shows them only right after recording (passed via `TempData`) |
 | `RefundPaymentAsync(int paymentId, string staffUserId)` → `(bool Success, string Message)` | **Optional — see §10 Q1.** Paid → Refunded; order may then be cancelled |
 
-**Admin monitoring (Carynn, PB21)** can reuse `GetBillAsync` / `GetPaymentSummaryAsync`, or ask for a
-`GetPaymentsAsync(DateOnly from, DateOnly to)` list — agree in standup, not built in v1.
+**Admin monitoring — for Carynn's PB21 / PB23** (added 29/10 on `feature/admin-list-methods`, read-only)
+| Method | Notes |
+|---|---|
+| `IPaymentService.GetPaymentsAsync(DateOnly from, DateOnly to, PaymentStatus? status)` → `List<PaymentListItemViewModel>` | Every attempt with `PaidAt` from `from` 00:00 to the end of `to` (both days included). `status` null = all, Failed included. Newest first. Fields: PaymentId, OrderId, CustomerId, CustomerName, Amount, Method, Status, TransactionRef, PaidAt. Empty list if `from > to` |
+| `IOrderService.GetOrdersAsync(DateOnly from, DateOnly to, OrderStatus? status)` → `List<StaffOrderViewModel>` | Same range rule on `CreatedAt`, newest first, with lines and payment status. `NextStatus` / `CanCancel` left empty (no staff actions). `StaffOrderViewModel` now also has `CustomerId` for grouping by customer |
+| `GetOrdersForStaffAsync(date, StaffOrderFilter.All)` | Already existed: one day, any status |
 
 ## 6. Business rules
 | Rule | Where |

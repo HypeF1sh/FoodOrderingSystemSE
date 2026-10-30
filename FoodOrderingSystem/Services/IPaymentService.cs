@@ -1,3 +1,4 @@
+using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
@@ -22,6 +23,10 @@ public interface IPaymentService
     /// <summary>Unpaid / Paid / Failed / Refunded for one order, for badges on other pages.</summary>
     Task<OrderPaymentSummary> GetPaymentSummaryAsync(int orderId);
 
+    /// <summary>The same summary for many orders in one query, keyed by order id (PB18 "My orders").
+    /// Every id asked for is in the result; an order with no payments is Unpaid.</summary>
+    Task<Dictionary<int, OrderPaymentSummary>> GetPaymentSummariesAsync(IEnumerable<int> orderIds);
+
     // ---- Receipt (D4) ----
 
     /// <summary>The receipt for a Paid or Refunded payment. Customers only get their own; staff and admins any.
@@ -45,4 +50,11 @@ public interface IPaymentService
 
     /// <summary>Marks a Paid payment as Refunded (whole amount only). Staff/Admin pages only.</summary>
     Task<(bool Success, string Message)> RefundPaymentAsync(int paymentId, string staffUserId);
+
+    // ---- Admin monitoring (for PB21 / PB23, Carynn) ----
+
+    /// <summary>Every payment attempt whose PaidAt falls between from and to (both days included),
+    /// newest first. status null = all statuses, including Failed attempts. Read-only.
+    /// Returns an empty list if from is after to.</summary>
+    Task<List<PaymentListItemViewModel>> GetPaymentsAsync(DateOnly from, DateOnly to, PaymentStatus? status);
 }

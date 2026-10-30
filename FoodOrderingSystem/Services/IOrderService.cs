@@ -17,6 +17,10 @@ public interface IOrderService
     /// or belongs to a different customer.</summary>
     Task<OrderConfirmationViewModel?> GetConfirmationAsync(int orderId, string customerId);
 
+    /// <summary>Every order the customer has placed, newest first, with its dishes (PB18).
+    /// Only that customer's orders. Payment status is not included: get it from IPaymentService.</summary>
+    Task<List<CustomerOrderRowViewModel>> GetCustomerOrdersAsync(string customerId);
+
     // ---- Staff (PB15) ----
 
     /// <summary>Orders placed on one day, filtered for the staff board.
@@ -32,4 +36,11 @@ public interface IOrderService
 
     /// <summary>Cancels an order that is still Pending or Preparing and has not been paid. Returns (success, message).</summary>
     Task<(bool Success, string Message)> CancelOrderAsync(int orderId, OrderStatus currentStatus);
+
+    // ---- Admin monitoring (for PB21 / PB23, Carynn) ----
+
+    /// <summary>Orders whose CreatedAt falls between from and to (both days included), newest first,
+    /// with their payment status. status null = all statuses. Read-only: NextStatus and CanCancel are
+    /// left empty, so an admin page cannot show staff actions. Returns an empty list if from is after to.</summary>
+    Task<List<StaffOrderViewModel>> GetOrdersAsync(DateOnly from, DateOnly to, OrderStatus? status);
 }

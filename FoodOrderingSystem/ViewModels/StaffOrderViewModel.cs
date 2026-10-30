@@ -7,6 +7,9 @@ public class StaffOrderViewModel
 {
     public int OrderId { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    // CustomerId is for grouping by customer in admin reports (PB23; names are not unique); CustomerName is for display
+    public string CustomerId { get; set; } = string.Empty;
     public string CustomerName { get; set; } = string.Empty;
     public int? ReservationId { get; set; }
     public OrderStatus Status { get; set; }
