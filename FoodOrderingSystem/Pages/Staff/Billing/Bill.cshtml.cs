@@ -28,7 +28,10 @@ public class BillModel : PageModel
     {
         Bill = await _paymentService.GetBillAsync(id);
         if (Bill == null)
+        { 
+            TempData["ErrorMessage"] = $"Order #{id} was not found.";
             return NotFound();
+        }
 
         AmountTendered = Bill.TotalAmount;
         return Page();
@@ -53,7 +56,7 @@ public class BillModel : PageModel
         TempData["CashTendered"] = AmountTendered.ToString("0.00", CultureInfo.InvariantCulture);
         TempData["CashChange"] = change.ToString("0.00", CultureInfo.InvariantCulture);
 
-        return RedirectToPage("/Payments/Receipt", new { id = paymentId.Value });
+        return RedirectToPage("/Payments/Receipt", new { paymentId = paymentId.Value });
     }
 
     public async Task<IActionResult> OnPostRefundAsync(int id, int paymentId)

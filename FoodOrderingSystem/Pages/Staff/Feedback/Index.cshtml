@@ -1,0 +1,92 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Staff.Feedback.IndexModel
+@{
+    ViewData["Title"] = "Customer Feedback";
+    double avgRating = Model.Feedbacks.Any() ? Model.Feedbacks.Average(f => f.Rating) : 0;
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h1 class="mb-0">Customer Ratings &amp; Feedback</h1>
+            <p class="text-muted small mb-0">
+                Showing @Model.Feedbacks.Count review(s)
+            </p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-warning text-dark p-2 fs-6">
+                Average: @avgRating.ToString("0.0") / 5.0 ★
+            </span>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-sm-4">
+                    <label class="form-label fw-semibold">Filter by Star Rating</label>
+                    <select asp-for="RatingFilter" class="form-select">
+                        <option value="">All Ratings (1–5 ★)</option>
+                        <option value="5">5 Stars Only</option>
+                        <option value="4">4 Stars Only</option>
+                        <option value="3">3 Stars Only</option>
+                        <option value="2">2 Stars Only</option>
+                        <option value="1">1 Star Only</option>
+                    </select>
+                </div>
+                <div class="col-sm-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a asp-page="Index" class="btn btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Feedbacks.Any())
+    {
+        <div class="alert alert-info">No customer feedback found matching the selected filter.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Visit Ref</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Feedbacks)
+                    {
+                        <tr>
+                            <td>@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy hh:mm tt")</td>
+                            <td>
+                                <div class="fw-semibold">@item.CustomerName</div>
+                                <div class="text-muted small">@item.CustomerEmail</div>
+                            </td>
+                            <td>
+                                @if (item.ReservationId.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark border">Reservation #@item.ReservationId</span>
+                                }
+                                @if (item.OrderId.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark border">Order #@item.OrderId</span>
+                                }
+                            </td>
+                            <td class="text-warning fw-bold text-nowrap">
+                                @(new string('★', item.Rating))@(new string('☆', 5 - item.Rating))
+                                <span class="text-dark small">(@item.Rating)</span>
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Comment) ? "-" : item.Comment)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

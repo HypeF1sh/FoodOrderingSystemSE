@@ -113,7 +113,7 @@
                                         <td class="text-end pe-3">
                                             @if (attempt.Status == PaymentStatus.Paid || attempt.Status == PaymentStatus.Refunded)
                                             {
-                                                <a asp-page="/Payments/Receipt" asp-route-id="@attempt.PaymentId"
+                                                <a asp-page="/Payments/Receipt" asp-route-paymentId="@attempt.PaymentId"
                                                    class="btn btn-sm btn-outline-secondary me-1">Receipt</a>
                                             }
                                             @if (attempt.Status == PaymentStatus.Paid)
@@ -139,7 +139,7 @@
         <div class="col-lg-5">
             <div class="card">
                 <div class="card-header bg-light">
-                    <strong>Counter Cash Settlement (PB17)</strong>
+                    <strong>Counter Cash Settlement</strong>
                 </div>
                 <div class="card-body">
                     @if (bill.CanRecordPayment)
@@ -185,7 +185,7 @@
 
                         @if (bill.Payment.PaidPaymentId.HasValue)
                         {
-                            <a asp-page="/Payments/Receipt" asp-route-id="@bill.Payment.PaidPaymentId.Value"
+                            <a asp-page="/Payments/Receipt" asp-route-paymentId="@bill.Payment.PaidPaymentId.Value"
                                class="btn btn-primary w-100">
                                 View Official Receipt
                             </a>

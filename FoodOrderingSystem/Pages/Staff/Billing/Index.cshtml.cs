@@ -26,11 +26,18 @@ public class IndexModel : PageModel
         UnpaidOrders = await _paymentService.GetUnpaidOrdersAsync(EffectiveDate);
     }
 
-    public IActionResult OnGetLookupOrder(int? orderId)
+    public async Task<IActionResult> OnPostLookupOrderAsync(int? orderId)
     {
         if (!orderId.HasValue || orderId.Value <= 0)
         {
             TempData["ErrorMessage"] = "Please enter a valid Order ID.";
+            return RedirectToPage();
+        }
+
+        var bill = await _paymentService.GetBillAsync(orderId.Value);
+        if (bill == null)
+        {
+            TempData["ErrorMessage"] = $"Order #{orderId.Value} was not found.";
             return RedirectToPage();
         }
 
