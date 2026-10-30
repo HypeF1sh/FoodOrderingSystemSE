@@ -26,6 +26,27 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-22 | PB16 payment + receipt v1 (Sprint 3) | See the detailed entry below — manual run-through done 28/10, merged PR #15 |
 | 2026-10-28 | BUG4 home hours + BUG5 palette | See the detailed entry below |
 | 2026-10-29 | Admin list methods for Carynn's PB21/PB23 (`feature/admin-list-methods`) | No UI. Ch.7: agreeing a service interface across domains (A reads C's data through `IPaymentService`/`IOrderService` only); inclusive date range done as `>= from 00:00` and `< to + 1 day` so the last day's evening rows are not lost |
+| 2026-10-30 | PB22 admin dashboard v1 (Sprint 4) | See the detailed entry below |
+
+### 2026-10-30 — PB22 admin dashboard (`feature/PB22-dashboard`)
+
+**Ch.5 screenshots:** full dashboard on "Last 30 days" (tiles + 3 charts); hover tooltip on a sales bar; Group by
+Week vs Day for the same range; "Show as table" opened under a chart; the Dashboard card on the Configurations hub;
+the dashboard at phone width; code excerpt of `ReportService.GroupIntoPeriods` (zero-filled periods).
+
+**Ch.6 test cases** (full list TC-D01–D08 in `docs/superpowers/specs/2026-10-30-dashboard-design.md`)
+| ID | Steps | Expected |
+|---|---|---|
+| TC-D03/04 | Pay an order online, reload dashboard; staff refunds it, reload | Revenue rises by the amount, then drops back |
+| TC-D06 | Set From after To; then a range over 366 days | Error message under the filter, no charts |
+
+**Ch.7 reflection:** revenue is counted from *payments* (by payment date), not order totals, so unpaid and refunded
+orders don't inflate sales; a refund flips the payment to Refunded, so no extra rule was needed. Reservations are
+Wallace's table, so they are read through `IReservationService.GetReservationsAsync` (cross-domain rule), not
+queried directly. The database adds up each day (`GROUP BY` date); C# then folds days into weeks/months and fills empty
+periods with 0 so gaps show on the chart. Profit can't be shown: there is no cost price (schema change, D5). Problem
+hit: CSS isolation didn't style the quick-range links built inside a `@foreach`, so they're scoped through their
+wrapper with `::deep`. Chart.js 4.4.1 (MIT) is a third-party library and should be credited.
 
 ### 2026-10-28 — BUG4 home opening hours + BUG5 palette (`fix/BUG4-BUG5-home-hours-palette`)
 

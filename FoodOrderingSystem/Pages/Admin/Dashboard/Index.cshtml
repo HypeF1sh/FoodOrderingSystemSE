@@ -1,0 +1,215 @@
+@page
+@using FoodOrderingSystem.ViewModels
+@model FoodOrderingSystem.Pages.Admin.Dashboard.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var today = Model.Today;
+    var dashboard = Model.Dashboard;
+
+    // Quick ranges: label, from, to. All end today.
+    var quickRanges = new (string Label, DateOnly From, DateOnly To)[]
+    {
+        ("Today", today, today),
+        ("Last 7 days", today.AddDays(-6), today),
+        ("Last 30 days", today.AddDays(-29), today),
+        ("This month", new DateOnly(today.Year, today.Month, 1), today),
+        ("This year", new DateOnly(today.Year, 1, 1), today)
+    };
+}
+
+<div class="container mt-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <h1 class="mb-1">Dashboard</h1>
+            <p class="text-muted mb-0">Sales, bookings and popular dishes for the dates you choose.</p>
+        </div>
+        <a asp-page="/Admin/Index" class="btn btn-secondary btn-sm">Back to Configurations</a>
+    </div>
+
+    <!-- Filter bar: a GET form, so the chosen range is in the URL and can be bookmarked -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="rr-quick-ranges d-flex flex-wrap gap-2 mb-3">
+                @foreach (var range in quickRanges)
+                {
+                    var isActive = range.From == Model.SelectedFrom && range.To == Model.SelectedTo;
+                    <a class="btn btn-sm rr-range @(isActive ? "active" : "")"
+                       asp-page="./Index"
+                       asp-route-from="@range.From.ToString("yyyy-MM-dd")"
+                       asp-route-to="@range.To.ToString("yyyy-MM-dd")">@range.Label</a>
+                }
+            </div>
+
+            <form method="get" asp-page="./Index" class="row g-2 align-items-end">
+                <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+                <div class="col-6 col-md-3">
+                    <label for="from" class="form-label">From</label>
+                    <input id="from" type="date" name="from" value="@Model.SelectedFrom.ToString("yyyy-MM-dd")" class="form-control" />
+                </div>
+                <div class="col-6 col-md-3">
+                    <label for="to" class="form-label">To</label>
+                    <input id="to" type="date" name="to" value="@Model.SelectedTo.ToString("yyyy-MM-dd")" class="form-control" />
+                </div>
+                <div class="col-6 col-md-3">
+                    <label for="grouping" class="form-label">Group by</label>
+                    <select id="grouping" name="grouping" class="form-select">
+                        @foreach (var grouping in Enum.GetValues<ReportGrouping>())
+                        {
+                            <option value="@grouping" selected="@(dashboard?.Grouping == grouping)">@grouping</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Show report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (dashboard != null)
+    {
+        <p class="text-muted small mb-3">
+            @dashboard.From.ToString("dd/MM/yyyy") to @dashboard.To.ToString("dd/MM/yyyy") · by @dashboard.Grouping.ToString().ToLower()
+        </p>
+
+        <!-- Headline numbers -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="card h-100 rr-stat">
+                    <div class="card-body">
+                        <div class="rr-stat-label">Revenue</div>
+                        <div class="rr-stat-value">RM @dashboard.Revenue.ToString("0.00")</div>
+                        <div class="rr-stat-note">Paid payments, refunds excluded</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card h-100 rr-stat">
+                    <div class="card-body">
+                        <div class="rr-stat-label">Average order</div>
+                        <div class="rr-stat-value">RM @dashboard.AverageOrderValue.ToString("0.00")</div>
+                        <div class="rr-stat-note">Across @dashboard.PaidOrderCount paid @(dashboard.PaidOrderCount == 1 ? "order" : "orders")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card h-100 rr-stat">
+                    <div class="card-body">
+                        <div class="rr-stat-label">Orders</div>
+                        <div class="rr-stat-value">@dashboard.OrderCount</div>
+                        <div class="rr-stat-note">Placed, cancelled excluded</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card h-100 rr-stat">
+                    <div class="card-body">
+                        <div class="rr-stat-label">Bookings</div>
+                        <div class="rr-stat-value">@dashboard.BookingCount</div>
+                        <div class="rr-stat-note">@dashboard.CoverCount @(dashboard.CoverCount == 1 ? "guest" : "guests"), cancelled excluded</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Sales chart -->
+            <div class="col-12 col-lg-7">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Sales (RM)</h2>
+                        <div class="rr-chart">
+                            <canvas id="salesChart" role="img" aria-label="Bar chart of sales per @dashboard.Grouping.ToString().ToLower()"></canvas>
+                        </div>
+                        <details class="mt-3">
+                            <summary class="small">Show as table</summary>
+                            <partial name="_ReportTable" model="@(("Period", "Sales (RM)", dashboard.SalesByPeriod, true))" />
+                        </details>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular dishes -->
+            <div class="col-12 col-lg-5">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Popular dishes</h2>
+                        @if (dashboard.PopularItems.Count == 0)
+                        {
+                            <p class="text-muted mb-0">No orders in this range.</p>
+                        }
+                        else
+                        {
+                            <div class="rr-chart rr-chart-short">
+                                <canvas id="dishesChart" role="img" aria-label="Bar chart of the most ordered dishes"></canvas>
+                            </div>
+                            <div class="table-responsive mt-3">
+                                <table class="table table-hover table-bordered table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Dish</th>
+                                            <th class="text-end">Sold</th>
+                                            <th class="text-end">Item sales</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < dashboard.PopularItems.Count; i++)
+                                        {
+                                            var item = dashboard.PopularItems[i];
+                                            <tr>
+                                                <td>@(i + 1)</td>
+                                                <td>@item.Name</td>
+                                                <td class="text-end">@item.QuantitySold</td>
+                                                <td class="text-end">RM @item.ItemSales.ToString("0.00")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Bookings chart -->
+            <div class="col-12 col-lg-7">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Bookings</h2>
+                        <div class="rr-chart">
+                            <canvas id="bookingsChart" role="img" aria-label="Bar chart of bookings per @dashboard.Grouping.ToString().ToLower()"></canvas>
+                        </div>
+                        <details class="mt-3">
+                            <summary class="small">Show as table</summary>
+                            <partial name="_ReportTable" model="@(("Period", "Bookings", dashboard.BookingsByPeriod, false))" />
+                        </details>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking status counts -->
+            <div class="col-12 col-lg-5">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Bookings by status</h2>
+                        <partial name="_ReportTable" model="@(("Status", "Bookings", dashboard.BookingStatusCounts, false))" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart data for admin-dashboard.js -->
+        <script type="application/json" id="dashboardData">@Html.Raw(Model.ChartDataJson)</script>
+    }
+</div>
+
+@section Scripts {
+    @if (dashboard != null)
+    {
+        <script src="~/lib/chart.js/chart.umd.min.js"></script>
+        <script src="~/js/admin-dashboard.js" asp-append-version="true"></script>
+    }
+}

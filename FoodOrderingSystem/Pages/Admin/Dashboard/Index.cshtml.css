@@ -1,0 +1,51 @@
+/* Admin dashboard (PB22). Colours come from the site palette tokens in site.css. */
+
+/* Quick range buttons: quiet outline at rest, accent when it is the range on screen.
+   ::deep because the tag-helper links built in the @foreach loop do not get the page's CSS-isolation
+   attribute; their wrapper div does, so the rule is scoped through it. */
+.rr-quick-ranges ::deep .rr-range {
+    --bs-btn-color: var(--rr-ink);
+    --bs-btn-border-color: var(--rr-line);
+    --bs-btn-hover-color: var(--rr-ink);
+    --bs-btn-hover-bg: var(--rr-surface);
+    --bs-btn-hover-border-color: var(--rr-muted);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--rr-accent);
+    --bs-btn-active-border-color: var(--rr-accent);
+}
+
+/* Stat tiles: small label, big number, muted note */
+.rr-stat-label {
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+}
+
+.rr-stat-value {
+    font-family: var(--rr-serif);
+    font-size: var(--rr-h2);
+    line-height: 1.2;
+    margin: 0.25rem 0;
+    white-space: nowrap;
+}
+
+.rr-stat-note {
+    color: var(--rr-muted);
+    font-size: 0.75rem;
+}
+
+/* Chart.js fills its parent, so the parent sets the height */
+.rr-chart {
+    position: relative;
+    height: 280px;
+}
+
+.rr-chart-short {
+    height: 220px;
+}
+
+/* Phones: smaller numbers so "RM 12,345.00" fits in a half-width tile */
+@media (max-width: 575.98px) {
+    .rr-stat-value {
+        font-size: var(--rr-h3);
+    }
+}

@@ -1,0 +1,222 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Admin.Monitoring.IndexModel
+@{
+    ViewData["Title"] = "Monitoring";
+
+    string ReservationBadge(string status) => status switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Confirmed" => "bg-primary",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-secondary",
+        "NoShow" => "bg-danger",
+        _ => "bg-dark"
+    };
+
+    string OrderBadge(string status) => status switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Preparing" => "bg-info text-dark",
+        "ReadyToServe" => "bg-primary",
+        "Served" => "bg-secondary",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-dark",
+        _ => "bg-dark"
+    };
+
+    string PaymentBadge(string status) => status switch
+    {
+        "Unpaid" => "bg-secondary",
+        "Paid" => "bg-success",
+        "Failed" => "bg-danger",
+        "Refunded" => "bg-warning text-dark",
+        _ => "bg-dark"
+    };
+
+    var fromText = Model.From?.ToString("yyyy-MM-dd");
+    var toText = Model.To?.ToString("yyyy-MM-dd");
+}
+
+<div class="container py-4">
+    <h1 class="mb-1">Monitoring</h1>
+    <p class="text-muted mb-3">Read-only view of reservations, orders and payments.</p>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link @(Model.Tab == "reservations" ? "active" : "")"
+               asp-page="Index" asp-route-tab="reservations" asp-route-From="@fromText" asp-route-To="@toText">Reservations</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.Tab == "orders" ? "active" : "")"
+               asp-page="Index" asp-route-tab="orders" asp-route-From="@fromText" asp-route-To="@toText">Orders</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.Tab == "payments" ? "active" : "")"
+               asp-page="Index" asp-route-tab="payments" asp-route-From="@fromText" asp-route-To="@toText">Payments</a>
+        </li>
+    </ul>
+
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <input type="hidden" name="Tab" value="@Model.Tab" />
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="From">From</label>
+            <input type="date" id="From" name="From" value="@fromText" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="To">To</label>
+            <input type="date" id="To" name="To" value="@toText" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="Status">Status</label>
+            <select id="Status" name="Status" asp-items="Model.StatusOptions" class="form-select"></select>
+        </div>
+        <div class="col-6 col-md-3">
+            <button type="submit" class="btn btn-primary">Apply</button>
+            <a asp-page="Index" asp-route-tab="@Model.Tab" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+    @if (Model.Tab == "reservations")
+    {
+        <p class="mb-2">
+            <strong>@Model.Reservations.TotalInRange</strong> reservation(s) in this range:
+            @foreach (var item in Model.Reservations.StatusCounts)
+            {
+                <span class="badge @ReservationBadge(item.Key) me-1">@item.Key: @item.Value</span>
+            }
+        </p>
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Customer</th>
+                        <th>Table</th>
+                        <th>Party</th>
+                        <th>Status</th>
+                        <th>Special requests</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Reservations.Reservations)
+                    {
+                        <tr>
+                            <td>@r.ReservationDate.ToString("dd MMM yyyy")</td>
+                            <td>@r.StartTime.ToString("HH:mm") &ndash; @r.EndTime.ToString("HH:mm")</td>
+                            <td>
+                                @r.CustomerName
+                                <div class="small text-muted">@r.CustomerEmail</div>
+                            </td>
+                            <td>@r.DiningAreaName &middot; @r.TableNumber</td>
+                            <td>@r.PartySize</td>
+                            <td><span class="badge @ReservationBadge(r.Status)">@r.Status</span></td>
+                            <td class="small">@(string.IsNullOrWhiteSpace(r.SpecialRequests) ? "-" : r.SpecialRequests)</td>
+                        </tr>
+                    }
+                    @if (!Model.Reservations.Reservations.Any())
+                    {
+                        <tr><td colspan="7" class="text-muted text-center">No reservations match these filters.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (Model.Tab == "orders")
+    {
+        <p class="mb-2">
+            <strong>@Model.Orders.TotalInRange</strong> order(s) in this range
+            (value excluding cancelled: <strong>RM @Model.Orders.TotalValue.ToString("N2")</strong>):
+            @foreach (var item in Model.Orders.StatusCounts)
+            {
+                <span class="badge @OrderBadge(item.Key) me-1">@item.Key: @item.Value</span>
+            }
+        </p>
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Placed</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th class="text-end">Total</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in Model.Orders.Orders)
+                    {
+                        <tr>
+                            <td>#@o.OrderId</td>
+                            <td>@o.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            <td>@o.CustomerName</td>
+                            <td>@o.Lines.Count</td>
+                            <td class="text-end">RM @o.TotalAmount.ToString("N2")</td>
+                            <td><span class="badge @OrderBadge(o.Status.ToString())">@o.Status</span></td>
+                            <td><span class="badge @PaymentBadge(o.PaymentStatus.ToString())">@o.PaymentStatus</span></td>
+                        </tr>
+                    }
+                    @if (!Model.Orders.Orders.Any())
+                    {
+                        <tr><td colspan="7" class="text-muted text-center">No orders match these filters.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="mb-2">
+            <strong>@Model.Payments.TotalInRange</strong> payment attempt(s) in this range.
+            Paid: <strong>RM @Model.Payments.PaidTotal.ToString("N2")</strong>,
+            Refunded: <strong>RM @Model.Payments.RefundedTotal.ToString("N2")</strong>
+            <br />
+            @foreach (var item in Model.Payments.StatusCounts)
+            {
+                <span class="badge @PaymentBadge(item.Key) me-1">@item.Key: @item.Value</span>
+            }
+        </p>
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Payment</th>
+                        <th>Time</th>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Method</th>
+                        <th class="text-end">Amount</th>
+                        <th>Status</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Payments.Payments)
+                    {
+                        <tr>
+                            <td>#@p.PaymentId</td>
+                            <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            <td>#@p.OrderId</td>
+                            <td>@p.CustomerName</td>
+                            <td>@p.Method</td>
+                            <td class="text-end">RM @p.Amount.ToString("N2")</td>
+                            <td><span class="badge @PaymentBadge(p.Status.ToString())">@p.Status</span></td>
+                            <td class="small">@(string.IsNullOrWhiteSpace(p.TransactionRef) ? "-" : p.TransactionRef)</td>
+                        </tr>
+                    }
+                    @if (!Model.Payments.Payments.Any())
+                    {
+                        <tr><td colspan="8" class="text-muted text-center">No payments match these filters.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

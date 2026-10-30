@@ -53,6 +53,7 @@ builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IRestaurantSettingService, RestaurantSettingService>();
 
 builder.Services.AddScoped<ICustomerActivityService, CustomerActivityService>();
+builder.Services.AddScoped<IAdminMonitoringService, AdminMonitoringService>();
 
 // PB14 cart lives in the session (dish ids + quantities only; prices are re-read from the DB)
 builder.Services.AddDistributedMemoryCache();
@@ -68,6 +69,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 // PB16 payment. Swap SimulatedPaymentGateway for a real provider here; nothing else changes.
 builder.Services.AddScoped<IPaymentGateway, SimulatedPaymentGateway>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+// PB22 admin dashboard
+builder.Services.AddScoped<IReportService, ReportService>();
 
 var app = builder.Build();
 
