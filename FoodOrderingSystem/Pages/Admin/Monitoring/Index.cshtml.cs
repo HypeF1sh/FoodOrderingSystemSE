@@ -1,4 +1,4 @@
-using FoodOrderingSystem.Models.Enums;     // <-- match your project namespace
+using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +23,8 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public string? Status { get; set; }
 
     public ReservationMonitorViewModel Reservations { get; set; } = new();
+    public OrderMonitorViewModel Orders { get; set; } = new();
+    public PaymentMonitorViewModel Payments { get; set; } = new();
     public List<SelectListItem> StatusOptions { get; set; } = new();
 
     public async Task OnGetAsync()
@@ -33,6 +35,16 @@ public class IndexModel : PageModel
         // Default window: one week back to one week ahead
         From ??= DateOnly.FromDateTime(DateTime.Today.AddDays(-7));
         To ??= DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+
+        // The status dropdown depends on the tab
+        var names = Tab switch
+        {
+            "orders" => Enum.GetNames<OrderStatus>(),
+            "payments" => Enum.GetNames<PaymentStatus>(),
+            _ => Enum.GetNames<ReservationStatus>()
+        };
+        StatusOptions = new List<SelectListItem> { new("All statuses", "") };
+        StatusOptions.AddRange(names.Select(n => new SelectListItem(n, n)));
 
         if (To < From)
         {
@@ -48,14 +60,21 @@ public class IndexModel : PageModel
             return;
         }
 
-        if (Tab == "reservations")
+        switch (Tab)
         {
-            StatusOptions = new List<SelectListItem> { new("All statuses", "") };
-            StatusOptions.AddRange(Enum.GetNames<ReservationStatus>().Select(n => new SelectListItem(n, n)));
+            case "orders":
+                OrderStatus? orderStatus = Enum.TryParse<OrderStatus>(Status, true, out var os) && Enum.IsDefined(os) ? os : null;
+                Orders = await _monitoringService.GetOrdersAsync(From.Value, To.Value, orderStatus);
+                break;
 
-            Reservations = await _monitoringService.GetReservationsAsync(From.Value, To.Value, Status);
+            case "payments":
+                PaymentStatus? paymentStatus = Enum.TryParse<PaymentStatus>(Status, true, out var ps) && Enum.IsDefined(ps) ? ps : null;
+                Payments = await _monitoringService.GetPaymentsAsync(From.Value, To.Value, paymentStatus);
+                break;
+
+            default:
+                Reservations = await _monitoringService.GetReservationsAsync(From.Value, To.Value, Status);
+                break;
         }
-
-        // Orders and Payments tabs: added once Jordan's GetOrdersAsync / GetPaymentsAsync are merged
     }
 }
