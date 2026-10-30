@@ -52,6 +52,7 @@ builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IRestaurantSettingService, RestaurantSettingService>();
 
+builder.Services.AddScoped<ICustomerActivityService, CustomerActivityService>();
 builder.Services.AddScoped<IAdminMonitoringService, AdminMonitoringService>();
 
 // PB14 cart lives in the session (dish ids + quantities only; prices are re-read from the DB)
