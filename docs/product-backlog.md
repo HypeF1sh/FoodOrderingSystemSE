@@ -27,7 +27,7 @@ Update the Status column when an item changes. Owner domain: A = Carynn, B = Wal
 | PB19 | As a customer, I want to submit ratings and feedback after a completed meal. | Medium | Basic | B | 4 | Todo |
 | PB20 | As a customer, I want to receive notifications for reservation, order, payment and promotional updates. | Medium | Advanced | B | 4 | Todo |
 | PB21 | As an administrator, I want to monitor all reservations, orders and payment transactions. | High | Basic | A | 3 | Todo |
-| PB22 | As an administrator, I want a dashboard with charts and date-filtered reports for sales, reservations and popular menu items. | High | Intermediate + Advanced | C | 4 | Todo |
+| PB22 | As an administrator, I want a dashboard with charts and date-filtered reports for sales, reservations and popular menu items. | High | Intermediate + Advanced | C | 4 | In progress |
 | PB23 | As an administrator, I want to view customer activity reports. | Medium | Advanced | A | 4 | Todo |
 
 Sprint 1 also includes non-PB setup work: database schema + ER model + seed data (B) and the
