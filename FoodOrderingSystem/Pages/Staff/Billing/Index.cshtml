@@ -1,0 +1,144 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Staff.Billing.IndexModel
+@{
+    ViewData["Title"] = "Staff Billing & Payments";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h1 class="mb-0">Staff Billing &amp; Counter Payments</h1>
+            <p class="text-muted small mb-0">
+                Unpaid orders for @Model.EffectiveDate.ToString("dd/MM/yyyy") (@Model.UnpaidOrders.Count remaining)
+            </p>
+        </div>
+        <span class="badge bg-warning text-dark p-2">
+            Unpaid Total: RM @Model.UnpaidOrders.Sum(o => o.TotalAmount).ToString("0.00")
+        </span>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Filter Unpaid Orders by Date -->
+        <div class="col-md-7">
+            <div class="card h-100">
+                <div class="card-body">
+                    <form method="get" class="row g-2 align-items-end">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">Filter Unpaid Orders by Date</label>
+                            <input type="date" name="FilterDate" value="@Model.EffectiveDate.ToString("yyyy-MM-dd")" class="form-control" />
+                        </div>
+                        <div class="col-sm-6 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1">Show Date</button>
+                            <a asp-page="Index" class="btn btn-outline-secondary">Today</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Order / Bill Lookup (For Paid Orders or Refunds) -->
+        <div class="col-md-5">
+            <div class="card h-100">
+                <div class="card-body">
+                    <form method="post" asp-page-handler="LookupOrder" class="row g-2 align-items-end">
+                        <div class="col-sm-7">
+                            <label class="form-label fw-semibold">Find Bill by Order #</label>
+                            <input type="number" name="orderId" min="1" class="form-control" placeholder="e.g. 101 (Pay or Refund)" required />
+                        </div>
+                        <div class="col-sm-5 d-grid">
+                            <button type="submit" class="btn btn-outline-dark">Open Bill</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.UnpaidOrders.Any())
+    {
+        <div class="alert alert-info">
+            No unpaid orders found for @Model.EffectiveDate.ToString("dd/MM/yyyy"). Use "Find Bill by Order #" above to view or refund an already settled order.
+        </div>
+    }
+    else
+    {
+        <!-- Desktop Table -->
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Time Placed</th>
+                        <th>Customer</th>
+                        <th>Reservation</th>
+                        <th>Kitchen Status</th>
+                        <th>Online Attempt</th>
+                        <th class="text-end">Total Amount</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var order in Model.UnpaidOrders)
+                {
+                    <tr>
+                        <td><strong>#@order.OrderId</strong></td>
+                        <td>@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy hh:mm tt")</td>
+                        <td>@order.CustomerName</td>
+                        <td>
+                            @if (order.ReservationId.HasValue)
+                            {
+                                <span class="badge bg-light text-dark border">Booking #@order.ReservationId</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Walk-in / Direct</span>
+                            }
+                        </td>
+                        <td><span class="badge bg-secondary">@order.OrderStatus</span></td>
+                        <td>
+                            @if (order.HasFailedAttempt)
+                            {
+                                <span class="badge bg-danger">Declined Online</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">None</span>
+                            }
+                        </td>
+                        <td class="text-end fw-bold">RM @order.TotalAmount.ToString("0.00")</td>
+                        <td class="text-end">
+                            <a asp-page="Bill" asp-route-id="@order.OrderId" class="btn btn-sm btn-primary">
+                                Open Bill &amp; Pay
+                            </a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phone Layout -->
+        <div class="d-md-none d-flex flex-column gap-3">
+            @foreach (var order in Model.UnpaidOrders)
+            {
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                        <strong>Order #@order.OrderId — @order.CustomerName</strong>
+                        <span class="badge bg-secondary">@order.OrderStatus</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-1"><strong>Time:</strong> @order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy hh:mm tt")</div>
+                        <div class="mb-1"><strong>Total:</strong> <span class="fw-bold">RM @order.TotalAmount.ToString("0.00")</span></div>
+                        @if (order.HasFailedAttempt)
+                        {
+                            <div class="mt-1"><span class="badge bg-danger">Previous Online Attempt Declined</span></div>
+                        }
+                    </div>
+                    <div class="card-footer bg-white text-end">
+                        <a asp-page="Bill" asp-route-id="@order.OrderId" class="btn btn-sm btn-primary">Open Bill &amp; Pay</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

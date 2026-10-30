@@ -31,13 +31,16 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 // Add services to the container.
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", policy => policy.RequireRole("Administrator"))
-    .AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Administrator"));
+    .AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Administrator"))
+    .AddPolicy("CustomerOnly", policy => policy.RequireRole("Customer"));
 
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
     options.Conventions.AuthorizeFolder("/Staff", "StaffOrAdmin");
     options.Conventions.AuthorizeFolder("/Reservations");
+    options.Conventions.AuthorizeFolder("/Notifications", "CustomerOnly");
+    options.Conventions.AuthorizeFolder("/Feedback", "CustomerOnly");
 });
 
 builder.Services.AddScoped<IUserAdminService, UserAdminService>();
@@ -51,6 +54,7 @@ builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IRestaurantSettingService, RestaurantSettingService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 builder.Services.AddScoped<ICustomerActivityService, CustomerActivityService>();
 builder.Services.AddScoped<IAdminMonitoringService, AdminMonitoringService>();
@@ -98,7 +102,6 @@ app.UseAuthentication();   // MUST come before UseAuthorization
 app.UseAuthorization();
 
 app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages().WithStaticAssets();
 
 app.Run();

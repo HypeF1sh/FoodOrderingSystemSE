@@ -1,0 +1,108 @@
+﻿@page
+@model FoodOrderingSystem.Pages.Feedback.IndexModel
+@{
+    ViewData["Title"] = "Ratings & Feedback";
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">Ratings &amp; Feedback</h1>
+
+    <div class="row g-4">
+        <!-- Submit Feedback Form -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <strong>Rate a Completed Visit</strong>
+                </div>
+                <div class="card-body">
+                    @if (!Model.VisitOptions.Any())
+                    {
+                        <div class="alert alert-info mb-0">
+                            You have no unreviewed completed reservations or orders right now. Once a reservation or meal order is marked as <strong>Completed</strong>, you can rate it here!
+                        </div>
+                    }
+                    else
+                    {
+                        <form method="post">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                            <div class="mb-3">
+                                <label asp-for="Input.SelectedTarget" class="form-label fw-semibold">Completed Reservation / Order</label>
+                                <select asp-for="Input.SelectedTarget" asp-items="Model.VisitOptions" class="form-select"></select>
+                                <span asp-validation-for="Input.SelectedTarget" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Input.Rating" class="form-label fw-semibold">Rating (1 to 5 Stars)</label>
+                                <select asp-for="Input.Rating" class="form-select">
+                                    <option value="5">★★★★★ (5 — Excellent)</option>
+                                    <option value="4">★★★★☆ (4 — Good)</option>
+                                    <option value="3">★★★☆☆ (3 — Average)</option>
+                                    <option value="2">★★☆☆☆ (2 — Poor)</option>
+                                    <option value="1">★☆☆☆☆ (1 — Very Poor)</option>
+                                </select>
+                                <span asp-validation-for="Input.Rating" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Input.Comment" class="form-label fw-semibold">Your Review / Comment</label>
+                                <textarea asp-for="Input.Comment" class="form-control" rows="3"
+                                          placeholder="Tell us about the food, service, and atmosphere..."></textarea>
+                                <span asp-validation-for="Input.Comment" class="text-danger"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer's Past Feedback -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <strong>My Submitted Reviews (@Model.PastFeedback.Count)</strong>
+                </div>
+                <div class="card-body">
+                    @if (!Model.PastFeedback.Any())
+                    {
+                        <p class="text-muted mb-0">You have not submitted any reviews yet.</p>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var item in Model.PastFeedback)
+                            {
+                                <div class="border rounded p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-warning fw-bold">
+                                            @(new string('★', item.Rating))@(new string('☆', 5 - item.Rating))
+                                            <span class="text-dark ms-1">(@item.Rating / 5)</span>
+                                        </span>
+                                        <span class="text-muted small">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy hh:mm tt")</span>
+                                    </div>
+                                    <div class="small text-muted mb-2">
+                                        @if (item.ReservationId.HasValue)
+                                        {
+                                            <span>Reservation #@item.ReservationId</span>
+                                        }
+                                        @if (item.OrderId.HasValue)
+                                        {
+                                            <span>Order #@item.OrderId</span>
+                                        }
+                                    </div>
+                                    <div>@(string.IsNullOrWhiteSpace(item.Comment) ? "No written comment provided." : item.Comment)</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

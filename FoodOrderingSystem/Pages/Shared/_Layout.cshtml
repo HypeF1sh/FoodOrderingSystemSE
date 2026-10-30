@@ -1,12 +1,19 @@
+@using System.Security.Claims
+@using FoodOrderingSystem.Services
+@inject INotificationService NotificationService
 @{
-    // The restaurant name is a PLACEHOLDER. Replace it in this one line once the
-    // group agrees on the real name - it feeds the tab title, the navbar wordmark
-    // and the footer, so nothing else needs editing.
     const string RestaurantName = "Rumah Rasa";
-
-    // Which Razor Page is being shown, e.g. "/Index". Used to underline the
-    // matching navbar link so the user can see where they are.
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+
+    int unreadNotifications = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            unreadNotifications = await NotificationService.GetUnreadCountAsync(currentUserId);
+        }
+    }
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -24,10 +31,8 @@
         <nav class="navbar navbar-expand-md">
             <div class="container">
 
-                <!-- Wordmark, doubles as the link home -->
                 <a class="navbar-brand rr-wordmark" asp-page="/Index">@RestaurantName</a>
 
-                <!-- Hamburger, shown below the md breakpoint -->
                 <button class="navbar-toggler"
                         type="button"
                         data-bs-toggle="collapse"
@@ -40,7 +45,6 @@
 
                 <div class="collapse navbar-collapse" id="rrNav">
 
-                    <!-- Primary navigation -->
                     <ul class="navbar-nav me-auto">
 
                         <li class="nav-item">
@@ -53,52 +57,67 @@
                                asp-page="/Menu/Index">Menu</a>
                         </li>
 
-                        @* The pages below do not exist yet, so they are rendered as
-                           inactive placeholders. An asp-page tag helper pointing at a
-                           missing page throws at render time, which is why these are
-                           plain spans for now.
-
-                           Sprint 2 - Wallace (PB09): replace with
-                               <a class="nav-link" asp-page="/Reservations/Create">Book a table</a>
-                        *@
                         <li class="nav-item">
                             <a class="nav-link @(currentPage.StartsWith("/Reservations") ? "active" : "")"
                                asp-page="/Reservations/Create">Book a table</a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link @(currentPage.StartsWith("/Orders") ? "active" : "")"
                                asp-page="/Orders/Index">My orders</a>
                         </li>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Staff") || User.IsInRole("Administrator"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(currentPage.StartsWith("/Staff/Reservations") ? "active" : "")"
+                                       asp-area=""
+                                       asp-page="/Staff/Reservations/Index">Staff Reservations</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(currentPage.StartsWith("/Staff/Billing") ? "active" : "")"
+                                       asp-area=""
+                                       asp-page="/Staff/Billing/Index">Billing</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(currentPage.StartsWith("/Staff/Feedback") ? "active" : "")"
+                                       asp-area=""
+                                       asp-page="/Staff/Feedback/Index">Reviews</a>
+                                </li>
+                            }
+
+                            @if (User.IsInRole("Customer"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(currentPage.StartsWith("/Feedback") ? "active" : "")"
+                                       asp-page="/Feedback/Index">Feedback</a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link @(currentPage.StartsWith("/Notifications") ? "active" : "")"
+                                       asp-page="/Notifications/Index">
+                                        Notifications
+                                        @if (unreadNotifications > 0)
+                                        {
+                                            <span class="badge rounded-pill bg-danger ms-1">@unreadNotifications</span>
+                                        }
+                                    </a>
+                                </li>
+                            }
+                        }
 
                         @if (User.IsInRole("Administrator"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link @(currentPage.StartsWith("/Admin/Index") ? "active" : "")"
                                    asp-area=""
-                                   asp-page="/Admin/Index">Configurations</a>
+                                   asp-page="/Admin/Index">Admin</a>
                             </li>
                         }
-
-                        @if (User.IsInRole("Staff") || User.IsInRole("Administrator"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link @(currentPage.StartsWith("/Staff/Reservations") ? "active" : "")"
-                                   asp-area=""
-                                   asp-page="/Staff/Reservations/Index">Staff Reservations</a>
-                            </li>
-                        }
-
-                        @* Role-aware links go here once Identity is merged (Carynn, PB04).
-                           The pattern will be:
-                               @if (User.IsInRole("Administrator")) { ...admin links... }
-                               @if (User.IsInRole("Staff")) { ...staff links... }
-                        *@
                     </ul>
 
-                    <!-- Account slot.
-                         Carynn's Identity scaffolding (PB04) creates _LoginPartial.cshtml.
-                         When that is merged, delete the placeholder span below and
-                         uncomment the partial - the styling already allows for it. -->
                     <div class="rr-account">
                         <partial name="_LoginPartial" />
                     </div>
@@ -110,9 +129,6 @@
 
     <main>
         <div class="container">
-            <!-- Success and error banners are rendered here, once for the whole site.
-                 Pages set TempData["SuccessMessage"] or TempData["ErrorMessage"] and
-                 never render a banner themselves. -->
             <partial name="_Banners" />
         </div>
 
