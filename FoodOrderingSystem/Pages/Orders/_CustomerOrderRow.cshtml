@@ -5,8 +5,8 @@
 <div class="list-group-item" data-order-id="@Model.OrderId">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
         <div>
-            <a asp-page="/Orders/Confirmation" asp-route-id="@Model.OrderId" class="fw-semibold">Order #@Model.OrderId</a>
-            <span class="text-muted small ms-1">@Model.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span>
+            @* The database order number is internal, so customers see when they ordered instead *@
+            <span class="fw-semibold">@Model.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span>
         </div>
         <div class="d-flex gap-1">
             <span class="badge @OrderStatusDisplay.BadgeClass(Model.Status)" data-role="status">@OrderStatusDisplay.Label(Model.Status)</span>
