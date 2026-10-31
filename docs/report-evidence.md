@@ -27,6 +27,27 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-28 | BUG4 home hours + BUG5 palette | See the detailed entry below |
 | 2026-10-29 | Admin list methods for Carynn's PB21/PB23 (`feature/admin-list-methods`) | No UI. Ch.7: agreeing a service interface across domains (A reads C's data through `IPaymentService`/`IOrderService` only); inclusive date range done as `>= from 00:00` and `< to + 1 day` so the last day's evening rows are not lost |
 | 2026-10-30 | PB22 admin dashboard v1 (Sprint 4) | See the detailed entry below |
+| 2026-10-30 | BUG6 receipt → My orders, UX1 add-to-cart dialog + toast | See the detailed entry below |
+
+### 2026-10-30 — BUG6 + UX1 (`fix/BUG6-UX1-orders-nav-cart`)
+
+**Ch.5 screenshots:** the "Add to cart" dialog with the quantity stepper and running total; the dark toast
+"Added … to your cart." floating above the "View cart" bar; the same at phone width; the receipt's
+"Back to my orders" button; the Confirmation page's "My orders" button.
+
+**Test cases (Ch.6):**
+| ID | Steps | Expected |
+|---|---|---|
+| TC-UX1-01 | Scroll halfway down `/Menu`, tap Add, pick 3, confirm | No reload, same scroll position, toast shows, cart bar reads 3 |
+| TC-UX1-02 | Tap Add, then Cancel | Nothing added, cart count unchanged |
+| TC-UX1-03 | In the dialog, press + past 20 | + stops at 20 (cart limit), no wrap-around; − stops at 1 |
+| TC-UX1-04 | Disable JavaScript, tap Add | Form posts normally, returns to the same tab with the banner (fallback) |
+| TC-BUG6-01 | My orders → View receipt → Back to my orders | Lands on `/Orders` |
+
+**Ch.7:** progressive enhancement — the same form works with and without JavaScript; the handler only answers
+JSON when the request says `X-Requested-With: fetch`. The fetch posts the dish's own form, so the anti-forgery
+token is sent and a request without it is refused (400). The toast lives on the menu page only, so the shared
+`_Banners` / `_Layout.cshtml` did not need changing.
 
 ### 2026-10-30 — PB22 admin dashboard (`feature/PB22-dashboard`)
 
