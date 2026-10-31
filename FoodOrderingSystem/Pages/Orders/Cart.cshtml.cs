@@ -29,6 +29,19 @@ public class CartModel : PageModel
     public async Task<IActionResult> OnPostAddAsync(int menuItemId, int quantity = 1, string? returnUrl = null)
     {
         var (success, message) = await _cartService.AddItemAsync(HttpContext.Session, menuItemId, quantity);
+
+        // UX1: the menu page adds in the background (fetch), so it gets JSON back and the customer
+        // keeps their scroll position. Without JavaScript the form posts normally and the redirect below runs.
+        if (Request.Headers["X-Requested-With"] == "fetch")
+        {
+            return new JsonResult(new
+            {
+                success,
+                message,
+                cartCount = _cartService.GetItemCount(HttpContext.Session)
+            });
+        }
+
         TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
 
         // Only redirect to our own site, so the returnUrl cannot be used to send users elsewhere

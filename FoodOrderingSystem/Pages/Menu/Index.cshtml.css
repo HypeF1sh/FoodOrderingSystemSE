@@ -227,3 +227,40 @@
     background: rgba(255, 255, 255, 0.95);
     border-top: 1px solid #dee2e6;
 }
+
+/* UX1: quantity stepper in the "Add to cart" dialog */
+.qty-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.qty-stepper .btn {
+    width: 2.75rem;
+    height: 2.75rem;   /* big enough to tap on a phone */
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.qty-value {
+    min-width: 2rem;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* UX1: floating toast, sits just above the sticky "View cart" bar */
+.menu-toast-area {
+    bottom: 5rem;
+    z-index: 1090;
+}
+
+.menu-toast {
+    background: var(--rr-ink);
+    color: #fff;
+}
+
+.menu-toast.is-error {
+    background: var(--rr-accent);
+}
