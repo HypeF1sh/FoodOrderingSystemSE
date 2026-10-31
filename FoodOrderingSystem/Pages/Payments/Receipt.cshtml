@@ -84,7 +84,8 @@
                 }
                 else
                 {
-                    <a asp-page="/Orders/Confirmation" asp-route-id="@receipt.OrderId" class="btn btn-secondary flex-fill">Back to my order</a>
+                    @* BUG6: customers reach receipts from "My orders", so send them back there *@
+                    <a asp-page="/Orders/Index" class="btn btn-secondary flex-fill">Back to my orders</a>
                 }
             </div>
         </div>
