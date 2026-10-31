@@ -54,6 +54,11 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-10-31** — Jordan: on `feature/PB20-order-payment-notifications`. Orders and payments now call Wallace's
+  `INotificationService.SendAsync` after the save succeeds (type `Order`: place, advance, cancel; type `Payment`: online
+  paid/declined, cash, refund), always to the order's `CustomerId`. Refused actions send nothing. No business rule, page
+  or schema change; `Program.cs` already registers the service. `.gitignore` now ignores `wwwroot/uploads/`. Build clean,
+  0 warnings. Smoke-tested all six calls against a throwaway DB; manual run-through on `/Notifications` still to do.
 - **2026-10-30** — Jordan: on `fix/BUG6-UX1-orders-nav-cart`. **BUG6 fixed:** receipt's customer button is now
   "Back to my orders" (`/Orders`); Confirmation gains a "My orders" button. **UX1 fixed (menu page only):** Add opens
   a dialog with a 1–20 quantity stepper and total; confirming posts in the background (`wwwroot/js/menu-cart.js`,

@@ -28,6 +28,23 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-29 | Admin list methods for Carynn's PB21/PB23 (`feature/admin-list-methods`) | No UI. Ch.7: agreeing a service interface across domains (A reads C's data through `IPaymentService`/`IOrderService` only); inclusive date range done as `>= from 00:00` and `< to + 1 day` so the last day's evening rows are not lost |
 | 2026-10-30 | PB22 admin dashboard v1 (Sprint 4) | See the detailed entry below |
 | 2026-10-30 | BUG6 receipt → My orders, UX1 add-to-cart dialog + toast | See the detailed entry below |
+| 2026-10-31 | PB20 order and payment notifications | See the detailed entry below |
+
+### 2026-10-31 — PB20 order and payment notifications (`feature/PB20-order-payment-notifications`)
+
+**Ch.5 screenshots:** `/Notifications` as the customer showing Order and Payment badges together; the navbar unread badge
+after a staff status change.
+
+**Test cases (Ch.6):**
+| ID | Steps | Expected |
+|---|---|---|
+| TC-N01 | Staff moves an order from Preparing to Ready to serve; log in as its customer, open `/Notifications` | "Your order #N is now ready to serve." on the customer's list; nothing on the staff account's list |
+| TC-N02 | Customer pays with test card 4000 0000 0000 0002 | "Payment for order #N was declined: Card declined by issuer."; the order can still be paid |
+| TC-N03 | Pay an order, then try to cancel it from the staff board | Cancel refused, no "cancelled" notification |
+
+**Ch.7:** services calling another domain's service through its interface (C uses B's `INotificationService`, never the
+Notifications table). Notifications are sent after the save or commit, so a customer is never told about something that
+was rolled back. Staff actions must look up the order's `CustomerId` rather than use the logged-in user.
 
 ### 2026-10-30 — BUG6 + UX1 (`fix/BUG6-UX1-orders-nav-cart`)
 

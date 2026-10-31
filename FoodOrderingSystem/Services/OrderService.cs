@@ -8,11 +8,16 @@ namespace FoodOrderingSystem.Services;
 
 public class OrderService : IOrderService
 {
-    private readonly ApplicationDbContext _context;
+    // The badge on /Notifications matches on this exact word
+    private const string NotificationType = "Order";
 
-    public OrderService(ApplicationDbContext context)
+    private readonly ApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
+
+    public OrderService(ApplicationDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
@@ -70,6 +75,12 @@ public class OrderService : IOrderService
         // 4. One SaveChanges = one database transaction: the order and all its items are saved, or none are
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
+
+        // PB20: only after the save, so the customer is never told about an order that was not stored
+        await _notificationService.SendAsync(
+            customerId,
+            NotificationType,
+            $"Order #{order.OrderId} has been placed and is pending.");
 
         return (true, $"Order #{order.OrderId} has been placed.", order.OrderId);
     }
@@ -194,6 +205,9 @@ public class OrderService : IOrderService
         if (updated == 0)
             return await StaleOrMissingAsync(orderId);
 
+        // 3. PB20: tell the customer, not the staff member who pressed the button
+        await NotifyCustomerAsync(orderId, $"Your order #{orderId} is now {OrderStatusDisplay.Label(nextStatus.Value).ToLower()}.");
+
         return (true, $"Order #{orderId} is now {OrderStatusDisplay.Label(nextStatus.Value).ToLower()}.");
     }
 
@@ -214,6 +228,9 @@ public class OrderService : IOrderService
 
         if (updated == 0)
             return await StaleOrMissingAsync(orderId);
+
+        // 4. PB20: tell the customer, not the staff member who pressed the button
+        await NotifyCustomerAsync(orderId, $"Your order #{orderId} has been cancelled.");
 
         return (true, $"Order #{orderId} has been cancelled.");
     }
@@ -261,6 +278,19 @@ public class OrderService : IOrderService
 
     private static bool CanBeCancelled(OrderStatus status) =>
         status == OrderStatus.Pending || status == OrderStatus.Preparing;
+
+    // Staff actions only know the order id, so the customer is looked up from the order itself
+    private async Task NotifyCustomerAsync(int orderId, string message)
+    {
+        var customerId = await _context.Orders
+            .AsNoTracking()
+            .Where(o => o.OrderId == orderId)
+            .Select(o => o.CustomerId)
+            .FirstOrDefaultAsync();
+
+        if (customerId != null)
+            await _notificationService.SendAsync(customerId, NotificationType, message);
+    }
 
     private static void SetAllowedActions(StaffOrderViewModel order)
     {
