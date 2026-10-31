@@ -85,9 +85,12 @@
                             }
                             else
                             {
-                                <!-- PB14: posts to the cart, then comes back to this same tab/search -->
-                                <form method="post" asp-page="/Orders/Cart" asp-page-handler="Add" class="menu-card-add">
+                                <!-- PB14: posts to the cart, then comes back to this same tab/search.
+                                     UX1: menu-cart.js catches the submit and asks for the quantity first. -->
+                                <form method="post" asp-page="/Orders/Cart" asp-page-handler="Add" class="menu-card-add"
+                                      data-dish-name="@item.Name" data-dish-price="@item.Price.ToString("0.00")">
                                     <input type="hidden" name="menuItemId" value="@item.MenuItemId" />
+                                    <input type="hidden" name="quantity" value="1" />
                                     <input type="hidden" name="returnUrl" value="@returnUrl" />
                                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                                 </form>
@@ -100,10 +103,48 @@
     }
 </div>
 
-@if (Model.CartCount > 0)
-{
-    <!-- Sticky bar so the cart is always one tap away on a phone -->
-    <div class="menu-cart-bar">
-        <a asp-page="/Orders/Cart" class="btn btn-primary w-100">View cart (@Model.CartCount)</a>
+<!-- Sticky bar so the cart is always one tap away on a phone.
+     Always rendered (hidden while empty) so menu-cart.js can show it after the first dish is added. -->
+<div id="menuCartBar" class="menu-cart-bar @(Model.CartCount > 0 ? "" : "d-none")">
+    <a asp-page="/Orders/Cart" class="btn btn-primary w-100">View cart (<span id="menuCartCount">@Model.CartCount</span>)</a>
+</div>
+
+<!-- UX1: quick confirm with a quantity, so one mis-tap does not add a dish -->
+<div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="addToCartTitle">Add to cart</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1 fw-semibold" id="addToCartName"></p>
+                <p class="text-muted mb-3">RM <span id="addToCartPrice"></span> each</p>
+                <div class="qty-stepper" role="group" aria-label="Quantity">
+                    <button type="button" class="btn btn-outline-secondary" id="qtyMinus" aria-label="One less">−</button>
+                    <output id="qtyValue" class="qty-value" aria-live="polite">1</output>
+                    <button type="button" class="btn btn-outline-secondary" id="qtyPlus" aria-label="One more">+</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addToCartConfirm">Add · RM <span id="addToCartTotal"></span></button>
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- UX1: floating notification after adding (menu page only, so the shared _Banners stays as it is) -->
+<div class="toast-container position-fixed start-50 translate-middle-x menu-toast-area">
+    <div id="menuToast" class="toast menu-toast" role="status" aria-live="polite" aria-atomic="true" data-bs-delay="2500">
+        <div class="d-flex">
+            <div class="toast-body" id="menuToastText"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/menu-cart.js" asp-append-version="true"
+            data-max-qty="@FoodOrderingSystem.Services.CartService.MaxQuantityPerLine"></script>
 }

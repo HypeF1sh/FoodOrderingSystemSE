@@ -50,7 +50,8 @@
                         {
                             <a asp-page="/Payments/Pay" asp-route-orderId="@order.OrderId" class="btn btn-primary">Pay now</a>
                         }
-                        <a asp-page="/Menu/Index" class="btn btn-secondary">Back to menu</a>
+                        <a asp-page="/Orders/Index" class="btn btn-secondary">My orders</a>
+                        <a asp-page="/Menu/Index" class="btn btn-outline-secondary">Back to menu</a>
                     </div>
                     @if (!Model.Payment.IsPaid && order.Status != OrderStatus.Cancelled)
                     {
