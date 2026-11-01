@@ -1,0 +1,300 @@
+/* ===========================================================================
+   Rumah Rasa - back office (Admin + Staff) shell, "Peranakan Tile" look
+   ---------------------------------------------------------------------------
+   Loaded only by _BackOfficeLayout.cshtml, after site.css, so it reuses the
+   same design tokens. Every rule is scoped under body.bo, which means the
+   customer pages cannot be affected by anything in this file.
+   Spec: docs/superpowers/specs/2026-11-01-back-office-design.md
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. Extra tokens for the back office
+   --------------------------------------------------------------------------- */
+.bo {
+    --bo-side-width: 248px;
+    --bo-side-bg: var(--rr-ink);
+    --bo-side-text: #C9DAD6;
+    --bo-side-muted: #7FA39C;
+    --bo-side-hover: rgba(255, 255, 255, 0.06);
+    --bo-jade: #2F7D6D;
+    --bo-radius: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+   2. Shell: side menu + body column
+   --------------------------------------------------------------------------- */
+.bo-shell {
+    display: flex;
+    flex: 1 0 auto;
+    min-height: 100vh;
+}
+
+/* Bootstrap's offcanvas-lg forces a transparent background from lg up,
+   so the colour needs !important to show in both states. */
+.bo .bo-side {
+    --bs-offcanvas-width: var(--bo-side-width);
+    --bs-offcanvas-bg: var(--bo-side-bg);
+    --bs-offcanvas-color: var(--bo-side-text);
+    background-color: var(--bo-side-bg) !important;
+    color: var(--bo-side-text);
+    padding-bottom: 1.5rem;
+    overflow-y: auto;
+}
+
+/* Tile strip along the top of the menu: plum and jade checks, after Peranakan floor tiles */
+.bo .bo-side::before {
+    content: "";
+    display: block;
+    height: 8px;
+    background: repeating-conic-gradient(var(--rr-accent) 0 25%, var(--bo-jade) 0 50%) 0 0 / 16px 16px;
+}
+
+@media (min-width: 992px) {
+    .bo .bo-side {
+        position: sticky;
+        top: 0;
+        flex: 0 0 var(--bo-side-width);
+        width: var(--bo-side-width);
+        height: 100vh;
+    }
+}
+
+.bo-body {
+    flex: 1 1 auto;
+    min-width: 0;   /* lets wide tables scroll inside instead of stretching the page */
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------------------------------------------------------------------------
+   3. Brand block and menu
+   --------------------------------------------------------------------------- */
+.bo-brand {
+    position: relative;
+    padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.bo-brand a {
+    display: block;
+    font-family: var(--rr-serif);
+    font-size: 1.375rem;
+    color: #FFFFFF;
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+.bo-brand span {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bo-side-muted);
+}
+
+.bo-brand .btn-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1rem;
+}
+
+.bo-nav {
+    padding: 0 0.75rem;
+}
+
+.bo-nav-group {
+    padding: 1rem 0.625rem 0.375rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bo-side-muted);
+}
+
+.bo-nav-link {
+    display: block;
+    padding: 0.4375rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    color: var(--bo-side-text);
+    text-decoration: none;
+}
+
+.bo-nav-link:hover,
+.bo-nav-link:focus-visible {
+    background-color: var(--bo-side-hover);
+    color: #FFFFFF;
+}
+
+/* Current page: paper-coloured tab with a plum edge, so it reads at a glance */
+.bo-nav-link.active {
+    background-color: var(--rr-surface);
+    color: var(--rr-ink);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--rr-accent);
+}
+
+.bo-side :focus-visible {
+    outline-color: #FFFFFF;
+}
+
+/* ---------------------------------------------------------------------------
+   4. Top bar
+   --------------------------------------------------------------------------- */
+.bo-top {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--rr-raised);
+    border-bottom: 1px solid var(--rr-line);
+}
+
+.bo-menu-btn {
+    display: inline-flex;
+    padding: 0.375rem 0.5rem;
+    background: transparent;
+    border: 1px solid var(--rr-line);
+    border-radius: var(--rr-radius);
+}
+
+.bo-date {
+    font-size: var(--rr-text-sm);
+    color: var(--rr-muted);
+}
+
+.bo-user {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: var(--rr-text-sm);
+}
+
+.bo-user a {
+    color: var(--rr-muted);
+    text-decoration: none;
+}
+
+.bo-user a:hover {
+    color: var(--rr-ink);
+}
+
+.bo-user .bo-user-name {
+    color: var(--rr-ink);
+    font-weight: 600;
+}
+
+.bo-user form {
+    margin: 0;
+}
+
+.bo .bo-user .btn-sm {
+    --bs-btn-padding-y: 0.25rem;
+    --bs-btn-padding-x: 0.75rem;
+}
+
+/* ---------------------------------------------------------------------------
+   5. Main area
+   The pages wrap themselves in .container (max 1120px, centred). Inside the
+   shell they should use the space next to the menu and line up with the
+   top bar instead, so the container is widened and left-aligned here.
+   --------------------------------------------------------------------------- */
+.bo-main {
+    flex: 1 0 auto;
+    padding: 0 1.5rem 3rem;
+}
+
+.bo .bo-main .container {
+    max-width: 1280px;
+    margin-left: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.bo .bo-main h1 {
+    font-size: var(--rr-h2);
+}
+
+/* Cards get the slightly rounder back office corner */
+.bo .card {
+    --bs-card-border-radius: var(--bo-radius);
+    --bs-card-inner-border-radius: calc(var(--bo-radius) - 1px);
+}
+
+/* ---------------------------------------------------------------------------
+   6. No Bootstrap blue inside the back office (BUG5)
+   site.css already re-themes .btn-primary; these are the variants it doesn't.
+   --------------------------------------------------------------------------- */
+.bo .btn-outline-primary {
+    --bs-btn-color: var(--rr-accent);
+    --bs-btn-border-color: var(--rr-accent);
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: var(--rr-accent);
+    --bs-btn-hover-border-color: var(--rr-accent);
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: var(--rr-accent-dark);
+    --bs-btn-active-border-color: var(--rr-accent-dark);
+}
+
+.bo .bg-primary:not(.badge) {
+    background-color: var(--rr-ink) !important;
+}
+
+.bo .text-primary {
+    color: var(--rr-accent) !important;
+}
+
+.bo .nav-tabs .nav-link.active,
+.bo .nav-pills .nav-link.active {
+    color: var(--rr-ink);
+}
+
+.bo .nav-pills .nav-link.active {
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+.bo .nav-tabs .nav-link,
+.bo .nav-pills .nav-link {
+    color: var(--rr-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   7. Status badges: soft tinted pills
+   Colour meanings are kept (see .claude/rules/razor-pages.md): warning =
+   pending, info = in progress, success = done, danger = cancelled/failed,
+   secondary = other. Bootstrap's bg-* and text-dark use !important, so these do too.
+   --------------------------------------------------------------------------- */
+.bo .badge {
+    border-radius: 999px;
+    padding: 0.35em 0.75em;
+    font-weight: 600;
+}
+
+.bo .badge.bg-warning   { background-color: #FBEFD9 !important; color: #94600B !important; }
+.bo .badge.bg-info      { background-color: #E3EEF2 !important; color: #2B5F73 !important; }
+.bo .badge.bg-success   { background-color: #DCEFEA !important; color: #1F6B5C !important; }
+.bo .badge.bg-danger    { background-color: #F6E3E7 !important; color: #A3334A !important; }
+.bo .badge.bg-secondary { background-color: #ECEAE4 !important; color: #5E6B69 !important; }
+.bo .badge.bg-primary   { background-color: #E8E6F4 !important; color: #4B3F8F !important; }
+.bo .badge.bg-dark      { background-color: var(--rr-ink) !important; color: #FFFFFF !important; }
+
+/* ---------------------------------------------------------------------------
+   8. Phone and tablet
+   --------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+    .bo-top {
+        padding: 0.625rem 1rem;
+    }
+
+    .bo-main {
+        padding: 0 1rem 2.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .bo-date {
+        display: none;
+    }
+}
