@@ -54,6 +54,16 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-01** — Jordan: **back office v1** on `feature/UI-back-office` (spec:
+  `docs/superpowers/specs/2026-11-01-back-office-design.md`, look "Peranakan Tile"). New `_BackOfficeLayout` +
+  `_BackOfficeNav` applied to `Pages/Admin` and `Pages/Staff` by folder `_ViewStart`s: grouped side menu filtered
+  by role (staff see Operations only), top bar, slide-in menu below `lg`. `wwwroot/css/backoffice.css` scoped to
+  `body.bo` (no Bootstrap blue, tinted status pills). **BUG1 fixed:** staff/admin navbar shows Home, Menu,
+  "Back office" (supersedes `fix/UX4-configurations-label`, which can be deleted). Login lands admins on
+  `/Admin/Dashboard`, staff on `/Staff/Orders` when no `ReturnUrl`. Page contents unchanged. **Shared/other
+  domains → group OK in the PR:** `_Layout.cshtml`, `Login.cshtml.cs` (Carynn), the frame of Carynn's and
+  Wallace's pages. Build clean, 0 warnings. Smoke-tested per role over HTTP: all 17 admin/staff pages 200 with
+  the right active item; staff → `/Admin` denied; customer navbar unchanged. Browser look + phone width still to check.
 - **2026-11-01** — Jordan: **Sprint 4 status review** (checked against code on `dev`, not the backlog column).
   **Built and merged:** PB01–PB19, PB21–PB23. Carynn: PB01–05, PB07, PB21, PB23. Wallace: PB09–13, PB17, PB19.
   Jordan: PB06, PB08, PB14–16, PB18, PB22; BUG6 + UX1 merged as PR #54. Also fixed since logging: BUG2, BUG3
