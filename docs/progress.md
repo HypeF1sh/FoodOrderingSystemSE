@@ -3,7 +3,7 @@
 Keep this file short. Newest log entries on top. Claude reads it at the start of every session.
 
 ## Current position
-- **Today's sprint:** Sprint 3 (22–29 Oct) — order → status → payment flow
+- **Today's sprint:** Sprint 4 (29 Oct–3 Nov) — closing gaps (PB20 promotions, BUG1, UX3), then extras and UI refining
 - **Internal target:** 4 Nov · **Formal deadline:** Fri 6 Nov 2026
 
 | Sprint | Dates | Goal |
@@ -54,6 +54,20 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-01** — Jordan: **Sprint 4 status review** (checked against code on `dev`, not the backlog column).
+  **Built and merged:** PB01–PB19, PB21–PB23. Carynn: PB01–05, PB07, PB21, PB23. Wallace: PB09–13, PB17, PB19.
+  Jordan: PB06, PB08, PB14–16, PB18, PB22; BUG6 + UX1 merged as PR #54. Also fixed since logging: BUG2, BUG3
+  (Carynn 29/10), UX2 (Menu card, Carynn 23/10); BUG7 mostly covered by PB21's orders/payments tabs.
+  **Still open:** (1) **PB20** — reservations notify (Wallace); orders and payments notify on this branch, not merged;
+  **promotions send nothing yet** (Carynn's promotions code). (2) **BUG1** — Staff/Admin still see "Book a table" and
+  "My orders"; staff have **no navbar link to `/Staff/Orders`**. (3) **UX3** booking form (Wallace; only the party-size
+  cap of 8 is done). (4) **UX4 regressed:** the PR #53 merge resolution put the navbar link back to "Admin"; one-line
+  fix committed on `fix/UX4-configurations-label` (`ad2a021`), **not pushed yet**. (5) `docs/product-backlog.md`
+  statuses were stale; updated in the same commit as this entry. (6) No end-to-end run of merged `dev` per role yet.
+  **Proposed split for the rest of Sprint 4** (to agree with the group; extras time-boxed, done by **2 Nov**):
+  Jordan — BUG1 role-aware navbar, then **UI refining, starting with an admin-side redesign**; Wallace — UX3, then
+  PB26 email confirmations; Carynn — PB20 promotion notifications, then PB24 export (moved from C: fits her
+  report pages). Skip PB25, PB27, PB28 (too big before the 3 Nov freeze).
 - **2026-10-31** — Jordan: on `feature/PB20-order-payment-notifications`. Orders and payments now call Wallace's
   `INotificationService.SendAsync` after the save succeeds (type `Order`: place, advance, cancel; type `Payment`: online
   paid/declined, cash, refund), always to the order's `CustomerId`. Refused actions send nothing. No business rule, page
