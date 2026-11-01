@@ -34,6 +34,14 @@
 
     const money = value => 'RM ' + Number(value).toFixed(2);
 
+    // Long dish names are cut with "…" on the axis so they fit on a phone; the tooltip keeps the full name.
+    // A plain function (not an arrow) because Chart.js passes the axis as 'this'.
+    const maxLabelLength = 20;
+    function shortLabel(value) {
+        const label = this.getLabelForValue(value);
+        return label.length > maxLabelLength ? label.slice(0, maxLabelLength - 1) + '…' : label;
+    }
+
     // Shared look: thin rounded bars, quiet grid, no legend, hover tooltip on each bar
     function barChart(canvasId, series, options) {
         const canvas = document.getElementById(canvasId);
@@ -79,7 +87,8 @@
                     },
                     [labelAxis]: {
                         grid: { display: false },
-                        ticks: { autoSkip: true, maxRotation: 0 }
+                        ticks: Object.assign({ autoSkip: true, maxRotation: 0 },
+                            options.shortLabels ? { callback: shortLabel } : {})
                     }
                 }
             }
@@ -101,6 +110,7 @@
     barChart('dishesChart', data.dishes, {
         label: 'Sold',
         horizontal: true,
+        shortLabels: true,
         format: value => value + ' sold',
         tick: value => value
     });
