@@ -54,6 +54,16 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-01** — Jordan: back office refinements (same branch). **Dashboard:** full width, filter refreshes on
+  change, tables replaced by "View all" links (sales → Monitoring payments/Paid, bookings → Monitoring
+  reservations, dishes → new **Dish sales** page `/Admin/Dashboard/Dishes`: every dish incl. 0 sales, category,
+  share of sales, unavailable badge), "Bookings by status" removed. **Monitoring + Customer activity range
+  62 → 366 days (Carynn's files, needs her OK):** the cap existed because reservations were loaded one day at a
+  time; her own comment said to switch once a range method existed, and Wallace's `GetReservationsAsync(from,to)`
+  now does, so it is one query. Fixed in the back office: links were Bootstrap blue (Bootstrap 5.3 reads
+  `--bs-link-color-rgb`, `site.css` only sets `--bs-link-color` → **same bug on the customer site, fix in
+  `site.css` needs group OK**), invisible ☰ icon on phones, long dish names clipped on the phone chart.
+  Build clean, 0 warnings. Checked over HTTP and with headless Edge screenshots (desktop + 390 px).
 - **2026-11-01** — Jordan: **back office v1** on `feature/UI-back-office` (spec:
   `docs/superpowers/specs/2026-11-01-back-office-design.md`, look "Peranakan Tile"). New `_BackOfficeLayout` +
   `_BackOfficeNav` applied to `Pages/Admin` and `Pages/Staff` by folder `_ViewStart`s: grouped side menu filtered
