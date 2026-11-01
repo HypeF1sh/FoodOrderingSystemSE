@@ -11,13 +11,21 @@ public class OrderService : IOrderService
     // The badge on /Notifications matches on this exact word
     private const string NotificationType = "Order";
 
+    // An order placed this many minutes before a booking starts (or any time until it ends) is for that table
+    public const int EarlyArrivalMinutes = 15;
+
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notificationService;
+    private readonly IReservationService _reservationService;
 
-    public OrderService(ApplicationDbContext context, INotificationService notificationService)
+    public OrderService(
+        ApplicationDbContext context,
+        INotificationService notificationService,
+        IReservationService reservationService)
     {
         _context = context;
         _notificationService = notificationService;
+        _reservationService = reservationService;
     }
 
     public async Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
@@ -72,6 +80,11 @@ public class OrderService : IOrderService
 
         order.TotalAmount = order.OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
 
+        // Link the order to the table the customer is sitting at, if they have a booking right now.
+        // Without a booking (e.g. ordering from home) it stays a "No table" order.
+        var booking = await FindCurrentBookingAsync(customerId, order.CreatedAt);
+        order.ReservationId = booking?.ReservationId;
+
         // 4. One SaveChanges = one database transaction: the order and all its items are saved, or none are
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -82,7 +95,26 @@ public class OrderService : IOrderService
             NotificationType,
             $"Order #{order.OrderId} has been placed and is pending.");
 
-        return (true, $"Order #{order.OrderId} has been placed.", order.OrderId);
+        var placed = booking == null
+            ? $"Order #{order.OrderId} has been placed."
+            : $"Order #{order.OrderId} has been placed for your table {booking.TableNumber}.";
+        return (true, placed, order.OrderId);
+    }
+
+    // The customer's Pending or Confirmed booking whose time slot covers 'now' (from EarlyArrivalMinutes before
+    // the start until the end). Read through Wallace's IReservationService, not the Reservations table directly.
+    private async Task<ReservationDetailViewModel?> FindCurrentBookingAsync(string customerId, DateTime now)
+    {
+        var today = DateOnly.FromDateTime(now);
+        var bookings = await _reservationService.GetCustomerReservationsAsync(customerId);
+
+        return bookings
+            .Where(r => r.ReservationDate == today
+                        && (r.Status == nameof(ReservationStatus.Pending) || r.Status == nameof(ReservationStatus.Confirmed))
+                        && today.ToDateTime(r.StartTime).AddMinutes(-EarlyArrivalMinutes) <= now
+                        && now < today.ToDateTime(r.EndTime))
+            .OrderBy(r => r.StartTime)
+            .FirstOrDefault();
     }
 
     public async Task<OrderConfirmationViewModel?> GetConfirmationAsync(int orderId, string customerId)
@@ -322,6 +354,9 @@ public class OrderService : IOrderService
             CustomerName = o.Customer == null ? "(unknown)"
                 : o.Customer.FullName != "" ? o.Customer.FullName : (o.Customer.Email ?? "(unknown)"),
             ReservationId = o.ReservationId,
+            TableNumber = o.Reservation != null && o.Reservation.RestaurantTable != null
+                ? o.Reservation.RestaurantTable.TableNumber
+                : null,
             Status = o.Status,
             TotalAmount = o.TotalAmount,
             Notes = o.Notes,
