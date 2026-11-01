@@ -20,9 +20,8 @@ public class DashboardViewModel
     public int BookingCount { get; set; }             // Reservations in the range, not Cancelled
     public int CoverCount { get; set; }               // Guests across those bookings
 
-    // ---- Charts and tables ----
+    // ---- Charts ----
     public List<ReportPointViewModel> SalesByPeriod { get; set; } = new();
     public List<ReportPointViewModel> BookingsByPeriod { get; set; } = new();
-    public List<ReportPointViewModel> BookingStatusCounts { get; set; } = new();
     public List<PopularItemViewModel> PopularItems { get; set; } = new();
 }

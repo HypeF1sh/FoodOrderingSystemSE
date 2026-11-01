@@ -5,8 +5,8 @@ namespace FoodOrderingSystem.Services;
 
 public class CustomerActivityService : ICustomerActivityService
 {
-    // The reservation service returns one day at a time, so the range is capped
-    public const int MaxRangeDays = 62;
+    // Same limit as the dashboard (ReportService), so a dashboard range always opens here too
+    public const int MaxRangeDays = 366;
 
     private readonly IReservationService _reservationService;
     private readonly IOrderService _orderService;
@@ -95,15 +95,10 @@ public class CustomerActivityService : ICustomerActivityService
         return (from, to);
     }
 
-    // The reservation service returns one day at a time.
-    // If a "between two dates" method is added later, replace this loop with it.
+    // One query for the whole range through the reservation service's date-range method (PB21/PB22),
+    // instead of one query per day. Callers sort and group the list themselves.
     private async Task<List<ReservationDetailViewModel>> LoadReservationsAsync(DateOnly from, DateOnly to)
     {
-        var all = new List<ReservationDetailViewModel>();
-        for (var day = from; day <= to; day = day.AddDays(1))
-        {
-            all.AddRange(await _reservationService.GetStaffDailyReservationsAsync(day));
-        }
-        return all;
+        return await _reservationService.GetReservationsAsync(from, to);
     }
 }

@@ -1,5 +1,6 @@
 using System.Globalization;
 using FoodOrderingSystem.Data;
+using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -32,15 +33,11 @@ public class ReportService : IReportService
         DateOnly from, DateOnly to, ReportGrouping grouping)
     {
         // 1. Check the range
-        if (from > to)
-            return (false, "The start date must be on or before the end date.", null);
+        var rangeError = CheckRange(from, to);
+        if (rangeError != null)
+            return (false, rangeError, null);
 
-        if (to.DayNumber - from.DayNumber + 1 > MaxRangeDays)
-            return (false, $"Please choose a range of {MaxRangeDays} days or less.", null);
-
-        // Both days included: from midnight on 'from' up to (not including) midnight after 'to'
-        var rangeStart = from.ToDateTime(TimeOnly.MinValue);
-        var rangeEnd = to.ToDateTime(TimeOnly.MinValue).AddDays(1);
+        var (rangeStart, rangeEnd) = ToDateTimeRange(from, to);
 
         var dashboard = new DashboardViewModel { From = from, To = to, Grouping = grouping };
 
@@ -66,31 +63,18 @@ public class ReportService : IReportService
             salesPerDay.Select(d => (DateOnly.FromDateTime(d.Day), d.Total)));
 
         // 3. Orders placed in the range, cancelled ones left out
-        var ordersInRange = _context.Orders
-            .AsNoTracking()
-            .Where(o => o.CreatedAt >= rangeStart && o.CreatedAt < rangeEnd && o.Status != OrderStatus.Cancelled);
+        var ordersInRange = OrdersInRange(rangeStart, rangeEnd);
 
         dashboard.OrderCount = await ordersInRange.CountAsync();
 
         // 4. Popular dishes: quantity sold in those orders, top 5 (ties broken by item sales)
-        dashboard.PopularItems = await _context.OrderItems
-            .AsNoTracking()
-            .Where(oi => ordersInRange.Any(o => o.OrderId == oi.OrderId))
-            .GroupBy(oi => new { oi.MenuItemId, oi.MenuItem!.Name })   // MenuItemId is a required FK, so MenuItem exists
-            .Select(g => new PopularItemViewModel
-            {
-                MenuItemId = g.Key.MenuItemId,
-                Name = g.Key.Name,
-                QuantitySold = g.Sum(oi => oi.Quantity),
-                ItemSales = g.Sum(oi => oi.Quantity * oi.UnitPrice)
-            })
+        dashboard.PopularItems = await SalesPerDish(ordersInRange)
             .OrderByDescending(p => p.QuantitySold)
             .ThenByDescending(p => p.ItemSales)
             .Take(PopularItemCount)
             .ToListAsync();
 
-        // 5. Reservations through Wallace's service. Status counts include every status;
-        //    the booking totals and chart leave out Cancelled.
+        // 5. Reservations through Wallace's service; the booking totals and chart leave out Cancelled
         var reservations = await _reservationService.GetReservationsAsync(from, to);
         var cancelled = ReservationStatus.Cancelled.ToString();
         var bookings = reservations.Where(r => r.Status != cancelled).ToList();
@@ -100,15 +84,52 @@ public class ReportService : IReportService
         dashboard.BookingsByPeriod = GroupIntoPeriods(
             from, to, grouping,
             bookings.Select(r => (r.ReservationDate, 1m)));
-        dashboard.BookingStatusCounts = Enum.GetValues<ReservationStatus>()
-            .Select(s => new ReportPointViewModel
-            {
-                Label = s == ReservationStatus.NoShow ? "No-show" : s.ToString(),
-                Value = reservations.Count(r => r.Status == s.ToString())
-            })
-            .ToList();
 
         return (true, string.Empty, dashboard);
+    }
+
+    public async Task<(bool Success, string Message, DishSalesViewModel? Report)> GetDishSalesAsync(DateOnly from, DateOnly to)
+    {
+        // 1. Same range rules as the dashboard
+        var rangeError = CheckRange(from, to);
+        if (rangeError != null)
+            return (false, rangeError, null);
+
+        var (rangeStart, rangeEnd) = ToDateTimeRange(from, to);
+
+        // 2. What sold, counted the same way as the dashboard's popular dishes
+        var sold = await SalesPerDish(OrdersInRange(rangeStart, rangeEnd))
+            .ToDictionaryAsync(p => p.MenuItemId);
+
+        // 3. Every dish on the menu, so the ones that sold nothing show up too
+        var menu = await _context.MenuItems
+            .AsNoTracking()
+            .Select(m => new { m.MenuItemId, m.Name, CategoryName = m.MenuCategory!.Name, m.IsAvailable })
+            .ToListAsync();
+
+        var dishes = menu
+            .Select(m => new PopularItemViewModel
+            {
+                MenuItemId = m.MenuItemId,
+                Name = m.Name,
+                CategoryName = m.CategoryName,
+                IsAvailable = m.IsAvailable,
+                QuantitySold = sold.TryGetValue(m.MenuItemId, out var s) ? s.QuantitySold : 0,
+                ItemSales = sold.TryGetValue(m.MenuItemId, out var t) ? t.ItemSales : 0m
+            })
+            .OrderByDescending(d => d.QuantitySold)
+            .ThenByDescending(d => d.ItemSales)
+            .ThenBy(d => d.Name)
+            .ToList();
+
+        return (true, string.Empty, new DishSalesViewModel
+        {
+            From = from,
+            To = to,
+            Dishes = dishes,
+            TotalQuantity = dishes.Sum(d => d.QuantitySold),
+            TotalSales = dishes.Sum(d => d.ItemSales)
+        });
     }
 
     public ReportGrouping SuggestGrouping(DateOnly from, DateOnly to)
@@ -118,6 +139,43 @@ public class ReportService : IReportService
         if (days <= MaxDaysForWeeklyBars) return ReportGrouping.Week;
         return ReportGrouping.Month;
     }
+
+    // =====================================================================
+    // Shared pieces of the reports
+    // =====================================================================
+
+    // Null when the range is fine, otherwise the message to show
+    private static string? CheckRange(DateOnly from, DateOnly to)
+    {
+        if (from > to)
+            return "The start date must be on or before the end date.";
+
+        if (to.DayNumber - from.DayNumber + 1 > MaxRangeDays)
+            return $"Please choose a range of {MaxRangeDays} days or less.";
+
+        return null;
+    }
+
+    // Both days included: from midnight on 'from' up to (not including) midnight after 'to'
+    private static (DateTime Start, DateTime End) ToDateTimeRange(DateOnly from, DateOnly to) =>
+        (from.ToDateTime(TimeOnly.MinValue), to.ToDateTime(TimeOnly.MinValue).AddDays(1));
+
+    private IQueryable<Order> OrdersInRange(DateTime rangeStart, DateTime rangeEnd) => _context.Orders
+        .AsNoTracking()
+        .Where(o => o.CreatedAt >= rangeStart && o.CreatedAt < rangeEnd && o.Status != OrderStatus.Cancelled);
+
+    // Quantity and item sales per dish across the given orders (still a query, so callers can sort or Take)
+    private IQueryable<PopularItemViewModel> SalesPerDish(IQueryable<Order> orders) => _context.OrderItems
+        .AsNoTracking()
+        .Where(oi => orders.Any(o => o.OrderId == oi.OrderId))
+        .GroupBy(oi => new { oi.MenuItemId, oi.MenuItem!.Name })   // MenuItemId is a required FK, so MenuItem exists
+        .Select(g => new PopularItemViewModel
+        {
+            MenuItemId = g.Key.MenuItemId,
+            Name = g.Key.Name,
+            QuantitySold = g.Sum(oi => oi.Quantity),
+            ItemSales = g.Sum(oi => oi.Quantity * oi.UnitPrice)
+        });
 
     // =====================================================================
     // Periods (day / week / month) for the charts

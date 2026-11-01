@@ -5,6 +5,10 @@
     const string RestaurantName = "Rumah Rasa";
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
 
+    // Staff and admins work in the back office, so the customer links are hidden for them (BUG1)
+    var isAdmin = User.IsInRole("Administrator");
+    var isBackOfficeUser = isAdmin || User.IsInRole("Staff");
+
     int unreadNotifications = 0;
     if (User.Identity?.IsAuthenticated == true)
     {
@@ -57,37 +61,30 @@
                                asp-page="/Menu/Index">Menu</a>
                         </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link @(currentPage.StartsWith("/Reservations") ? "active" : "")"
-                               asp-page="/Reservations/Create">Book a table</a>
-                        </li>
+                        @if (isBackOfficeUser)
+                        {
+                            @* One way in: admins land on the dashboard, staff on the orders board *@
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-area=""
+                                   asp-page="@(isAdmin ? "/Admin/Dashboard/Index" : "/Staff/Orders/Index")">Back office</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(currentPage.StartsWith("/Reservations") ? "active" : "")"
+                                   asp-page="/Reservations/Create">Book a table</a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link @(currentPage.StartsWith("/Orders") ? "active" : "")"
-                               asp-page="/Orders/Index">My orders</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(currentPage.StartsWith("/Orders") ? "active" : "")"
+                                   asp-page="/Orders/Index">My orders</a>
+                            </li>
+                        }
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            @if (User.IsInRole("Staff") || User.IsInRole("Administrator"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link @(currentPage.StartsWith("/Staff/Reservations") ? "active" : "")"
-                                       asp-area=""
-                                       asp-page="/Staff/Reservations/Index">Staff Reservations</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(currentPage.StartsWith("/Staff/Billing") ? "active" : "")"
-                                       asp-area=""
-                                       asp-page="/Staff/Billing/Index">Billing</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(currentPage.StartsWith("/Staff/Feedback") ? "active" : "")"
-                                       asp-area=""
-                                       asp-page="/Staff/Feedback/Index">Reviews</a>
-                                </li>
-                            }
-
                             @if (User.IsInRole("Customer"))
                             {
                                 <li class="nav-item">
@@ -106,15 +103,6 @@
                                     </a>
                                 </li>
                             }
-                        }
-
-                        @if (User.IsInRole("Administrator"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link @(currentPage.StartsWith("/Admin/Index") ? "active" : "")"
-                                   asp-area=""
-                                   asp-page="/Admin/Index">Admin</a>
-                            </li>
                         }
                     </ul>
 

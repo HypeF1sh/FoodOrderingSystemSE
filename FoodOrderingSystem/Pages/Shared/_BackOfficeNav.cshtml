@@ -1,0 +1,63 @@
+@*
+    Side menu for the back office. Groups are filtered by role: staff only see Operations,
+    administrators see everything. A link stays highlighted on its sub-pages because it is
+    matched by path prefix (e.g. "/Admin/Menu/" covers Edit Item and Delete Category).
+    Hiding a link is only for tidiness - [Authorize] and the folder policies still guard every page.
+*@
+@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    var isAdmin = User.IsInRole("Administrator");
+
+    // Each group: heading, admin-only flag, then (label, page, prefix that marks it active)
+    var groups = new (string Heading, bool AdminOnly, (string Label, string Page, string Prefix)[] Links)[]
+    {
+        ("Insights", true, new[]
+        {
+            ("Dashboard", "/Admin/Dashboard/Index", "/Admin/Dashboard/"),
+            ("Monitoring", "/Admin/Monitoring/Index", "/Admin/Monitoring/"),
+            ("Customer activity", "/Admin/Reports/CustomerActivity", "/Admin/Reports/")
+        }),
+        ("Operations", false, new[]
+        {
+            ("Orders board", "/Staff/Orders/Index", "/Staff/Orders/"),
+            ("Reservations", "/Staff/Reservations/Index", "/Staff/Reservations/"),
+            ("Billing", "/Staff/Billing/Index", "/Staff/Billing/"),
+            ("Reviews", "/Staff/Feedback/Index", "/Staff/Feedback/")
+        }),
+        ("Restaurant", true, new[]
+        {
+            ("Menu", "/Admin/Menu/Index", "/Admin/Menu/"),
+            ("Dining areas", "/Admin/DiningAreas/Index", "/Admin/DiningAreas/"),
+            ("Tables", "/Admin/Tables/Index", "/Admin/Tables/"),
+            ("Operating hours", "/Admin/OperatingHours/Index", "/Admin/OperatingHours/"),
+            ("Settings", "/Admin/Settings/Index", "/Admin/Settings/"),
+            ("All configurations", "/Admin/Index", "/Admin/Index")
+        }),
+        ("Marketing", true, new[]
+        {
+            ("Promotions", "/Admin/Promotions/Index", "/Admin/Promotions/"),
+            ("Announcements", "/Admin/Announcements/Index", "/Admin/Announcements/")
+        }),
+        ("People", true, new[]
+        {
+            ("Users", "/Admin/Users/Index", "/Admin/Users/")
+        })
+    };
+}
+<nav class="bo-nav" aria-label="Back office">
+    @foreach (var group in groups)
+    {
+        if (group.AdminOnly && !isAdmin)
+        {
+            continue;
+        }
+
+        <div class="bo-nav-group">@group.Heading</div>
+        @foreach (var link in group.Links)
+        {
+            var active = currentPage.StartsWith(link.Prefix);
+            <a asp-area="" asp-page="@link.Page" class="bo-nav-link @(active ? "active" : "")"
+               aria-current="@(active ? "page" : null)">@link.Label</a>
+        }
+    }
+</nav>

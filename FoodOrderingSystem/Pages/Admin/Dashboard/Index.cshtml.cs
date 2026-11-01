@@ -12,8 +12,8 @@ namespace FoodOrderingSystem.Pages.Admin.Dashboard;
 [Authorize(Roles = DbSeeder.AdminRole)]
 public class IndexModel : PageModel
 {
-    // Default range when the page opens: the last 7 days, today included
-    private const int DefaultRangeDays = 7;
+    // Default range when the page opens: the last 7 days, today included (Dish sales uses it too)
+    public const int DefaultRangeDays = 7;
 
     private readonly IReportService _reportService;
 

@@ -29,6 +29,50 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-30 | PB22 admin dashboard v1 (Sprint 4) | See the detailed entry below |
 | 2026-10-30 | BUG6 receipt → My orders, UX1 add-to-cart dialog + toast | See the detailed entry below |
 | 2026-10-31 | PB20 order and payment notifications | See the detailed entry below |
+| 2026-11-01 | Back office redesign (admin + staff UI), BUG1, Dish sales report, dashboard refinements | See the detailed entry below |
+
+### 2026-11-01 — Back office redesign (`feature/UI-back-office`)
+
+**What and why:** admins and staff were lost: they landed on the customer home page, the navbar mixed customer and
+staff links (BUG1), and every admin page hung off one flat hub of 11 cards. Built a shared back office for Admin and
+Staff (side menu grouped Insights / Operations / Restaurant / Marketing / People, filtered by role), then refined the
+dashboard from a user's point of view. Page contents of other members were not changed, only framed.
+
+**Ch.4 design evidence:** the four style options compared before choosing (Peranakan Tile, Kopitiam, Batik Indigo,
+Pasar Malam), with the reason: Peranakan Tile continues the customer site's palette, so the system feels like one
+product. Spec: `docs/superpowers/specs/2026-11-01-back-office-design.md`.
+
+**Ch.5 screenshots:** back office as admin (full menu) and as staff (Operations only); the same page at phone width
+with the slide-in menu open; customer navbar vs staff navbar ("Back office" link); dashboard on a month from the
+month picker (sales line chart); Dish sales page showing dishes with 0 sales greyed out; Monitoring opened from
+"View all sales" with the same dates. Code excerpts: `_BackOfficeNav` role filter and prefix-matched active link;
+`_QuickRanges` single-highlight rule; `ReportService.GetDishSalesAsync` (menu left-joined to sales).
+
+**Ch.6 test cases**
+| ID | Steps | Expected |
+|---|---|---|
+| TC-B01 | Log in as admin with no return page | Lands on Dashboard; all 17 admin/staff pages open with the right menu item highlighted |
+| TC-B02 | Log in as staff; open `/Admin/Dashboard` by URL | Lands on Orders board; menu shows Operations only; admin page gives Access denied |
+| TC-B03 | Log in with `?ReturnUrl=/Admin/Menu` | Goes to Menu, not Dashboard |
+| TC-B04 | Customer opens `/Admin`; checks navbar | Access denied; navbar unchanged (Book a table, My orders) |
+| TC-B05 | Change From, To or Group by on the dashboard | Report reloads without pressing a button |
+| TC-B06 | Pick "October 2026" in the month picker | Dates become 01/10–31/10; only the picker is highlighted |
+| TC-B07 | On the 1st, pick Today | Only "Today" is highlighted, not the current month too |
+| TC-B08 | Monitoring for 01/01–01/11 (10 months); then a 2-year range | Loads; 2 years shows "366 days or fewer" |
+| TC-B09 | Open Dish sales for this year | Every dish listed, best seller first, unsold dishes at 0 |
+| TC-B10 | Dashboard at 390 px wide | ☰ opens the menu, no sideways scrolling, dish names shortened with "…" |
+
+**Ch.7 reflection:** (1) The 62-day limit on Monitoring looked like a business rule but was a workaround: reservations
+were loaded one day at a time, and the original comment said to switch once a range query existed. Wallace had since
+added one, so reading the code history turned a "limit" into a one-line query change for two pages. (2) Reviewing
+screenshots, not just HTTP status codes, found bugs tests didn't: links were Bootstrap blue because Bootstrap 5.3 reads
+`--bs-link-color-rgb` and the site only set `--bs-link-color` (the customer site has the same bug); the menu icon was
+invisible outside a `.navbar`. (3) Dish sales counts orders placed (paid or not) while revenue counts paid payments,
+so the page says so; otherwise the two totals look like a bug. (4) "Today" and "This month" were both highlighted on
+the 1st because both matched the same dates; the fix was a rule that only one option can be active.
+Shared files (`_Layout.cshtml`) and other members' files (Login, Monitoring, Customer activity) went through the PR for
+group OK. **AI use:** Claude Code was used to explore the codebase, draft the design options, write and test the code
+and these notes; every change was reviewed and accepted by Jordan.
 
 ### 2026-10-31 — PB20 order and payment notifications (`feature/PB20-order-payment-notifications`)
 

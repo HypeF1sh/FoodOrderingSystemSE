@@ -1,0 +1,74 @@
+@using Microsoft.AspNetCore.Identity
+@using FoodOrderingSystem.Models
+@inject UserManager<ApplicationUser> UserManager
+@*
+    Back office shell for Admin and Staff pages (spec: docs/superpowers/specs/2026-11-01-back-office-design.md).
+    Applied by the _ViewStart.cshtml in Pages/Admin and Pages/Staff, so the pages themselves don't change.
+    Side menu on the left (a slide-in panel below the lg breakpoint), top bar, then the page.
+*@
+@{
+    const string RestaurantName = "Rumah Rasa";
+
+    // Show the person's name like _LoginPartial does, falling back to the email
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = string.IsNullOrWhiteSpace(currentUser?.FullName)
+        ? User.Identity?.Name
+        : currentUser.FullName;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @RestaurantName back office</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/backoffice.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
+</head>
+<body class="bo">
+    <div class="bo-shell">
+
+        <!-- Side menu: always visible from lg up, a slide-in panel below it -->
+        <aside class="bo-side offcanvas-lg offcanvas-start" tabindex="-1" id="boSide" aria-labelledby="boSideLabel">
+            <div class="bo-brand">
+                <a asp-area="" asp-page="/Index" id="boSideLabel">@RestaurantName</a>
+                <span>Back office</span>
+                <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
+                        data-bs-target="#boSide" aria-label="Close menu"></button>
+            </div>
+            <partial name="_BackOfficeNav" />
+        </aside>
+
+        <div class="bo-body">
+            <header class="bo-top">
+                <button class="bo-menu-btn d-lg-none" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#boSide" aria-controls="boSide" aria-label="Open menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <span class="bo-date">@DateTime.Now.ToString("dddd, d MMMM yyyy")</span>
+
+                <div class="bo-user">
+                    <a asp-area="" asp-page="/Index" class="d-none d-sm-inline">View customer site</a>
+                    <a asp-area="Identity" asp-page="/Account/Manage/Index" class="bo-user-name">@displayName</a>
+                    <form asp-area="Identity" asp-page="/Account/Logout"
+                          asp-route-returnUrl="@Url.Page("/Index", new { area = "" })" method="post">
+                        <button type="submit" class="btn btn-sm btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="bo-main">
+                <partial name="_Banners" />
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

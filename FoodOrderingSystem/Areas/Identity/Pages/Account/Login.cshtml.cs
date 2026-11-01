@@ -123,6 +123,22 @@ public class LoginModel : PageModel
             if (result.Succeeded)
             {
                 _logger.LogInformation("User logged in.");
+
+                // Back office landing: with no specific page asked for, admins start on the dashboard
+                // and staff on the orders board instead of the customer home page.
+                // User is not refreshed until the next request, so the roles are read from the account itself.
+                if (returnUrl == Url.Content("~/") && existingUser != null)
+                {
+                    if (await _signInManager.UserManager.IsInRoleAsync(existingUser, DbSeeder.AdminRole))
+                    {
+                        return RedirectToPage("/Admin/Dashboard/Index", new { area = "" });
+                    }
+                    if (await _signInManager.UserManager.IsInRoleAsync(existingUser, DbSeeder.StaffRole))
+                    {
+                        return RedirectToPage("/Staff/Orders/Index", new { area = "" });
+                    }
+                }
+
                 return LocalRedirect(returnUrl);
             }
             if (result.RequiresTwoFactor)
