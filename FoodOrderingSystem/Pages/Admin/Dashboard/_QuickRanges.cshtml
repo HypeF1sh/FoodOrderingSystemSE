@@ -1,28 +1,60 @@
+@using System.Globalization
 @model (DateOnly Today, DateOnly From, DateOnly To)
 @*
-    Quick date-range buttons shared by the Dashboard and Dish sales reports (PB22).
-    Each one links back to the current page with that range, and the range on screen is highlighted.
+    Quick date ranges shared by the Dashboard and Dish sales reports (PB22), in the style of e-wallet
+    transaction history screens: a few rolling chips, then one month picker for the last 12 months.
+    Exactly one option is highlighted: the first chip that matches the range on screen, otherwise the
+    month picker if the range is a whole month. (On the 1st, "Today" and the current month are the
+    same dates, so the chip wins rather than lighting up both.)
+    Each choice links back to the current page with that range; admin-dashboard.js follows the picker.
 *@
 @{
     var today = Model.Today;
 
-    // Label, from, to. All end today.
-    var quickRanges = new (string Label, DateOnly From, DateOnly To)[]
+    // Rolling ranges, all ending today
+    var chips = new (string Label, DateOnly From, DateOnly To)[]
     {
         ("Today", today, today),
         ("Last 7 days", today.AddDays(-6), today),
         ("Last 30 days", today.AddDays(-29), today),
-        ("This month", new DateOnly(today.Year, today.Month, 1), today),
         ("This year", new DateOnly(today.Year, 1, 1), today)
     };
+
+    // The last 12 calendar months, newest first. The current month only runs to today.
+    var thisMonth = new DateOnly(today.Year, today.Month, 1);
+    var months = Enumerable.Range(0, 12)
+        .Select(i =>
+        {
+            var start = thisMonth.AddMonths(-i);
+            var end = i == 0 ? today : start.AddMonths(1).AddDays(-1);
+            var label = start.ToString("MMMM yyyy", CultureInfo.InvariantCulture) + (i == 0 ? " (so far)" : "");
+            return (Label: label, From: start, To: end);
+        })
+        .ToList();
+
+    var activeChip = Array.FindIndex(chips, c => c.From == Model.From && c.To == Model.To);
+    var activeMonth = activeChip >= 0 ? -1 : months.FindIndex(m => m.From == Model.From && m.To == Model.To);
+
+    string LinkFor(DateOnly from, DateOnly to) =>
+        Url.Page(null, new { from = from.ToString("yyyy-MM-dd"), to = to.ToString("yyyy-MM-dd") }) ?? string.Empty;
 }
-<div class="d-flex flex-wrap gap-2 mb-3">
-    @foreach (var range in quickRanges)
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    @for (var i = 0; i < chips.Length; i++)
     {
-        var isActive = range.From == Model.From && range.To == Model.To;
+        var chip = chips[i];
+        var isActive = i == activeChip;
         @* Url.Page(null, ...) means "this same page", so the partial works on either report *@
         <a class="btn btn-sm rr-range @(isActive ? "active" : "")"
            aria-current="@(isActive ? "true" : null)"
-           href="@Url.Page(null, new { from = range.From.ToString("yyyy-MM-dd"), to = range.To.ToString("yyyy-MM-dd") })">@range.Label</a>
+           href="@LinkFor(chip.From, chip.To)">@chip.Label</a>
     }
+
+    <select class="form-select form-select-sm rr-range-month @(activeMonth >= 0 ? "active" : "")"
+            data-range-month aria-label="Show a whole month">
+        <option value="" disabled selected="@(activeMonth < 0)">Pick a month</option>
+        @for (var i = 0; i < months.Count; i++)
+        {
+            <option value="@LinkFor(months[i].From, months[i].To)" selected="@(i == activeMonth)">@months[i].Label</option>
+        }
+    </select>
 </div>

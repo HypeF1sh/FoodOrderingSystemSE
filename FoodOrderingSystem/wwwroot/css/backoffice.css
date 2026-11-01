@@ -257,6 +257,33 @@
     --bs-btn-active-border-color: var(--rr-accent);
 }
 
+/* The month picker sits in the same row and looks like one more chip; filled when it is the range on screen */
+.bo .rr-range-month {
+    width: auto;
+    padding: 0.25rem 2rem 0.25rem 0.75rem;
+    border-color: var(--rr-line);
+    border-radius: var(--rr-radius);
+    background-color: var(--rr-raised);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--rr-ink);
+    cursor: pointer;
+}
+
+.bo .rr-range-month.active {
+    border-color: var(--rr-accent);
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+    /* White arrow on the filled state (Bootstrap's default arrow is dark) */
+    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* The open list keeps normal colours even when the closed picker is filled */
+.bo .rr-range-month option {
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+}
+
 .bo .bg-primary:not(.badge) {
     background-color: var(--rr-ink) !important;
 }
