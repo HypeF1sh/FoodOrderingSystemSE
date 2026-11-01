@@ -54,6 +54,11 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-01** — Jordan: dashboard filter and chart. **Sales is now a line chart** (filled, monotone curve) to show
+  the trend; Bookings and Popular dishes stay bars (counts). **"This month" chip replaced by a month picker** with the
+  last 12 months (current month "so far"), on Dashboard and Dish sales (`_QuickRanges`), after the e-wallet history
+  pattern. Fixed: on the 1st, "Today" and "This month" were both highlighted; now only one option is ever active
+  (chips first, then the picker). Month names fixed to English regardless of the PC's locale.
 - **2026-11-01** — Jordan: back office refinements (same branch). **Dashboard:** full width, filter refreshes on
   change, tables replaced by "View all" links (sales → Monitoring payments/Paid, bookings → Monitoring
   reservations, dishes → new **Dish sales** page `/Admin/Dashboard/Dishes`: every dish incl. 0 sales, category,
