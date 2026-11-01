@@ -1,0 +1,120 @@
+@page
+@model FoodOrderingSystem.Pages.Admin.Dashboard.DishesModel
+@{
+    ViewData["Title"] = "Dish sales";
+    var report = Model.Report;
+    var fromText = Model.SelectedFrom.ToString("yyyy-MM-dd");
+    var toText = Model.SelectedTo.ToString("yyyy-MM-dd");
+}
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a asp-page="./Index" asp-route-from="@fromText" asp-route-to="@toText"
+           class="small text-decoration-none">&larr; Dashboard</a>
+        <h1 class="mb-1 mt-1">Dish sales</h1>
+        <p class="text-muted mb-0">
+            Every dish on the menu, best seller first. Counts every order placed in these dates, paid or not
+            (cancelled orders are left out), so item sales can differ from the dashboard's revenue, which counts paid payments only.
+        </p>
+    </div>
+
+    <!-- Filter bar: same behaviour as the dashboard (admin-dashboard.js submits on change) -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <partial name="_QuickRanges" model="@((Model.Today, Model.SelectedFrom, Model.SelectedTo))" />
+
+            <form method="get" id="dashboardFilter" class="row g-2 align-items-end">
+                <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+                <div class="col-6 col-md-4">
+                    <label for="from" class="form-label">From</label>
+                    <input id="from" type="date" name="from" value="@fromText" class="form-control" />
+                </div>
+                <div class="col-6 col-md-4">
+                    <label for="to" class="form-label">To</label>
+                    <input id="to" type="date" name="to" value="@toText" class="form-control" />
+                </div>
+                <noscript>
+                    <div class="col-12 col-md-4">
+                        <button type="submit" class="btn btn-primary">Show report</button>
+                    </div>
+                </noscript>
+            </form>
+        </div>
+    </div>
+
+    @if (report != null)
+    {
+        var soldCount = report.Dishes.Count(d => d.QuantitySold > 0);
+
+        <!-- Totals for the range -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4">
+                <div class="card h-100"><div class="card-body">
+                    <div class="text-muted small">Dishes sold</div>
+                    <div class="fs-3">@report.TotalQuantity</div>
+                </div></div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card h-100"><div class="card-body">
+                    <div class="text-muted small">Item sales</div>
+                    <div class="fs-3">RM @report.TotalSales.ToString("N2")</div>
+                </div></div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card h-100"><div class="card-body">
+                    <div class="text-muted small">Dishes with no sales</div>
+                    <div class="fs-3">@(report.Dishes.Count - soldCount) <span class="fs-6 text-muted">of @report.Dishes.Count</span></div>
+                </div></div>
+            </div>
+        </div>
+
+        @if (report.Dishes.Count == 0)
+        {
+            <p class="text-muted">There are no dishes on the menu yet.</p>
+        }
+        else
+        {
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-end">#</th>
+                                <th>Dish</th>
+                                <th>Category</th>
+                                <th class="text-end">Sold</th>
+                                <th class="text-end">Item sales</th>
+                                <th class="text-end">Share of sales</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < report.Dishes.Count; i++)
+                            {
+                                var dish = report.Dishes[i];
+                                var share = report.TotalSales == 0 ? 0 : dish.ItemSales / report.TotalSales * 100;
+                                <tr class="@(dish.QuantitySold == 0 ? "text-muted" : "")">
+                                    <td class="text-end">@(dish.QuantitySold > 0 ? (i + 1).ToString() : "–")</td>
+                                    <td>
+                                        @dish.Name
+                                        @if (!dish.IsAvailable)
+                                        {
+                                            <span class="badge bg-secondary ms-1">Unavailable</span>
+                                        }
+                                    </td>
+                                    <td>@dish.CategoryName</td>
+                                    <td class="text-end">@dish.QuantitySold</td>
+                                    <td class="text-end">RM @dish.ItemSales.ToString("N2")</td>
+                                    <td class="text-end">@share.ToString("0.0")%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/admin-dashboard.js" asp-append-version="true"></script>
+}

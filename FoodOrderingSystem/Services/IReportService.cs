@@ -12,6 +12,12 @@ public interface IReportService
     Task<(bool Success, string Message, DashboardViewModel? Dashboard)> GetDashboardAsync(
         DateOnly from, DateOnly to, ReportGrouping grouping);
 
+    /// <summary>
+    /// Every dish on the menu with how many were sold and their item sales for 'from'..'to', best seller first.
+    /// Dishes that sold nothing are included with 0. Same range rules and failure messages as the dashboard.
+    /// </summary>
+    Task<(bool Success, string Message, DishSalesViewModel? Report)> GetDishSalesAsync(DateOnly from, DateOnly to);
+
     /// <summary>Sensible grouping for a range: Day up to 31 days, Week up to 92, otherwise Month.</summary>
     ReportGrouping SuggestGrouping(DateOnly from, DateOnly to);
 }
