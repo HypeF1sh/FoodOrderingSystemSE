@@ -1,10 +1,23 @@
-// PB22: draws the admin dashboard charts with Chart.js.
-// The page puts the numbers in a <script type="application/json" id="dashboardData"> block; this file only draws them.
-// Every chart is a single series in the site accent colour, so no legend is needed (the card title names it).
+// PB22: admin dashboard behaviour.
+// 1. The filter form reloads the report as soon as From, To or Group by changes (no "Show report" button).
+// 2. Draws the charts with Chart.js. The page puts the numbers in a <script type="application/json"
+//    id="dashboardData"> block; this file only draws them. Every chart is a single series in the site
+//    accent colour, so no legend is needed (the card title names it).
 (function () {
+    const filter = document.getElementById('dashboardFilter');
+    if (filter) {
+        filter.addEventListener('change', function (event) {
+            // A half-typed date reports an empty value; wait until the field holds a full date
+            if (event.target.type === 'date' && !event.target.value) {
+                return;
+            }
+            filter.requestSubmit();
+        });
+    }
+
     const dataBlock = document.getElementById('dashboardData');
     if (!dataBlock || typeof Chart === 'undefined') {
-        return;   // no report on screen, or Chart.js failed to load: the tables under each chart still show the numbers
+        return;   // no report on screen (e.g. an invalid range), or Chart.js failed to load
     }
 
     const data = JSON.parse(dataBlock.textContent);

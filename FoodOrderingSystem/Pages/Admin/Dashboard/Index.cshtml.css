@@ -28,19 +28,16 @@
     white-space: nowrap;
 }
 
+/* The note only appears when it adds a number (paid orders, guests), at a readable size */
 .rr-stat-note {
     color: var(--rr-muted);
-    font-size: 0.75rem;
+    font-size: var(--rr-text-sm);
 }
 
 /* Chart.js fills its parent, so the parent sets the height */
 .rr-chart {
     position: relative;
-    height: 280px;
-}
-
-.rr-chart-short {
-    height: 220px;
+    height: 300px;
 }
 
 /* Phones: smaller numbers so "RM 12,345.00" fits in a half-width tile */

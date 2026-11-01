@@ -197,8 +197,8 @@
 /* ---------------------------------------------------------------------------
    5. Main area
    The pages wrap themselves in .container (max 1120px, centred). Inside the
-   shell they should use the space next to the menu and line up with the
-   top bar instead, so the container is widened and left-aligned here.
+   shell they should fill the space next to the menu and line up with the
+   top bar instead, so the container loses its width cap here.
    --------------------------------------------------------------------------- */
 .bo-main {
     flex: 1 0 auto;
@@ -206,7 +206,7 @@
 }
 
 .bo .bo-main .container {
-    max-width: 1280px;
+    max-width: none;
     margin-left: 0;
     padding-left: 0;
     padding-right: 0;
