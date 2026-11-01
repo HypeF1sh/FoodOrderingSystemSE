@@ -54,6 +54,27 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-01** — Jordan: **summary of `feature/UI-back-office`, ready for PR** (branched from
+  `feature/PB20-order-payment-notifications`, so merge PB20 first). Every change, in order:
+  1. `407a0de` Design spec `docs/superpowers/specs/2026-11-01-back-office-design.md` (look "Peranakan Tile", chosen
+     over Kopitiam, Batik Indigo and Pasar Malam).
+  2. `f51e0ed` Back office shell for `/Admin` and `/Staff`: `_BackOfficeLayout`, role-filtered `_BackOfficeNav`
+     (Insights, Operations, Restaurant, Marketing, People; staff see Operations only), folder `_ViewStart`s,
+     `backoffice.css` scoped to `body.bo`. Slide-in menu below `lg`.
+  3. `137df1d` **BUG1:** customer navbar shows staff/admin one "Back office" link instead of customer links.
+  4. `4dbad49` Login lands admins on `/Admin/Dashboard`, staff on `/Staff/Orders` (only when no `ReturnUrl`).
+  5. `8314205` Dashboard: full width, filter refreshes on change (no "Show report"), tables replaced by "View all"
+     links, "Bookings by status" removed, stat notes only where they add a number.
+  6. `403566e` **Monitoring + Customer activity: 62 → 366 days**, one range query instead of one per day.
+  7. `365a6a2` New **Dish sales** page `/Admin/Dashboard/Dishes` (every dish incl. 0 sales), linked from Popular dishes;
+     quick ranges moved to shared `_QuickRanges` partial.
+  8. `86f4993` Back office fixes found in review: Bootstrap-blue links, invisible ☰ icon, clipped dish names on phones.
+  9. `1ecf19a` Sales as a line chart; "This month" replaced by a 12-month picker; only one range ever highlighted.
+  **Needs group OK in the PR:** `_Layout.cshtml` (shared), `Login.cshtml.cs` + `AdminMonitoringService` +
+  `CustomerActivityService` (Carynn), the new frame around Wallace's staff pages.
+  **Still open from this work:** same blue-link bug on the customer site (`site.css`, shared); `fix/UX4-configurations-label`
+  is superseded and can be deleted. **Suggested next:** "vs previous period" on the stat tiles, an Unpaid tile,
+  hourly grouping for "Today", same filter (chips + month picker + auto-refresh) on Monitoring and Customer activity.
 - **2026-11-01** — Jordan: dashboard filter and chart. **Sales is now a line chart** (filled, monotone curve) to show
   the trend; Bookings and Popular dishes stay bars (counts). **"This month" chip replaced by a month picker** with the
   last 12 months (current month "so far"), on Dashboard and Dish sales (`_QuickRanges`), after the e-wallet history
