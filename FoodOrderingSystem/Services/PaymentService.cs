@@ -15,13 +15,18 @@ public class PaymentService : IPaymentService
     // Typo guard for cash: staff cannot type in more than RM 1,000 over the bill
     private const decimal MaxCashOverTotal = 1000m;
 
+    // The badge on /Notifications matches on this exact word
+    private const string NotificationType = "Payment";
+
     private readonly ApplicationDbContext _context;
     private readonly IPaymentGateway _gateway;
+    private readonly INotificationService _notificationService;
 
-    public PaymentService(ApplicationDbContext context, IPaymentGateway gateway)
+    public PaymentService(ApplicationDbContext context, IPaymentGateway gateway, INotificationService notificationService)
     {
         _context = context;
         _gateway = gateway;
+        _notificationService = notificationService;
     }
 
     // =====================================================================
@@ -140,6 +145,15 @@ public class PaymentService : IPaymentService
         _context.Payments.Add(payment);
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
+
+        // 5. PB20: only after the commit. LockOrderAsync has already checked this customer owns the order.
+        //    The gateway's reason ends in a full stop, which the sentence below adds itself.
+        await _notificationService.SendAsync(
+            customerId,
+            NotificationType,
+            approved
+                ? $"Payment of RM {order.TotalAmount:0.00} for order #{orderId} was successful."
+                : $"Payment for order #{orderId} was declined: {declineReason?.TrimEnd('.')}.");
 
         return approved
             ? (true, $"Payment of RM {order.TotalAmount:0.00} received. Thank you!", payment.PaymentId)
@@ -301,7 +315,7 @@ public class PaymentService : IPaymentService
         var order = await _context.Orders
             .AsNoTracking()
             .Where(o => o.OrderId == orderId)
-            .Select(o => new { o.Status, o.TotalAmount, Payments = o.Payments.Select(p => new { p.PaymentId, p.Status }).ToList() })
+            .Select(o => new { o.CustomerId, o.Status, o.TotalAmount, Payments = o.Payments.Select(p => new { p.PaymentId, p.Status }).ToList() })
             .FirstAsync();
 
         var summary = Summarise(order.Payments.Select(p => (p.PaymentId, p.Status)));
@@ -330,6 +344,12 @@ public class PaymentService : IPaymentService
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
+        // 4. PB20: goes to the order's customer, not the staff member recording the cash
+        await _notificationService.SendAsync(
+            order.CustomerId,
+            NotificationType,
+            $"Cash payment of RM {order.TotalAmount:0.00} for order #{orderId} received.");
+
         var change = amountTendered - order.TotalAmount;
         return (true, $"Cash payment of RM {order.TotalAmount:0.00} recorded. Change: RM {change:0.00}.", payment.PaymentId, change);
     }
@@ -345,9 +365,23 @@ public class PaymentService : IPaymentService
             .Where(p => p.PaymentId == paymentId && p.Status == PaymentStatus.Paid)
             .ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, PaymentStatus.Refunded));
 
-        return updated == 0
-            ? (false, "Only a paid payment can be refunded.")
-            : (true, $"Payment {paymentId} has been refunded.");
+        if (updated == 0)
+            return (false, "Only a paid payment can be refunded.");
+
+        // PB20: goes to the order's customer, not the staff member giving the refund
+        // (p.Order! is safe: OrderId is a required foreign key, so every payment has an order)
+        var refunded = await _context.Payments
+            .AsNoTracking()
+            .Where(p => p.PaymentId == paymentId)
+            .Select(p => new { p.OrderId, p.Order!.CustomerId })
+            .FirstAsync();
+
+        await _notificationService.SendAsync(
+            refunded.CustomerId,
+            NotificationType,
+            $"Your payment for order #{refunded.OrderId} has been refunded.");
+
+        return (true, $"Payment {paymentId} has been refunded.");
     }
 
     // =====================================================================

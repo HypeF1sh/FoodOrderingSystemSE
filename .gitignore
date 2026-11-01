@@ -50,6 +50,10 @@ appsettings.*.local.json
 *.pfx
 *.key
 
+## ---------- User uploads ----------
+wwwroot/uploads/
+FoodOrderingSystem/wwwroot/uploads/
+
 ## ---------- JetBrains Rider (if anyone uses it) ----------
 .idea/
 *.sln.iml
