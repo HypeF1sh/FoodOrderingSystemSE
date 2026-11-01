@@ -328,6 +328,736 @@
 .bo .badge.bg-dark      { background-color: var(--rr-ink) !important; color: #FFFFFF !important; }
 
 /* ---------------------------------------------------------------------------
+   9. Staff Floor (spec 2026-11-01-staff-floor-design.md)
+   Tiles: free = plain, booked = dashed jade, in use = jade fill, bill due = plum fill.
+   Every state also has a text label, so colour is never the only signal.
+   --------------------------------------------------------------------------- */
+.bo .fl-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.bo .fl-areas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.bo .fl-area {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.bo .fl-area.active {
+    background-color: var(--rr-ink);
+    border-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+/* Needs-you bar: one row of chips; scrolls sideways on narrow screens instead of wrapping into a wall */
+.bo .fl-needs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: var(--bo-radius);
+    scrollbar-width: thin;
+}
+
+.bo .fl-needs-label {
+    flex: none;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rr-accent);
+}
+
+.bo .fl-needs-none {
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+}
+
+.bo .fl-chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    padding: 0 0.875rem;
+    border: 1px solid;
+    border-radius: 999px;
+    font-size: var(--rr-text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.bo .fl-chip.is-plum  { background-color: #F6E3E7; border-color: #E7C2CA; color: var(--rr-accent); }
+.bo .fl-chip.is-jade  { background-color: #E3F1EC; border-color: #BFE0D6; color: var(--bo-jade); }
+.bo .fl-chip.is-amber { background-color: #FBEFD9; border-color: #EED9B5; color: #94600B; }
+.bo .fl-chip.is-more  { background-color: var(--rr-raised); border-color: var(--rr-line); color: var(--rr-muted); }
+
+.bo .fl-chip-flag {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Grid: 2 tiles per row on phones, 3 on iPad portrait, 4 from lg (iPad landscape) */
+.bo .fl-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.bo .fl-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+    min-height: 112px;
+    padding: 0.75rem 0.5rem;
+    border: 2px solid var(--rr-line);
+    border-radius: 14px;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    text-align: center;
+    text-decoration: none;
+}
+
+.bo .fl-tile:focus-visible {
+    outline: 3px solid var(--rr-ink);
+    outline-offset: 2px;
+}
+
+.bo .fl-tile.is-booked  { border-color: var(--bo-jade); border-style: dashed; }
+.bo .fl-tile.is-inuse   { border-color: var(--bo-jade); background-color: #E3F1EC; }
+.bo .fl-tile.is-billdue { border-color: var(--rr-accent); background-color: #F6E3E7; }
+
+.bo .fl-tile.selected {
+    outline: 3px solid var(--rr-ink);
+    outline-offset: 3px;
+}
+
+.bo .fl-tile-num {
+    font-family: var(--rr-serif);
+    font-size: 1.5rem;
+    line-height: 1.1;
+}
+
+.bo .fl-tile-state {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.bo .fl-tile-sub {
+    font-size: 0.8125rem;
+    color: var(--rr-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+/* Amber dot: the booking is still Pending */
+.bo .fl-dot {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #C88A1E;
+}
+
+.bo .fl-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.875rem;
+    font-size: 0.8125rem;
+    color: var(--rr-muted);
+}
+
+.bo .fl-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.875rem;
+}
+
+.bo .fl-legend span::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 0.375rem;
+    vertical-align: -1px;
+    border: 2px solid var(--rr-line);
+    border-radius: 4px;
+    background-color: var(--rr-raised);
+}
+
+.bo .fl-legend .is-booked::before  { border-color: var(--bo-jade); border-style: dashed; }
+.bo .fl-legend .is-inuse::before   { border-color: var(--bo-jade); background-color: #E3F1EC; }
+.bo .fl-legend .is-billdue::before { border-color: var(--rr-accent); background-color: #F6E3E7; }
+
+.bo [data-live-status].is-offline {
+    color: var(--rr-accent);
+    font-weight: 600;
+}
+
+/* Drawer (also used for "Tonight at a glance") */
+.bo .fl-drawer {
+    --bs-offcanvas-width: 360px;
+    background-color: var(--rr-raised) !important;   /* offcanvas-lg forces transparent from lg up */
+    padding: 1.25rem;
+    overflow-y: auto;
+}
+
+.bo .fl-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.bo .fl-drawer-title {
+    font-family: var(--rr-serif);
+    font-size: 1.375rem;
+    margin: 0 0 0.25rem;
+}
+
+.bo .fl-drawer .btn-close {
+    width: 44px;
+    height: 44px;
+}
+
+.bo .fl-state {
+    display: inline-block;
+    margin: 0.25rem 0 0.75rem;
+    padding: 0.2em 0.75em;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background-color: #ECEAE4;
+    color: var(--rr-muted);
+}
+
+.bo .fl-state.is-booked  { background-color: #E3F1EC; color: var(--bo-jade); }
+.bo .fl-state.is-inuse   { background-color: #E3F1EC; color: var(--bo-jade); }
+.bo .fl-state.is-billdue { background-color: #F6E3E7; color: var(--rr-accent); }
+
+.bo .fl-muted {
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+}
+
+.bo .fl-who {
+    margin-bottom: 0.75rem;
+}
+
+.bo .fl-order {
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--rr-line);
+}
+
+.bo .fl-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bo .fl-lines {
+    list-style: none;
+    padding: 0;
+    margin: 0.375rem 0;
+    font-size: var(--rr-text-sm);
+}
+
+.bo .fl-lines li {
+    display: flex;
+    justify-content: space-between;
+}
+
+.bo .fl-note {
+    margin: 0.375rem 0;
+    padding: 0.25rem 0.5rem;
+    border-left: 3px solid #C88A1E;
+    background-color: #FBEFD9;
+    font-size: var(--rr-text-sm);
+}
+
+.bo .fl-action {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 0.75rem;
+    font-weight: 600;
+}
+
+.bo .fl-sub {
+    margin: 1.25rem 0 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rr-muted);
+}
+
+.bo .fl-later {
+    padding-left: 1rem;
+    font-size: var(--rr-text-sm);
+}
+
+.bo .fl-glance {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin: 0.75rem 0 0;
+}
+
+.bo .fl-glance div {
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--rr-line);
+    border-radius: var(--bo-radius);
+}
+
+.bo .fl-glance dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--rr-muted);
+}
+
+.bo .fl-glance dd {
+    margin: 0;
+    font-family: var(--rr-serif);
+    font-size: 1.5rem;
+}
+
+/* iPad portrait and up: 3 tiles per row */
+@media (min-width: 768px) {
+    .bo .fl-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* iPad landscape and up: side menu visible, 4 tiles per row, drawer becomes a fixed panel on the right */
+@media (min-width: 992px) {
+    .bo .fl-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 1.25rem;
+        align-items: start;
+    }
+
+    .bo .fl-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .bo .fl-drawer {
+        position: sticky;
+        top: 4.5rem;   /* below the sticky top bar */
+        max-height: calc(100vh - 5.5rem);
+        border: 1px solid var(--rr-line);
+        border-radius: var(--bo-radius);
+    }
+}
+
+/* Phones: the drawer comes up from the bottom (easy to reach with a thumb) instead of from the right */
+@media (max-width: 767.98px) {
+    .bo .fl-drawer.offcanvas-lg.offcanvas-end {
+        top: auto;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 80vh;
+        border-left: 0;
+        border-top: 1px solid var(--rr-line);
+        border-radius: 16px 16px 0 0;
+        transform: translateY(100%);
+    }
+
+    .bo .fl-drawer.offcanvas-lg.offcanvas-end.showing,
+    .bo .fl-drawer.offcanvas-lg.offcanvas-end.show:not(.hiding) {
+        transform: none;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   10. The Pass (ticket rail)
+   Four columns on tablets; on phones one column at a time, picked by .ps-tabs
+   (the choice is kept in #passLive[data-active-col] so it survives the 20 s refresh).
+   --------------------------------------------------------------------------- */
+.bo .ps-mode {
+    display: inline-flex;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    overflow: hidden;
+    background-color: var(--rr-raised);
+}
+
+.bo .ps-mode a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 1.125rem;
+    color: var(--rr-muted);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.bo .ps-mode a.active {
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+.bo .ps-tabs {
+    display: flex;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+    overflow-x: auto;
+}
+
+.bo .ps-tabs button {
+    flex: 1 0 auto;
+    min-height: 44px;
+    padding: 0 0.875rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    font-weight: 500;
+}
+
+.bo .ps-tabs button.active {
+    background-color: var(--rr-ink);
+    border-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+.bo .ps-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+}
+
+/* Phones: only the chosen column */
+.bo .ps-rail[data-active-col="new"] .ps-col:not([data-col="new"]),
+.bo .ps-rail[data-active-col="preparing"] .ps-col:not([data-col="preparing"]),
+.bo .ps-rail[data-active-col="ready"] .ps-col:not([data-col="ready"]),
+.bo .ps-rail[data-active-col="served"] .ps-col:not([data-col="served"]) {
+    display: none;
+}
+
+.bo .ps-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 0.625rem;
+    border-radius: var(--bo-radius);
+    background-color: #F2F0EA;
+    min-height: 200px;
+}
+
+.bo .ps-col-head {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    font-family: var(--rr-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rr-muted);
+}
+
+.bo .ps-empty {
+    margin: 0;
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+}
+
+/* A paper docket with a torn bottom edge */
+.bo .ps-ticket {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.75rem 0.75rem 1rem;
+    border-radius: 6px 6px 0 0;
+    background-color: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(15, 46, 43, 0.14);
+}
+
+.bo .ps-ticket::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 7px;
+    background:
+        linear-gradient(-45deg, transparent 4px, #FFFFFF 0) 0 0 / 8px 7px,
+        linear-gradient(45deg, transparent 4px, #FFFFFF 0) 0 0 / 8px 7px;
+}
+
+.bo .ps-ticket-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+}
+
+.bo .ps-age {
+    flex: none;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.bo .ps-age.is-jade  { background-color: #E3F1EC; color: var(--bo-jade); }
+.bo .ps-age.is-amber { background-color: #FBEFD9; color: #94600B; }
+.bo .ps-age.is-plum  { background-color: #F6E3E7; color: var(--rr-accent); }
+
+.bo .ps-note {
+    padding: 0.25rem 0.5rem;
+    border-left: 3px solid #C88A1E;
+    background-color: #FBEFD9;
+    font-size: var(--rr-text-sm);
+    font-weight: 600;
+}
+
+.bo .ps-lines {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.bo .ps-meta {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--rr-muted);
+}
+
+.bo .ps-action {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    font-weight: 600;
+}
+
+.bo .ps-ticket form {
+    margin: 0;
+}
+
+/* Cancel is a quiet link so it is not hit by mistake next to the big button */
+.bo .ps-cancel {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--rr-text-sm);
+    color: var(--rr-muted);
+}
+
+.bo .ps-foot {
+    margin-top: 0.875rem;
+    font-size: 0.8125rem;
+    color: var(--rr-muted);
+}
+
+/* iPad portrait and up: all four columns side by side, tabs hidden */
+@media (min-width: 768px) {
+    .bo .ps-tabs {
+        display: none;
+    }
+
+    .bo .ps-cols {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .bo .ps-rail .ps-col {
+        display: flex !important;   /* undo the phone "one column" rule */
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   11. Staff Today (read-only run sheet)
+   Phones: Needs you first, then the timeline. From lg: timeline left, Needs you right.
+   --------------------------------------------------------------------------- */
+.bo .td-counts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.bo .td-counts div {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--rr-line);
+    border-radius: var(--bo-radius);
+    background-color: var(--rr-raised);
+}
+
+.bo .td-counts b {
+    display: block;
+    font-family: var(--rr-serif);
+    font-size: 1.75rem;
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+.bo .td-counts span {
+    font-size: 0.8125rem;
+    color: var(--rr-muted);
+}
+
+.bo .td-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.bo .td-title {
+    margin: 0 0 0.75rem;
+    font-family: var(--rr-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rr-muted);
+}
+
+.bo .td-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--rr-line);
+    border-left: 4px solid var(--rr-accent);
+    border-radius: 8px;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    text-decoration: none;
+}
+
+.bo .td-item.is-jade  { border-left-color: var(--bo-jade); }
+.bo .td-item.is-amber { border-left-color: #C88A1E; }
+
+.bo .td-line {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 4.75rem;
+}
+
+.bo .td-line::before {
+    content: "";
+    position: absolute;
+    left: 4rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--rr-line);
+}
+
+.bo .td-row {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.bo .td-row.is-past {
+    opacity: 0.55;
+}
+
+.bo .td-time {
+    position: absolute;
+    left: -4.75rem;
+    top: 0.875rem;
+    width: 3.75rem;
+    text-align: right;
+    font-size: 0.8125rem;
+    color: var(--rr-muted);
+}
+
+.bo .td-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 8px;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    text-decoration: none;
+}
+
+.bo .td-now {
+    position: relative;
+    height: 0;
+    margin: 0.75rem 0 0.875rem -0.75rem;
+    border-top: 2px solid var(--rr-accent);
+}
+
+.bo .td-now span {
+    position: absolute;
+    left: -4rem;
+    top: -0.7rem;
+    padding: 0 0.375rem;
+    border-radius: 4px;
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+@media (min-width: 768px) {
+    .bo .td-counts {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 992px) {
+    .bo .td-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        align-items: start;
+    }
+
+    /* Timeline on the left, Needs you on the right */
+    .bo .td-timeline { grid-column: 1; grid-row: 1; }
+    .bo .td-needs    { grid-column: 2; grid-row: 1; }
+}
+
+/* ---------------------------------------------------------------------------
    8. Phone and tablet
    --------------------------------------------------------------------------- */
 @media (max-width: 991.98px) {
