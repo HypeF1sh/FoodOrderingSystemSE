@@ -5,6 +5,8 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 ## Current position
 - **Today's sprint:** Sprint 4 (29 Oct–3 Nov) — closing gaps (PB20 promotions, BUG1, UX3), then extras and UI refining
 - **Internal target:** 4 Nov · **Formal deadline:** Fri 6 Nov 2026
+- **Jordan, 2 Nov:** staff redesign in **PR #57** (open, needs group OK); customer side is mid-brainstorm with one open
+  question. Read **`docs/handoff-jordan.md`** first when continuing on another PC.
 
 | Sprint | Dates | Goal |
 |---|---|---|
