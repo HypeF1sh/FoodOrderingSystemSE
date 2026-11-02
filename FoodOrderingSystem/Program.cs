@@ -44,6 +44,8 @@ builder.Services.AddRazorPages(options =>
 });
 
 builder.Services.AddScoped<IUserAdminService, UserAdminService>();
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IOccupancyService, OccupancyService>();
