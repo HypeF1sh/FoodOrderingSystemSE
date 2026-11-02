@@ -32,6 +32,39 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-11-01 | Back office redesign (admin + staff UI), BUG1, Dish sales report, dashboard refinements | See the detailed entry below |
 | 2026-11-01 | Staff side: Floor, The Pass, Today + order-to-table link (BUG8) | See the detailed entry below |
 
+### 2026-11-02 — Pre-orders for confirmed bookings (`feature/PB14-pre-orders`)
+
+**What and why:** customers use the system from their phone, often before they leave home. A customer with a
+confirmed booking can now order in advance. The order is saved as **Held** and stays off The Pass, so the kitchen
+does not cook for someone who may be late. 5 min before the booking, Floor shows a Needs-you chip; staff check the
+customer is here (in person or by phone) and press **Send to kitchen**.
+
+**Ch.5 screenshots:** Checkout showing "Pre-order for your booking on … (table …)"; the confirmation banner; My orders
+with the grey "Pre-order" badge; Floor tile with "· pre-order" and the drawer with **Send #… to kitchen**; the Needs-you
+chip "M3 pre-order #… · Customer 5:27 PM"; The Pass with the order in New after sending. Code excerpts:
+`OrderService.FindOrderBookingAsync` (current booking vs next confirmed booking) and the Held branch of
+`AdvanceStatusAsync`.
+
+**Ch.6 test cases**
+| ID | Steps | Expected | Actual (2/11) |
+|---|---|---|---|
+| TC-P01 | Customer with a Confirmed booking at 6:30 PM orders at 5:23 PM | Checkout says pre-order; order saved as Held, linked to the booking; customer notified | As expected (#2005) |
+| TC-P02 | Staff open Floor at T-60 min, then at T-4 min | No chip at T-60 (but Send button already in the drawer); chip at T-4 | As expected |
+| TC-P03 | Staff press Send to kitchen; a second iPad presses it again | First: "sent to the kitchen", order Pending and on The Pass; second: "already updated by someone else" | As expected |
+| TC-P04 | Customer with only a Pending (unconfirmed) booking orders | Normal "No table" order, not a pre-order | As expected (#2006) |
+| TC-P05 | Table has a Held pre-order; staff try Complete table | Button hidden; a crafted POST is refused | Not run yet |
+
+**Ch.7 reflection:** (1) Adding a status looked like a schema change, but `OrderStatus` is stored as a string
+(`HasConversion<string>()`), so `Held` needed no migration. Checking the DbContext first saved asking the group for one.
+(2) The staff board only loads orders *placed* today, so a pre-order placed yesterday for tonight would never have
+reached the Floor or The Pass. The day filter now also takes Held orders whose booking is today. (3) On release,
+`CreatedAt` is reset: otherwise a pre-order placed at lunch would show "waiting 300m" on The Pass the moment it was
+sent. Trade-off: the original placing time is not kept. (4) The early-arrival window (15 min) and the notice window
+(5 min) interact: an order placed within 15 min of the booking counts as "at the table", so it is never held.
+(5) Scope was cut on purpose: blocking orders with no booking would stop walk-ins ordering at all until table QR
+exists, so that rule waits for QR. **AI use:** Claude Code explored the code, wrote the change and ran the HTTP tests;
+Jordan set the ordering rule and the three arrival scenarios and reviewed the code.
+
 ### 2026-11-01 — Staff side: Floor, The Pass, Today (`feature/UI-staff-floor`, BUG8)
 
 **Ch.5 screenshots**

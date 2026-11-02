@@ -5,8 +5,9 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 ## Current position
 - **Today's sprint:** Sprint 4 (29 Oct–3 Nov) — closing gaps (PB20 promotions, BUG1, UX3), then extras and UI refining
 - **Internal target:** 4 Nov · **Formal deadline:** Fri 6 Nov 2026
-- **Jordan, 2 Nov:** staff redesign in **PR #57** (open, needs group OK); customer side is mid-brainstorm with one open
-  question. Read **`docs/handoff-jordan.md`** first when continuing on another PC.
+- **Jordan, 2 Nov:** staff redesign in **PR #57** (open, needs group OK). **Pre-orders** built on
+  `feature/PB14-pre-orders` (off `feature/UI-staff-floor`, not pushed). Table QR ordering is next.
+  Read **`docs/handoff-jordan.md`** first when continuing on another PC.
 
 | Sprint | Dates | Goal |
 |---|---|---|
@@ -56,6 +57,17 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-02** — Jordan: **pre-orders** on `feature/PB14-pre-orders` (off `feature/UI-staff-floor`). Ordering rule
+  agreed with Jordan: at the restaurant the order goes to the table's booking as before; from outside, a customer
+  with a **Confirmed** booking still to come places a **pre-order**, saved with the new status **`Held`** and kept off
+  The Pass. 5 min before the booking a Needs-you chip appears on Floor; staff check the customer has arrived (in
+  person or by phone) and press **Send to kitchen** (Held → Pending), which they can also do earlier if the customer
+  arrives early. Checkout says where the order will go before it is placed. Release resets `CreatedAt`, so kitchen
+  timers start then. A held pre-order blocks Complete table and can be cancelled. **No schema change**: `OrderStatus`
+  is stored as a string, so adding `Held` needs no migration. Not done yet: orders with no booking still go through
+  as "No table" until **table QR ordering** (needs a new `Order.RestaurantTableId` column, group OK) is built; then
+  they will be blocked. Build 0 warnings; tested over HTTP (pre-order placed → no chip at T-60 → chip at T-4 → send
+  → on The Pass; second send refused; unconfirmed booking gives a No-table order).
 - **2026-11-01** — Jordan: **staff side** on `feature/UI-staff-floor` (off `feature/UI-back-office`; spec
   `docs/superpowers/specs/2026-11-01-staff-floor-design.md`, plan `docs/superpowers/plans/2026-11-01-staff-floor.md`).
   Research: StoreHub, FeedMe and Qashier open front of house on a table layout, GrabMerchant and FeedMe KDS open

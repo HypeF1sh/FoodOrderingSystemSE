@@ -80,41 +80,68 @@ public class OrderService : IOrderService
 
         order.TotalAmount = order.OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
 
-        // Link the order to the table the customer is sitting at, if they have a booking right now.
-        // Without a booking (e.g. ordering from home) it stays a "No table" order.
-        var booking = await FindCurrentBookingAsync(customerId, order.CreatedAt);
+        // Link the order to a table: the booking the customer is at right now goes straight to the kitchen;
+        // otherwise their next confirmed booking makes it a Held pre-order. With neither it stays "No table".
+        var (booking, isPreOrder) = await FindOrderBookingAsync(customerId, order.CreatedAt);
         order.ReservationId = booking?.ReservationId;
+        if (isPreOrder) order.Status = OrderStatus.Held;
 
         // 4. One SaveChanges = one database transaction: the order and all its items are saved, or none are
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
         // PB20: only after the save, so the customer is never told about an order that was not stored
-        await _notificationService.SendAsync(
-            customerId,
-            NotificationType,
-            $"Order #{order.OrderId} has been placed and is pending.");
+        // booking! is safe: isPreOrder is only true when a booking was found
+        var placed = isPreOrder
+            ? $"Pre-order #{order.OrderId} is saved for your booking on {booking!.ReservationDate:dd/MM/yyyy} at "
+              + $"{booking.StartTime:hh:mm tt}. Staff will send it to the kitchen when you arrive."
+            : booking == null
+                ? $"Order #{order.OrderId} has been placed."
+                : $"Order #{order.OrderId} has been placed for your table {booking.TableNumber}.";
 
-        var placed = booking == null
-            ? $"Order #{order.OrderId} has been placed."
-            : $"Order #{order.OrderId} has been placed for your table {booking.TableNumber}.";
+        await _notificationService.SendAsync(customerId, NotificationType,
+            isPreOrder ? placed : $"Order #{order.OrderId} has been placed and is pending.");
+
         return (true, placed, order.OrderId);
     }
 
-    // The customer's Pending or Confirmed booking whose time slot covers 'now' (from EarlyArrivalMinutes before
-    // the start until the end). Read through Wallace's IReservationService, not the Reservations table directly.
-    private async Task<ReservationDetailViewModel?> FindCurrentBookingAsync(string customerId, DateTime now)
+    public async Task<string> DescribeOrderTargetAsync(string customerId)
     {
-        var today = DateOnly.FromDateTime(now);
+        var (booking, isPreOrder) = await FindOrderBookingAsync(customerId, DateTime.Now);
+
+        if (booking == null)
+            return "No table: this order is not linked to a booking.";
+        return isPreOrder
+            ? $"Pre-order for your booking on {booking.ReservationDate:dd/MM/yyyy} at {booking.StartTime:hh:mm tt} "
+              + $"(table {booking.TableNumber}). Staff send it to the kitchen when you arrive."
+            : $"For your table {booking.TableNumber}, sent to the kitchen now.";
+    }
+
+    // Which booking an order placed 'now' belongs to (read through Wallace's IReservationService):
+    // 1. a Pending or Confirmed booking whose slot covers now (from EarlyArrivalMinutes before the start
+    //    until the end): the customer is at the table, so the order is not a pre-order;
+    // 2. otherwise their soonest Confirmed booking still to come: a pre-order. Pending bookings do not count,
+    //    because the restaurant has not accepted them yet.
+    private async Task<(ReservationDetailViewModel? Booking, bool IsPreOrder)> FindOrderBookingAsync(
+        string customerId, DateTime now)
+    {
         var bookings = await _reservationService.GetCustomerReservationsAsync(customerId);
 
-        return bookings
-            .Where(r => r.ReservationDate == today
-                        && (r.Status == nameof(ReservationStatus.Pending) || r.Status == nameof(ReservationStatus.Confirmed))
-                        && today.ToDateTime(r.StartTime).AddMinutes(-EarlyArrivalMinutes) <= now
-                        && now < today.ToDateTime(r.EndTime))
+        var current = bookings
+            .Where(r => (r.Status == nameof(ReservationStatus.Pending) || r.Status == nameof(ReservationStatus.Confirmed))
+                        && r.ReservationDate.ToDateTime(r.StartTime).AddMinutes(-EarlyArrivalMinutes) <= now
+                        && now < r.ReservationDate.ToDateTime(r.EndTime))
             .OrderBy(r => r.StartTime)
             .FirstOrDefault();
+        if (current != null)
+            return (current, false);
+
+        var upcoming = bookings
+            .Where(r => r.Status == nameof(ReservationStatus.Confirmed)
+                        && r.ReservationDate.ToDateTime(r.StartTime).AddMinutes(-EarlyArrivalMinutes) > now)
+            .OrderBy(r => r.ReservationDate.ToDateTime(r.StartTime))
+            .FirstOrDefault();
+        return (upcoming, upcoming != null);
     }
 
     public async Task<OrderConfirmationViewModel?> GetConfirmationAsync(int orderId, string customerId)
@@ -169,8 +196,8 @@ public class OrderService : IOrderService
             })
             .ToListAsync();
 
-        // Same "still with the kitchen" rule as the staff board's Active filter
-        orders.ForEach(o => o.IsActive = ActiveStatuses.Contains(o.Status));
+        // Same "still with the kitchen" rule as the staff board's Active filter, plus pre-orders still waiting
+        orders.ForEach(o => o.IsActive = ActiveStatuses.Contains(o.Status) || o.Status == OrderStatus.Held);
         return orders;
     }
 
@@ -179,6 +206,7 @@ public class OrderService : IOrderService
     // =====================================================================
 
     // Orders still being handled. Completed and Cancelled are finished.
+    // Held is left out on purpose: a pre-order stays off The Pass until staff send it to the kitchen.
     private static readonly OrderStatus[] ActiveStatuses =
         { OrderStatus.Pending, OrderStatus.Preparing, OrderStatus.ReadyToServe, OrderStatus.Served };
 
@@ -188,9 +216,11 @@ public class OrderService : IOrderService
         var dayStart = date.ToDateTime(TimeOnly.MinValue);
         var dayEnd = dayStart.AddDays(1);
 
+        //    A pre-order placed on an earlier day still belongs to the day of its booking
         var query = _context.Orders
             .AsNoTracking()
-            .Where(o => o.CreatedAt >= dayStart && o.CreatedAt < dayEnd);
+            .Where(o => (o.CreatedAt >= dayStart && o.CreatedAt < dayEnd)
+                        || (o.Status == OrderStatus.Held && o.Reservation != null && o.Reservation.ReservationDate == date));
 
         // 2. Apply the board filter
         query = filter switch
@@ -230,14 +260,27 @@ public class OrderService : IOrderService
         // 2. Update only if the order is still in the status the staff member saw.
         //    The check and the update are one SQL statement, so two staff pressing the
         //    button at the same moment cannot move the order on twice.
-        var updated = await _context.Orders
-            .Where(o => o.OrderId == orderId && o.Status == currentStatus)
-            .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, nextStatus.Value));
+        var order = _context.Orders.Where(o => o.OrderId == orderId && o.Status == currentStatus);
+
+        // A pre-order's clock starts when it reaches the kitchen, so CreatedAt is reset on release.
+        // Otherwise a pre-order placed yesterday would show "waiting 1,000m" on The Pass straight away.
+        var released = currentStatus == OrderStatus.Held;
+        var updated = released
+            ? await order.ExecuteUpdateAsync(s => s
+                .SetProperty(o => o.Status, nextStatus.Value)
+                .SetProperty(o => o.CreatedAt, DateTime.Now))
+            : await order.ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, nextStatus.Value));
 
         if (updated == 0)
             return await StaleOrMissingAsync(orderId);
 
         // 3. PB20: tell the customer, not the staff member who pressed the button
+        if (released)
+        {
+            await NotifyCustomerAsync(orderId, $"Your pre-order #{orderId} has been sent to the kitchen.");
+            return (true, $"Pre-order #{orderId} has been sent to the kitchen.");
+        }
+
         await NotifyCustomerAsync(orderId, $"Your order #{orderId} is now {OrderStatusDisplay.Label(nextStatus.Value).ToLower()}.");
 
         return (true, $"Order #{orderId} is now {OrderStatusDisplay.Label(nextStatus.Value).ToLower()}.");
@@ -271,6 +314,7 @@ public class OrderService : IOrderService
 
     private static OrderStatus? GetNextStatus(OrderStatus status) => status switch
     {
+        OrderStatus.Held => OrderStatus.Pending,   // staff send a pre-order to the kitchen
         OrderStatus.Pending => OrderStatus.Preparing,
         OrderStatus.Preparing => OrderStatus.ReadyToServe,
         OrderStatus.ReadyToServe => OrderStatus.Served,
@@ -309,7 +353,7 @@ public class OrderService : IOrderService
     // =====================================================================
 
     private static bool CanBeCancelled(OrderStatus status) =>
-        status == OrderStatus.Pending || status == OrderStatus.Preparing;
+        status == OrderStatus.Held || status == OrderStatus.Pending || status == OrderStatus.Preparing;
 
     // Staff actions only know the order id, so the customer is looked up from the order itself
     private async Task NotifyCustomerAsync(int orderId, string message)

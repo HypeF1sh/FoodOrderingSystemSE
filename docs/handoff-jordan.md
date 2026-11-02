@@ -9,6 +9,7 @@ without the chat history. The detailed history is in `docs/progress.md`; this fi
 |---|---|---|
 | `feature/UI-back-office` | **PR #56 merged** into `dev` (1 Nov, by speedup9) | Nothing |
 | `feature/UI-staff-floor` | Pushed. **PR #57 open → `dev`** (8 commits) | Get the group's OK on the shared files (below), then merge |
+| `feature/PB14-pre-orders` | Local, **not pushed**, off `feature/UI-staff-floor`. Pre-orders done and tested | Review, commit, push; PR after #57 merges |
 | `fix/UX4-configurations-label` | 1 old commit, never merged | **Do not PR.** Superseded by the back office ("Back office" link replaced the "Admin" link). Safe to delete |
 | `backup/*-before-trailer-removal` | Local only, on the laptop | Safety copies. Never push |
 
@@ -29,7 +30,17 @@ linking to his Bill page, and `OrderService` reading Wallace's `GetCustomerReser
 - Verified: build 0 warnings; end-to-end over HTTP (book → confirm → order → serve → bill due → crafted Complete refused →
   pay → complete → free); Jordan's manual browser check on 1 Nov ("all looks good").
 
-## 2. What I was in the middle of: customer side (not started in code)
+## 2. Customer side
+
+**Decided 2 Nov (ordering rule):** at the restaurant, the order goes to the table. From outside, only a customer with a
+**Confirmed** booking may order, as a **pre-order** (status `Held`), which staff send to the kitchen once the customer has
+arrived (Floor chip 5 min before the booking). **Built** on `feature/PB14-pre-orders`. Orders with no booking still go
+through as "No table" until table QR ordering exists; then they will be blocked.
+
+**Next: table QR ordering.** Walk-ins have no booking, so an order needs its own table link: a new
+`Order.RestaurantTableId` column (schema change, group OK first).
+
+### Earlier brainstorm notes
 
 Brainstorming only. **No code, no branch yet.** Ideas from Jordan (1–2 Nov):
 - Customer side should be **phone-first**: customers use the system from their phone.

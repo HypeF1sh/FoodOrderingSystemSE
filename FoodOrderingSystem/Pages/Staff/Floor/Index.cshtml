@@ -102,6 +102,31 @@
                         </div>
                     }
 
+                    @foreach (var order in selected.HeldOrders)
+                    {
+                        <div class="fl-order">
+                            <div class="fl-row">
+                                <span class="fw-semibold">Pre-order #@order.OrderId</span>
+                                <partial name="/Pages/Orders/_OrderStatusBadge.cshtml" model="order.Status" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(order.Notes))
+                            {
+                                <div class="fl-note">⚠ @order.Notes</div>
+                            }
+                            <ul class="fl-lines">
+                                @foreach (var line in order.Lines)
+                                {
+                                    <li><span>@line.Quantity× @line.Name</span><span>@((line.Quantity * line.UnitPrice).ToString("0.00"))</span></li>
+                                }
+                            </ul>
+                            <p class="fl-muted mb-2">Check the customer has arrived, then send it to the kitchen.</p>
+                            <form method="post" asp-page-handler="SendToKitchen" asp-route-orderId="@order.OrderId"
+                                  asp-route-areaId="@floor.SelectedAreaId" asp-route-table="@selected.RestaurantTableId">
+                                <button type="submit" class="btn btn-primary fl-action">Send #@order.OrderId to kitchen</button>
+                            </form>
+                        </div>
+                    }
+
                     @switch (selected.Action)
                     {
                         case TableAction.ConfirmBooking:

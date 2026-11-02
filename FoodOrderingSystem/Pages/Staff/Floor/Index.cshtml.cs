@@ -58,6 +58,13 @@ public class IndexModel : PageModel
         return BackToTable(success, message);
     }
 
+    // Held is the status the button was shown for: staff have checked the customer is here, so the pre-order goes to The Pass
+    public async Task<IActionResult> OnPostSendToKitchenAsync(int orderId)
+    {
+        var (success, message) = await _orderService.AdvanceStatusAsync(orderId, OrderStatus.Held);
+        return BackToTable(success, message);
+    }
+
     public async Task<IActionResult> OnPostCompleteAsync(int reservationId)
     {
         var (success, message) = await _floorService.CompleteTableAsync(reservationId);

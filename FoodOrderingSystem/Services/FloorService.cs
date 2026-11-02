@@ -16,6 +16,7 @@ public class FloorService : IFloorService
     public const int UnconfirmedWindowMinutes = 120;  // a Pending booking starting within this goes on Needs you
     public const int LateMinutes = 15;                // a booking this late with no order goes on Needs you
     public const int ArrivingWindowMinutes = 120;     // "arriving in the next 2 h" on Today
+    public const int PreOrderNoticeMinutes = 5;       // a Held pre-order goes on Needs you this long before its booking
 
     // The kitchen is still working on these
     private static readonly OrderStatus[] KitchenStatuses =
@@ -97,7 +98,9 @@ public class FloorService : IFloorService
 
         // 1. A table can only be closed once the kitchen is done and everything served is paid for.
         //    The button is hidden in that case, but a crafted POST must still be refused here.
-        var blocking = orders.FirstOrDefault(o => KitchenStatuses.Contains(o.Status) || IsBillDue(o));
+        //    A Held pre-order also blocks it: staff must send it to the kitchen or cancel it first.
+        var blocking = orders.FirstOrDefault(o =>
+            KitchenStatuses.Contains(o.Status) || IsBillDue(o) || o.Status == OrderStatus.Held);
         if (blocking != null)
         {
             return (false, $"Order #{blocking.OrderId} is not finished or not paid yet, so the table can't be completed.");
@@ -172,7 +175,19 @@ public class FloorService : IFloorService
             DiningAreaId = table.DiningAreaId
         };
 
-        ResolveState(tile, bookings, openBookings, orders, today.Now);
+        // Pre-orders are kept apart from the state rules: they are not with the kitchen yet,
+        // and staff may send one at any time (a customer who arrives early, scenario 1 in the spec)
+        tile.HeldOrders = orders.Where(o => o.Status == OrderStatus.Held).ToList();
+        ResolveState(tile, bookings, openBookings, orders.Where(o => o.Status != OrderStatus.Held).ToList(), today.Now);
+        if (tile.HeldOrders.Count > 0)
+        {
+            tile.Subtitle += " · pre-order";
+            // CompleteTableAsync refuses while a pre-order is held, so do not offer the button
+            if (tile.Action == TableAction.CompleteTable)
+            {
+                tile.Action = TableAction.None;
+            }
+        }
 
         tile.LaterToday = openBookings
             .Where(r => r.ReservationId != tile.ReservationId && Start(r) > today.Now)
@@ -306,6 +321,16 @@ public class FloorService : IFloorService
             {
                 items.Add(OrderItem(3, "jade", $"#{order.OrderId} ready · {where}", order, booking));
             }
+            else if (order.Status == OrderStatus.Held && booking != null
+                     && today.Now >= Start(booking).AddMinutes(-PreOrderNoticeMinutes))
+            {
+                // Staff check the customer has arrived (in person or by phone), then press Send to kitchen
+                var item = OrderItem(3, "jade",
+                    $"{booking.TableNumber} pre-order #{order.OrderId} · {booking.CustomerName} {booking.StartTime:h:mm tt}",
+                    order, booking);
+                item.SortTime = Start(booking);
+                items.Add(item);
+            }
         }
 
         // Bookings: late with no order (5), or still not confirmed and starting soon (4)
@@ -313,7 +338,8 @@ public class FloorService : IFloorService
         {
             var start = Start(booking);
             var who = $"{booking.CustomerName} {booking.StartTime:h:mm tt}";
-            var hasOrder = today.Orders.Any(o => o.ReservationId == booking.ReservationId);
+            // A Held pre-order does not count: a late customer with a pre-order still needs a phone call
+            var hasOrder = today.Orders.Any(o => o.ReservationId == booking.ReservationId && o.Status != OrderStatus.Held);
 
             if (!hasOrder && today.Now > start.AddMinutes(LateMinutes) && today.Now < End(booking))
             {
