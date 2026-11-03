@@ -73,5 +73,12 @@ Desktop.ini
 CLAUDE.local.md
 .claude/settings.local.json
 
+
+## ---------- Dev email pickup folder ----------
+App_Data/MailPickup/
+FoodOrderingSystem/App_Data/MailPickup/
+*.eml
+
 ## ---------- Brainstorming companion mockups (local only) ----------
 .superpowers/
+
