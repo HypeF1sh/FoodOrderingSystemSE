@@ -17,24 +17,32 @@ public class OrderService : IOrderService
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notificationService;
     private readonly IReservationService _reservationService;
+    private readonly IDiningAreaService _diningAreaService;
 
     public OrderService(
         ApplicationDbContext context,
         INotificationService notificationService,
-        IReservationService reservationService)
+        IReservationService reservationService,
+        IDiningAreaService diningAreaService)
     {
         _context = context;
         _notificationService = notificationService;
         _reservationService = reservationService;
+        _diningAreaService = diningAreaService;
     }
 
     public async Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
-        string customerId, List<CartSessionItem> items, string? notes)
+        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId)
     {
         if (string.IsNullOrEmpty(customerId))
             return (false, "Please log in to place an order.", null);
         if (items.Count == 0)
             return (false, "Your cart is empty.", null);
+
+        // 0. Work out the table first: an order with nowhere to go is refused before anything else
+        var target = await FindOrderTargetAsync(customerId, scannedTableId, DateTime.Now);
+        if (!target.CanOrder)
+            return (false, target.Message, null);
 
         // 1. Load every dish again: the cart may be old, and prices must come from the database, not the browser
         var ids = items.Select(i => i.MenuItemId).ToList();
@@ -80,50 +88,43 @@ public class OrderService : IOrderService
 
         order.TotalAmount = order.OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
 
-        // Link the order to a table: the booking the customer is at right now goes straight to the kitchen;
-        // otherwise their next confirmed booking makes it a Held pre-order. With neither it stays "No table".
-        var (booking, isPreOrder) = await FindOrderBookingAsync(customerId, order.CreatedAt);
-        order.ReservationId = booking?.ReservationId;
-        if (isPreOrder) order.Status = OrderStatus.Held;
+        // Link the order to its table (and booking, if any). A pre-order waits as Held until staff release it.
+        order.ReservationId = target.ReservationId;
+        order.RestaurantTableId = target.RestaurantTableId;
+        if (target.IsPreOrder) order.Status = OrderStatus.Held;
 
         // 4. One SaveChanges = one database transaction: the order and all its items are saved, or none are
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
         // PB20: only after the save, so the customer is never told about an order that was not stored
-        // booking! is safe: isPreOrder is only true when a booking was found
-        var placed = isPreOrder
-            ? $"Pre-order #{order.OrderId} is saved for your booking on {booking!.ReservationDate:dd/MM/yyyy} at "
-              + $"{booking.StartTime:hh:mm tt}. Staff will send it to the kitchen when you arrive."
-            : booking == null
-                ? $"Order #{order.OrderId} has been placed."
-                : $"Order #{order.OrderId} has been placed for your table {booking.TableNumber}.";
+        var placed = target.IsPreOrder
+            ? $"Pre-order #{order.OrderId} is saved for your booking on {target.BookingStart:dd/MM/yyyy} at "
+              + $"{target.BookingStart:hh:mm tt}. Staff will send it to the kitchen when you arrive."
+            : $"Order #{order.OrderId} has been placed for table {target.TableNumber}.";
 
         await _notificationService.SendAsync(customerId, NotificationType,
-            isPreOrder ? placed : $"Order #{order.OrderId} has been placed and is pending.");
+            target.IsPreOrder ? placed : $"Order #{order.OrderId} has been placed and is pending.");
 
         return (true, placed, order.OrderId);
     }
 
-    public async Task<string> DescribeOrderTargetAsync(string customerId)
+    public async Task<OrderTargetViewModel> DescribeOrderTargetAsync(string customerId, int? scannedTableId)
     {
-        var (booking, isPreOrder) = await FindOrderBookingAsync(customerId, DateTime.Now);
-
-        if (booking == null)
-            return "No table: this order is not linked to a booking.";
-        return isPreOrder
-            ? $"Pre-order for your booking on {booking.ReservationDate:dd/MM/yyyy} at {booking.StartTime:hh:mm tt} "
-              + $"(table {booking.TableNumber}). Staff send it to the kitchen when you arrive."
-            : $"For your table {booking.TableNumber}, sent to the kitchen now.";
+        var target = await FindOrderTargetAsync(customerId, scannedTableId, DateTime.Now);
+        return new OrderTargetViewModel { CanOrder = target.CanOrder, Message = target.Message };
     }
 
-    // Which booking an order placed 'now' belongs to (read through Wallace's IReservationService):
-    // 1. a Pending or Confirmed booking whose slot covers now (from EarlyArrivalMinutes before the start
-    //    until the end): the customer is at the table, so the order is not a pre-order;
-    // 2. otherwise their soonest Confirmed booking still to come: a pre-order. Pending bookings do not count,
-    //    because the restaurant has not accepted them yet.
-    private async Task<(ReservationDetailViewModel? Booking, bool IsPreOrder)> FindOrderBookingAsync(
-        string customerId, DateTime now)
+    // Where an order placed 'now' goes. Checked in this order; the first rule that matches decides:
+    // 1. the table QR this phone scanned (the customer is sitting there). If they also have a booking on now
+    //    at that same table, the order is linked to the booking too, so it shows on that booking's bill.
+    // 2. a Pending or Confirmed booking whose slot covers now (from EarlyArrivalMinutes before the start
+    //    until the end): the customer is at the table.
+    // 3. their soonest Confirmed booking still to come: a Held pre-order.
+    // 4. otherwise the order is refused: from outside the restaurant only a confirmed booking can order.
+    //    Pending bookings do not count for 3, because the restaurant has not accepted them yet.
+    // Bookings are read through Wallace's IReservationService, tables through Carynn's IDiningAreaService.
+    private async Task<OrderTarget> FindOrderTargetAsync(string customerId, int? scannedTableId, DateTime now)
     {
         var bookings = await _reservationService.GetCustomerReservationsAsync(customerId);
 
@@ -133,16 +134,62 @@ public class OrderService : IOrderService
                         && now < r.ReservationDate.ToDateTime(r.EndTime))
             .OrderBy(r => r.StartTime)
             .FirstOrDefault();
-        if (current != null)
-            return (current, false);
 
+        // 1. Scanned table. A table deactivated since the scan no longer counts.
+        if (scannedTableId.HasValue)
+        {
+            var table = await _diningAreaService.GetTableAsync(scannedTableId.Value);
+            if (table != null && table.IsActive)
+            {
+                var sameTableBooking = current?.RestaurantTableId == table.RestaurantTableId ? current : null;
+                return new OrderTarget(true, $"For table {table.TableNumber}, sent to the kitchen now.",
+                    sameTableBooking?.ReservationId, table.RestaurantTableId, table.TableNumber, false, null);
+            }
+        }
+
+        // 2. Booking on now
+        if (current != null)
+        {
+            return new OrderTarget(true, $"For your table {current.TableNumber}, sent to the kitchen now.",
+                current.ReservationId, current.RestaurantTableId, current.TableNumber, false, null);
+        }
+
+        // 3. Confirmed booking later: pre-order
         var upcoming = bookings
             .Where(r => r.Status == nameof(ReservationStatus.Confirmed)
                         && r.ReservationDate.ToDateTime(r.StartTime).AddMinutes(-EarlyArrivalMinutes) > now)
             .OrderBy(r => r.ReservationDate.ToDateTime(r.StartTime))
             .FirstOrDefault();
-        return (upcoming, upcoming != null);
+        if (upcoming != null)
+        {
+            var start = upcoming.ReservationDate.ToDateTime(upcoming.StartTime);
+            return new OrderTarget(true,
+                $"Pre-order for your booking on {start:dd/MM/yyyy} at {start:hh:mm tt} (table {upcoming.TableNumber}). "
+                + "Staff send it to the kitchen when you arrive.",
+                upcoming.ReservationId, upcoming.RestaurantTableId, upcoming.TableNumber, true, start);
+        }
+
+        // 4. Nowhere to send it. A booking still waiting for confirmation gets its own message.
+        var waiting = bookings.Any(r => r.Status == nameof(ReservationStatus.Pending)
+                                        && now < r.ReservationDate.ToDateTime(r.EndTime));
+        return new OrderTarget(false,
+            waiting
+                ? "Your booking is not confirmed yet. You can pre-order once the restaurant confirms it, "
+                  + "or scan the QR code on your table when you arrive."
+                : "To order, scan the QR code on your table. Not at the restaurant? Book a table, "
+                  + "and once it is confirmed you can pre-order.",
+            null, null, null, false, null);
     }
+
+    // The result of FindOrderTargetAsync. BookingStart is only set for a pre-order.
+    private sealed record OrderTarget(
+        bool CanOrder,
+        string Message,
+        int? ReservationId,
+        int? RestaurantTableId,
+        string? TableNumber,
+        bool IsPreOrder,
+        DateTime? BookingStart);
 
     public async Task<OrderConfirmationViewModel?> GetConfirmationAsync(int orderId, string customerId)
     {
@@ -398,8 +445,10 @@ public class OrderService : IOrderService
             CustomerName = o.Customer == null ? "(unknown)"
                 : o.Customer.FullName != "" ? o.Customer.FullName : (o.Customer.Email ?? "(unknown)"),
             ReservationId = o.ReservationId,
-            TableNumber = o.Reservation != null && o.Reservation.RestaurantTable != null
-                ? o.Reservation.RestaurantTable.TableNumber
+            // The order's own table first (QR or booking); orders from before table QR only have the booking's
+            RestaurantTableId = o.RestaurantTableId ?? (o.Reservation != null ? (int?)o.Reservation.RestaurantTableId : null),
+            TableNumber = o.RestaurantTable != null ? o.RestaurantTable.TableNumber
+                : o.Reservation != null && o.Reservation.RestaurantTable != null ? o.Reservation.RestaurantTable.TableNumber
                 : null,
             Status = o.Status,
             TotalAmount = o.TotalAmount,

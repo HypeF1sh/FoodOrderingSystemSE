@@ -13,7 +13,8 @@ public class StaffOrderViewModel
     public string CustomerName { get; set; } = string.Empty;
     public int? ReservationId { get; set; }
 
-    // Table of the order's reservation, e.g. "T4"; null when the order has no reservation ("No table" on The Pass)
+    // The order's table (scanned QR or booking), e.g. "T4"; null only for old orders with no table ("No table" on The Pass)
+    public int? RestaurantTableId { get; set; }
     public string? TableNumber { get; set; }
     public OrderStatus Status { get; set; }
     public decimal TotalAmount { get; set; }

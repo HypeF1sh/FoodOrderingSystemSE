@@ -341,6 +341,9 @@ namespace FoodOrderingSystem.Migrations
                     b.Property<int?>("ReservationId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RestaurantTableId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -354,6 +357,8 @@ namespace FoodOrderingSystem.Migrations
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("ReservationId");
+
+                    b.HasIndex("RestaurantTableId");
 
                     b.ToTable("Orders");
                 });
@@ -764,9 +769,15 @@ namespace FoodOrderingSystem.Migrations
                         .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("FoodOrderingSystem.Models.RestaurantTable", "RestaurantTable")
+                        .WithMany()
+                        .HasForeignKey("RestaurantTableId");
+
                     b.Navigation("Customer");
 
                     b.Navigation("Reservation");
+
+                    b.Navigation("RestaurantTable");
                 });
 
             modelBuilder.Entity("FoodOrderingSystem.Models.OrderItem", b =>

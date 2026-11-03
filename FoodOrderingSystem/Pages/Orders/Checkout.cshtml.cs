@@ -9,17 +9,19 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace FoodOrderingSystem.Pages.Orders;
 
 // Customers only. A logged-out visitor is sent to the login page and brought back here;
-// the cart is in the session, so it is still there after logging in (PB14).
+// the cart and the scanned table are in the session, so they are still there after logging in (PB14).
 [Authorize(Roles = DbSeeder.CustomerRole)]
 public class CheckoutModel : PageModel
 {
     private readonly ICartService _cartService;
     private readonly IOrderService _orderService;
+    private readonly ITableQrService _tableQrService;
 
-    public CheckoutModel(ICartService cartService, IOrderService orderService)
+    public CheckoutModel(ICartService cartService, IOrderService orderService, ITableQrService tableQrService)
     {
         _cartService = cartService;
         _orderService = orderService;
+        _tableQrService = tableQrService;
     }
 
     [BindProperty]
@@ -27,8 +29,8 @@ public class CheckoutModel : PageModel
 
     public CartViewModel Cart { get; set; } = new();
 
-    // Where the order will go: the customer's table now, a pre-order for their next booking, or no table
-    public string OrderTarget { get; set; } = string.Empty;
+    // Where the order will go (scanned table, the customer's table now, a pre-order), or why it cannot be placed
+    public OrderTargetViewModel OrderTarget { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -37,7 +39,7 @@ public class CheckoutModel : PageModel
         var redirect = RedirectIfCartNotReady();
         if (redirect != null) return redirect;
 
-        OrderTarget = await _orderService.DescribeOrderTargetAsync(CustomerId);
+        await LoadOrderTargetAsync();
         return Page();
     }
 
@@ -50,18 +52,20 @@ public class CheckoutModel : PageModel
         // 2. Field checks from the data annotations (notes length)
         if (!ModelState.IsValid)
         {
-            OrderTarget = await _orderService.DescribeOrderTargetAsync(CustomerId);
+            await LoadOrderTargetAsync();
             return Page();
         }
 
-        // 3. The service re-checks every dish and saves the order with today's prices
+        // 3. The service re-checks every dish and the table, and saves the order with today's prices
         var (success, message, orderId) = await _orderService.PlaceOrderAsync(
-            CustomerId, _cartService.GetItems(HttpContext.Session), Input.Notes);
+            CustomerId, _cartService.GetItems(HttpContext.Session), Input.Notes,
+            _tableQrService.GetScannedTableId(HttpContext.Session));
 
         if (!success || orderId == null)
         {
-            ModelState.AddModelError(string.Empty, message);
-            OrderTarget = await _orderService.DescribeOrderTargetAsync(CustomerId);
+            await LoadOrderTargetAsync();
+            // "No table" is already explained in the warning box, so only other errors go in the summary
+            if (OrderTarget.CanOrder) ModelState.AddModelError(string.Empty, message);
             return Page();
         }
 
@@ -72,6 +76,12 @@ public class CheckoutModel : PageModel
     }
 
     private string CustomerId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+    private async Task LoadOrderTargetAsync()
+    {
+        OrderTarget = await _orderService.DescribeOrderTargetAsync(
+            CustomerId, _tableQrService.GetScannedTableId(HttpContext.Session));
+    }
 
     private IActionResult? RedirectIfCartNotReady()
     {

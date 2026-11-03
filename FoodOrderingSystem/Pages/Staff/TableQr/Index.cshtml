@@ -1,0 +1,39 @@
+@page
+@model FoodOrderingSystem.Pages.Staff.TableQr.IndexModel
+@{
+    ViewData["Title"] = "Table QR codes";
+}
+
+<div class="container mt-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 tq-no-print">
+        <div>
+            <h1 class="mb-1">Table QR codes</h1>
+            <p class="text-muted mb-0">Print this page and stick each code on its table. Scanning a code opens the menu
+                with that table attached, so the order goes straight to it.</p>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+    </div>
+
+    @if (Model.Codes.Count == 0)
+    {
+        <p class="text-muted">There are no active tables yet.</p>
+    }
+    else
+    {
+        <div class="tq-grid">
+            @foreach (var code in Model.Codes)
+            {
+                <div class="card shadow-sm tq-card">
+                    <div class="card-body text-center">
+                        <div class="fw-semibold fs-4">@code.TableNumber</div>
+                        <div class="text-muted small mb-2">@code.DiningAreaName</div>
+                        <img src="@code.ImageDataUri" alt="QR code for table @code.TableNumber" class="tq-img" />
+                        <div class="small mt-2">Scan to order</div>
+                        <!-- The link as text, so it can be tested on a PC without a phone -->
+                        <a href="@code.Link" class="tq-link small text-break tq-no-print">Open link</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

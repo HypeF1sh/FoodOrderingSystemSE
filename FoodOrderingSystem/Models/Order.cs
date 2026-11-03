@@ -14,6 +14,10 @@ public class Order
 
     public int? ReservationId { get; set; }
 
+    // The table the order is for: from the customer's booking, or from the table QR a walk-in scanned
+    // (then ReservationId is null). Null only for old orders placed before table QR existed.
+    public int? RestaurantTableId { get; set; }
+
     [Required]
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
@@ -31,6 +35,9 @@ public class Order
 
     [ForeignKey(nameof(ReservationId))]
     public Reservation? Reservation { get; set; }
+
+    [ForeignKey(nameof(RestaurantTableId))]
+    public RestaurantTable? RestaurantTable { get; set; }
 
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
