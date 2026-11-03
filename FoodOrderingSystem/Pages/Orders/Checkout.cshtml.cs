@@ -27,11 +27,18 @@ public class CheckoutModel : PageModel
 
     public CartViewModel Cart { get; set; } = new();
 
+    // Where the order will go: the customer's table now, a pre-order for their next booking, or no table
+    public string OrderTarget { get; set; } = string.Empty;
+
     public async Task<IActionResult> OnGetAsync()
     {
         // 1. Nothing to check out, or a sold-out dish still in the cart: back to the cart page
         Cart = await _cartService.GetCartAsync(HttpContext.Session);
-        return RedirectIfCartNotReady() ?? Page();
+        var redirect = RedirectIfCartNotReady();
+        if (redirect != null) return redirect;
+
+        OrderTarget = await _orderService.DescribeOrderTargetAsync(CustomerId);
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -41,16 +48,20 @@ public class CheckoutModel : PageModel
         if (redirect != null) return redirect;
 
         // 2. Field checks from the data annotations (notes length)
-        if (!ModelState.IsValid) return Page();
+        if (!ModelState.IsValid)
+        {
+            OrderTarget = await _orderService.DescribeOrderTargetAsync(CustomerId);
+            return Page();
+        }
 
         // 3. The service re-checks every dish and saves the order with today's prices
-        var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         var (success, message, orderId) = await _orderService.PlaceOrderAsync(
-            customerId, _cartService.GetItems(HttpContext.Session), Input.Notes);
+            CustomerId, _cartService.GetItems(HttpContext.Session), Input.Notes);
 
         if (!success || orderId == null)
         {
             ModelState.AddModelError(string.Empty, message);
+            OrderTarget = await _orderService.DescribeOrderTargetAsync(CustomerId);
             return Page();
         }
 
@@ -59,6 +70,8 @@ public class CheckoutModel : PageModel
         TempData["SuccessMessage"] = message;
         return RedirectToPage("./Confirmation", new { id = orderId });
     }
+
+    private string CustomerId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     private IActionResult? RedirectIfCartNotReady()
     {

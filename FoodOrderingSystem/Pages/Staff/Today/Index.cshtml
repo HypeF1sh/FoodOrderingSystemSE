@@ -1,0 +1,95 @@
+@page
+@using Microsoft.AspNetCore.Identity
+@using FoodOrderingSystem.Models
+@using FoodOrderingSystem.ViewModels
+@inject UserManager<ApplicationUser> UserManager
+@model FoodOrderingSystem.Pages.Staff.Today.IndexModel
+@{
+    ViewData["Title"] = "Today";
+    var today = Model.Today;
+
+    // First name for the greeting, read the same way _BackOfficeLayout reads the display name
+    var user = await UserManager.GetUserAsync(User);
+    var firstName = string.IsNullOrWhiteSpace(user?.FullName) ? null : user.FullName.Split(' ')[0];
+    var greeting = today.Now.Hour < 12 ? "Good morning" : today.Now.Hour < 18 ? "Good afternoon" : "Good evening";
+
+    var nowTime = TimeOnly.FromDateTime(today.Now);
+    var nowLineShown = false;
+}
+
+<div class="container mt-4 td">
+    <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+        <h1 class="mb-0">@greeting@(firstName == null ? "" : ", " + firstName)</h1>
+        <span class="text-muted">@today.Now.ToString("dddd, d MMMM · h:mm tt")</span>
+    </div>
+
+    <div class="td-counts">
+        <div><b>@today.BookingsToday</b><span>bookings today</span></div>
+        <div><b>@today.ArrivingSoon</b><span>arriving in the next 2 h</span></div>
+        <div><b>@today.ActiveOrders</b><span>orders in the kitchen</span></div>
+        <div><b>@today.BillsDue</b><span>bills due</span></div>
+    </div>
+
+    <div class="td-layout">
+        <section class="td-needs" aria-labelledby="needsTitle">
+            <h2 id="needsTitle" class="td-title">Needs you · @today.NeedsYou.Count</h2>
+            @if (today.NeedsYou.Count == 0)
+            {
+                <p class="text-muted">Nothing needs you right now.</p>
+            }
+            @foreach (var item in today.NeedsYou)
+            {
+                var href = item.RestaurantTableId != null
+                    ? Url.Page("/Staff/Floor/Index", new { areaId = item.DiningAreaId, table = item.RestaurantTableId })
+                    : Url.Page("/Staff/Orders/Index");
+                <a class="td-item is-@item.Tone" href="@href">
+                    <span>
+                        @item.Text
+                        @if (item.HasAllergyNote)
+                        {
+                            <span class="fl-chip-flag">⚠ allergy</span>
+                        }
+                    </span>
+                    <span aria-hidden="true">›</span>
+                </a>
+            }
+        </section>
+
+        <section class="td-timeline" aria-labelledby="timelineTitle">
+            <h2 id="timelineTitle" class="td-title">Bookings today</h2>
+            @if (today.Timeline.Count == 0)
+            {
+                <p class="text-muted">No bookings today.</p>
+            }
+            <ol class="td-line">
+                @foreach (var booking in today.Timeline)
+                {
+                    // Inside the loop body we are in C#, so this "if" has no @
+                    if (!nowLineShown && booking.StartTime > nowTime)
+                    {
+                        nowLineShown = true;
+                        <li class="td-now" aria-label="Now"><span>@today.Now.ToString("h:mm")</span></li>
+                    }
+                    var isPast = booking.EndTime <= nowTime || booking.Status == "Completed";
+                    var badge = booking.Status switch
+                    {
+                        "Confirmed" => "bg-success",
+                        "Pending" => "bg-warning text-dark",
+                        _ => "bg-secondary"
+                    };
+                    <li class="td-row @(isPast ? "is-past" : "")">
+                        <span class="td-time">@booking.StartTime.ToString("h:mm tt")</span>
+                        <a asp-page="/Staff/Floor/Index" asp-route-areaId="@booking.DiningAreaId" asp-route-table="@booking.RestaurantTableId" class="td-card">
+                            <span>@booking.CustomerName · @booking.PartySize pax · @booking.TableNumber, @booking.DiningAreaName</span>
+                            <span class="badge @badge">@booking.Status</span>
+                        </a>
+                    </li>
+                }
+                @if (!nowLineShown && today.Timeline.Count > 0)
+                {
+                    <li class="td-now" aria-label="Now"><span>@today.Now.ToString("h:mm")</span></li>
+                }
+            </ol>
+        </section>
+    </div>
+</div>

@@ -80,6 +80,9 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 // PB22 admin dashboard
 builder.Services.AddScoped<IReportService, ReportService>();
 
+// Staff Floor, Needs you and Today (spec 2026-11-01-staff-floor-design.md)
+builder.Services.AddScoped<IFloorService, FloorService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

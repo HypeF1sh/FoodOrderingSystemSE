@@ -30,6 +30,72 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-30 | BUG6 receipt → My orders, UX1 add-to-cart dialog + toast | See the detailed entry below |
 | 2026-10-31 | PB20 order and payment notifications | See the detailed entry below |
 | 2026-11-01 | Back office redesign (admin + staff UI), BUG1, Dish sales report, dashboard refinements | See the detailed entry below |
+| 2026-11-01 | Staff side: Floor, The Pass, Today + order-to-table link (BUG8) | See the detailed entry below |
+
+### 2026-11-02 — Pre-orders for confirmed bookings (`feature/PB14-pre-orders`)
+
+**What and why:** customers use the system from their phone, often before they leave home. A customer with a
+confirmed booking can now order in advance. The order is saved as **Held** and stays off The Pass, so the kitchen
+does not cook for someone who may be late. 5 min before the booking, Floor shows a Needs-you chip; staff check the
+customer is here (in person or by phone) and press **Send to kitchen**.
+
+**Ch.5 screenshots:** Checkout showing "Pre-order for your booking on … (table …)"; the confirmation banner; My orders
+with the grey "Pre-order" badge; Floor tile with "· pre-order" and the drawer with **Send #… to kitchen**; the Needs-you
+chip "M3 pre-order #… · Customer 5:27 PM"; The Pass with the order in New after sending. Code excerpts:
+`OrderService.FindOrderBookingAsync` (current booking vs next confirmed booking) and the Held branch of
+`AdvanceStatusAsync`.
+
+**Ch.6 test cases**
+| ID | Steps | Expected | Actual (2/11) |
+|---|---|---|---|
+| TC-P01 | Customer with a Confirmed booking at 6:30 PM orders at 5:23 PM | Checkout says pre-order; order saved as Held, linked to the booking; customer notified | As expected (#2005) |
+| TC-P02 | Staff open Floor at T-60 min, then at T-4 min | No chip at T-60 (but Send button already in the drawer); chip at T-4 | As expected |
+| TC-P03 | Staff press Send to kitchen; a second iPad presses it again | First: "sent to the kitchen", order Pending and on The Pass; second: "already updated by someone else" | As expected |
+| TC-P04 | Customer with only a Pending (unconfirmed) booking orders | Normal "No table" order, not a pre-order | As expected (#2006) |
+| TC-P05 | Table has a Held pre-order; staff try Complete table | Button hidden; a crafted POST is refused | Not run yet |
+
+**Ch.7 reflection:** (1) Adding a status looked like a schema change, but `OrderStatus` is stored as a string
+(`HasConversion<string>()`), so `Held` needed no migration. Checking the DbContext first saved asking the group for one.
+(2) The staff board only loads orders *placed* today, so a pre-order placed yesterday for tonight would never have
+reached the Floor or The Pass. The day filter now also takes Held orders whose booking is today. (3) On release,
+`CreatedAt` is reset: otherwise a pre-order placed at lunch would show "waiting 300m" on The Pass the moment it was
+sent. Trade-off: the original placing time is not kept. (4) The early-arrival window (15 min) and the notice window
+(5 min) interact: an order placed within 15 min of the booking counts as "at the table", so it is never held.
+(5) Scope was cut on purpose: blocking orders with no booking would stop walk-ins ordering at all until table QR
+exists, so that rule waits for QR. **AI use:** Claude Code explored the code, wrote the change and ran the HTTP tests;
+Jordan set the ordering rule and the three arrival scenarios and reviewed the code.
+
+### 2026-11-01 — Staff side: Floor, The Pass, Today (`feature/UI-staff-floor`, BUG8)
+
+**Ch.5 screenshots**
+1. Floor on iPad landscape with a drawer open on a Bill due table (Edge device mode, iPad Air landscape).
+2. Floor at 390 px with the bottom sheet open.
+3. The Pass rail with tickets in several columns and an allergy strip.
+4. Today with the NOW line and the Needs-you list.
+5. The Needs-you bar with plum, jade and amber chips.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-F02 | One table in each state (book within the hour; book and order; serve without paying) | Free / Booked / In use / Bill due tiles with the right colour and subtitle | |
+| TC-F03 | Pending booking → tap table → Confirm booking | Green banner, amber dot and "not confirmed" chip gone | |
+| TC-F05 | Bill due → Take payment → pay cash → back → Complete table | "Paid · ready to complete", then Free; order Completed | |
+| TC-F08 | Crafted POST `?handler=Complete` on a Bill due table | Red banner "Order #… is not finished or not paid yet…"; table unchanged | |
+| TC-O01 | Customer with a booking for now places an order | Banner "placed for your table T…"; ticket on The Pass shows the table | |
+
+**Ch.7 reflection notes**
+- *Researched before designing.* Malaysian F&B POS apps open front of house on a table layout and the kitchen on an
+  order queue, and keep money from staff. That answered D5 and set the staff landing page.
+- *3-tier across three domains.* `FloorService` combines Carynn's, Wallace's and my services and never touches the
+  database, so each domain's rules stay in one place.
+- *Testing found a gap the design assumed away.* `Order.ReservationId` existed but nothing ever set it, so no order
+  had a table. Fixed at checkout by matching the customer's current booking.
+- *Paying does not move an order on.* A paid order stays Served, so "Complete table" also completes paid orders,
+  and The Pass keeps Served orders until they are Completed.
+- *Time zones.* I assumed `CreatedAt` was UTC because the seed uses `UtcNow`; the real code saves local time. Every
+  timer would have read about 480 minutes. Checked the code that writes the value, not just the seed.
+- *Honest timers.* There is no cooking or served time on `Order`, so timers say "placed N min ago".
 
 ### 2026-11-01 — Back office redesign (`feature/UI-back-office`)
 

@@ -1,0 +1,73 @@
+@using FoodOrderingSystem.ViewModels
+@model FloorViewModel
+@*
+    Live part of the Floor: the Needs-you bar, the table tiles and the footer.
+    Rendered inside Index.cshtml, and again every 20 s by staff-live.js through ?handler=Grid.
+    Page paths are absolute because this partial is also rendered by the Grid handler.
+*@
+@{
+    var chips = Model.NeedsYou.Take(FloorViewModel.BarLimit).ToList();
+    var more = Model.NeedsYou.Count - chips.Count;
+}
+
+<div class="fl-needs" role="region" aria-label="Needs you">
+    <span class="fl-needs-label">Needs you</span>
+    @if (chips.Count == 0)
+    {
+        <span class="fl-needs-none">All good right now</span>
+    }
+    @foreach (var item in chips)
+    {
+        var href = item.RestaurantTableId != null
+            ? Url.Page("/Staff/Floor/Index", new { areaId = item.DiningAreaId, table = item.RestaurantTableId })
+            : Url.Page("/Staff/Orders/Index");
+        <a class="fl-chip is-@item.Tone" href="@href">
+            @item.Text
+            @if (item.HasAllergyNote)
+            {
+                <span class="fl-chip-flag">⚠ allergy</span>
+            }
+        </a>
+    }
+    @if (more > 0)
+    {
+        <a class="fl-chip is-more" asp-page="/Staff/Today/Index">+@more more</a>
+    }
+</div>
+
+@if (Model.Tables.Count == 0)
+{
+    <div class="alert alert-light border">No active tables in @Model.SelectedAreaName.</div>
+}
+else
+{
+    <div class="fl-grid">
+        @foreach (var tile in Model.Tables)
+        {
+            var isOpen = tile.RestaurantTableId == Model.SelectedTableId;
+            <a asp-page="/Staff/Floor/Index" asp-route-areaId="@tile.DiningAreaId" asp-route-table="@tile.RestaurantTableId"
+               class="fl-tile is-@TableStateDisplay.CssName(tile.State) @(isOpen ? "selected" : "")"
+               aria-current="@(isOpen ? "true" : null)">
+                @if (tile.IsPendingBooking)
+                {
+                    <span class="fl-dot" title="Booking not confirmed yet"></span>
+                }
+                <span class="fl-tile-num">@tile.TableNumber</span>
+                <span class="fl-tile-state">@TableStateDisplay.Label(tile.State)</span>
+                <span class="fl-tile-sub">@tile.Subtitle</span>
+            </a>
+        }
+    </div>
+}
+
+<div class="fl-foot">
+    <span class="fl-legend">
+        @foreach (var state in TableStateDisplay.InLegendOrder)
+        {
+            <span class="is-@TableStateDisplay.CssName(state)">@TableStateDisplay.Label(state)</span>
+        }
+    </span>
+    <span data-live-status data-updated="@Model.UpdatedAt.ToString("h:mm tt")">
+        Updated @Model.UpdatedAt.ToString("h:mm tt") · refreshes every 20 s
+    </span>
+</div>

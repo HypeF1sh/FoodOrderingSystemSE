@@ -5,6 +5,9 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 ## Current position
 - **Today's sprint:** Sprint 4 (29 Oct–3 Nov) — closing gaps (PB20 promotions, BUG1, UX3), then extras and UI refining
 - **Internal target:** 4 Nov · **Formal deadline:** Fri 6 Nov 2026
+- **Jordan, 2 Nov:** staff redesign in **PR #57** (open, needs group OK). **Pre-orders** built on
+  `feature/PB14-pre-orders` (off `feature/UI-staff-floor`, not pushed). Table QR ordering is next.
+  Read **`docs/handoff-jordan.md`** first when continuing on another PC.
 
 | Sprint | Dates | Goal |
 |---|---|---|
@@ -41,7 +44,7 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | UX2 | Admin cannot reach `/Admin/Menu` from the UI: no Menu card on the Admin hub | Jordan / Carynn | See log 22/10. Needs Carynn's OK |
 | BUG6 | **(Fixed 30/10, `fix/BUG6-UX1-orders-nav-cart`.)** **Receipt has no way back to order history (PB18).** Customer: My orders → View receipt → "Back to my order" (Confirmation) → only "Back to menu". Misleading: the customer came from **My orders** and can't get back except via the navbar. | Jordan | `Payments/Receipt.cshtml` line 87 links to Confirmation; `Orders/Confirmation.cshtml` line 53 only offers "Back to menu". Fix: add a "Back to my orders" link (`/Orders`) on both, or pass a `returnTo` so the button returns where the customer came from. My pages only, no shared file. |
 | BUG7 | **Admin has no order view in the UI.** The `/Staff` folder allows `StaffOrAdmin`, so an admin *can* open `/Staff/Orders` by typing the URL, but there is no link and no admin-specific read-only list. | Jordan + Carynn (PB21) | `GetOrdersAsync` / `GetPaymentsAsync` for admin monitoring are on `feature/admin-list-methods` (not merged yet). PB21 admin monitor page is Carynn's. Depends on D5 and BUG1. |
-| BUG8 | **Staff have no overview.** Staff can only see one day's order board; no totals (orders today, takings today, unpaid count) and no landing page of their own. Staff UI reuses the customer navbar/home. | Jordan (order/payment numbers) + Wallace (staff reservations) + group (staff home) | Needs D5 decided first: what staff may see (money or not). Profit is not possible without a cost price (schema change). Staff home would be a new `Pages/Staff/Index`; navbar link needs `_Layout.cshtml` (group OK). |
+| BUG8 | **(Fixed 01/11, `feature/UI-staff-floor`: Floor + Today; no money for staff, per D5.)** **Staff have no overview.** Staff can only see one day's order board; no totals (orders today, takings today, unpaid count) and no landing page of their own. Staff UI reuses the customer navbar/home. | Jordan (order/payment numbers) + Wallace (staff reservations) + group (staff home) | Needs D5 decided first: what staff may see (money or not). Profit is not possible without a cost price (schema change). Staff home would be a new `Pages/Staff/Index`; navbar link needs `_Layout.cshtml` (group OK). |
 
 ## Ideas (not scheduled yet)
 | # | Idea | Owner | Notes |
@@ -54,6 +57,37 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-02** — Jordan: **pre-orders** on `feature/PB14-pre-orders` (off `feature/UI-staff-floor`). Ordering rule
+  agreed with Jordan: at the restaurant the order goes to the table's booking as before; from outside, a customer
+  with a **Confirmed** booking still to come places a **pre-order**, saved with the new status **`Held`** and kept off
+  The Pass. 5 min before the booking a Needs-you chip appears on Floor; staff check the customer has arrived (in
+  person or by phone) and press **Send to kitchen** (Held → Pending), which they can also do earlier if the customer
+  arrives early. Checkout says where the order will go before it is placed. Release resets `CreatedAt`, so kitchen
+  timers start then. A held pre-order blocks Complete table and can be cancelled. **No schema change**: `OrderStatus`
+  is stored as a string, so adding `Held` needs no migration. Not done yet: orders with no booking still go through
+  as "No table" until **table QR ordering** (needs a new `Order.RestaurantTableId` column, group OK) is built; then
+  they will be blocked. Build 0 warnings; tested over HTTP (pre-order placed → no chip at T-60 → chip at T-4 → send
+  → on The Pass; second send refused; unconfirmed booking gives a No-table order).
+- **2026-11-01** — Jordan: **staff side** on `feature/UI-staff-floor` (off `feature/UI-back-office`; spec
+  `docs/superpowers/specs/2026-11-01-staff-floor-design.md`, plan `docs/superpowers/plans/2026-11-01-staff-floor.md`).
+  Research: StoreHub, FeedMe and Qashier open front of house on a table layout, GrabMerchant and FeedMe KDS open
+  the kitchen on an order queue, and none show staff money, so **D5 (2) is answered "no money totals for staff"**.
+  New **Floor** (staff landing page): one tile per table, state worked out by the new `FloorService` (Bill due,
+  In use, Booked, Free), a **Needs-you** bar (late orders, bills due, ready to serve, unconfirmed or late bookings)
+  and a drawer with one next-step button (Confirm booking, Mark served, Take payment → Wallace's Bill page, Complete
+  table). **The Pass** replaces the Orders board view (same URL): ticket rail New → Preparing → Ready → Served, age
+  chips, allergy strip; the old board is under History. **Today**: read-only run sheet. Staff menu regrouped (Front
+  of house, Kitchen, Counter, Guests). Live parts refresh every 20 s (`staff-live.js`, Razor partials).
+  **Found while testing: no code ever set `Order.ReservationId`**, so every order was "No table". `PlaceOrderAsync`
+  now links an order to the customer's booking whose slot covers now (15 min early allowed), read through
+  `IReservationService`; the checkout banner says "placed for your table T4". Also: `Order.CreatedAt` is local
+  time (only the seed uses UTC), so timers use `DateTime.Now`. **No schema change.** **Group OK in the PR:**
+  `Program.cs` (1 line), `Login.cshtml.cs` (Carynn, staff land on Floor), Floor calling Wallace's
+  `UpdateStatusByStaffAsync`, `OrderService` now reading Wallace's `GetCustomerReservationsAsync`. Build clean,
+  0 warnings. Verified over HTTP as customer@ and staff@: Booked → Confirm → Seated → order linked to M1 → Mark served
+  → Bill due → crafted Complete refused → cash → Complete table → Free. **Still to do:** TC-F06/TC-F07 in a real
+  browser (iPad landscape/portrait, 390 px). Test bookings #2–#4 and orders #3–#6 were left in the local dev DB
+  (table M4 left on Bill due, order #3 "No table" left Ready) so the states can be seen.
 - **2026-11-01** — Jordan: **summary of `feature/UI-back-office`, ready for PR** (branched from
   `feature/PB20-order-payment-notifications`, so merge PB20 first). Every change, in order:
   1. `407a0de` Design spec `docs/superpowers/specs/2026-11-01-back-office-design.md` (look "Peranakan Tile", chosen
