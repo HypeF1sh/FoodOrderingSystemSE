@@ -10,6 +10,12 @@
     var toText = Model.SelectedTo.ToString("yyyy-MM-dd");
 }
 
+<style media="print">
+    .rr-header, .rr-footer, .no-print { display: none !important; }
+    .container { max-width: 100% !important; }
+    .card a.align-self-start { display: none !important; }
+</style>
+
 <div class="container mt-4">
     <div class="mb-3">
         <h1 class="mb-1">Dashboard</h1>
@@ -18,7 +24,7 @@
 
     <!-- Filter bar: a GET form, so the chosen range is in the URL and can be bookmarked.
          admin-dashboard.js submits it as soon as a date or the grouping changes. -->
-    <div class="card mb-4">
+    <div class="card mb-4 no-print">
         <div class="card-body">
             <partial name="_QuickRanges" model="@((Model.Today, Model.SelectedFrom, Model.SelectedTo))" />
 
@@ -53,6 +59,13 @@
 
     @if (dashboard != null)
     {
+        <div class="mb-3 no-print">
+            <a asp-page="./Index" asp-page-handler="Export"
+               asp-route-from="@fromText" asp-route-to="@toText" asp-route-grouping="@dashboard.Grouping"
+               class="btn btn-outline-success">Export CSV</a>
+            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+
         <!-- Headline numbers -->
         <div class="row g-3 mb-4">
             <div class="col-6 col-xl-3">
