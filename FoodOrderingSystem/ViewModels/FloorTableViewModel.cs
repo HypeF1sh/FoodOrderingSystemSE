@@ -20,6 +20,7 @@ public class FloorTableViewModel
     public TimeOnly? EndTime { get; set; }
 
     public List<StaffOrderViewModel> Orders { get; set; } = new();   // today's orders on this table, not yet Completed
+    public List<StaffOrderViewModel> HeldOrders { get; set; } = new();   // pre-orders waiting for Send to kitchen
     public decimal UnpaidTotal { get; set; }
     public List<string> LaterToday { get; set; } = new();            // other bookings for this table later today
 

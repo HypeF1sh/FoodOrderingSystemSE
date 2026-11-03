@@ -13,6 +13,10 @@ public interface IOrderService
     Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
         string customerId, List<CartSessionItem> items, string? notes);
 
+    /// <summary>One line for the checkout page saying where an order placed now would go:
+    /// the customer's table now, a Held pre-order for their next confirmed booking, or no table.</summary>
+    Task<string> DescribeOrderTargetAsync(string customerId);
+
     /// <summary>One order for the confirmation page, or null if it does not exist
     /// or belongs to a different customer.</summary>
     Task<OrderConfirmationViewModel?> GetConfirmationAsync(int orderId, string customerId);

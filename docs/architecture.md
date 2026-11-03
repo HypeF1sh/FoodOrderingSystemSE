@@ -64,13 +64,14 @@ Keys follow the newest lab: `[Key] public int <Entity>Id` (`MenuItemId`, `OrderI
 | Enum | Values |
 |---|---|
 | ReservationStatus | Pending, Confirmed, Completed, Cancelled, NoShow |
-| OrderStatus | Pending, Preparing, ReadyToServe, Served, Completed, Cancelled |
+| OrderStatus | Held, Pending, Preparing, ReadyToServe, Served, Completed, Cancelled |
 | PaymentStatus | Unpaid, Paid, Failed, Refunded |
 | PaymentMethod | Card, EWallet, Cash |
 | UserRole | Administrator, Staff, Customer |
 
-Allowed order transitions: Pending → Preparing → ReadyToServe → Served → Completed.
-Cancelled is allowed from Pending or Preparing only.
+Allowed order transitions: (Held →) Pending → Preparing → ReadyToServe → Served → Completed.
+Held is a pre-order for a confirmed booking, released to Pending by staff when the customer arrives.
+Cancelled is allowed from Held, Pending or Preparing only.
 
 ## Reservation rules (agreed)
 | Rule | Value |

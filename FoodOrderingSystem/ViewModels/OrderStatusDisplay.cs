@@ -8,12 +8,14 @@ public static class OrderStatusDisplay
     public static string Label(OrderStatus status) => status switch
     {
         OrderStatus.ReadyToServe => "Ready to serve",
+        OrderStatus.Held => "Pre-order",
         _ => status.ToString()
     };
 
     // Text for the staff button that moves an order on to this status
     public static string ActionLabel(OrderStatus nextStatus) => nextStatus switch
     {
+        OrderStatus.Pending => "Send to kitchen",   // only a Held pre-order moves on to Pending
         OrderStatus.Preparing => "Start preparing",
         OrderStatus.ReadyToServe => "Mark ready to serve",
         OrderStatus.Served => "Mark served",
@@ -27,6 +29,7 @@ public static class OrderStatusDisplay
         OrderStatus.Pending => "bg-warning text-dark",
         OrderStatus.Completed => "bg-success",
         OrderStatus.Cancelled => "bg-danger",
+        OrderStatus.Held => "bg-secondary",
         _ => "bg-info text-dark"   // Preparing, ReadyToServe, Served: in progress
     };
 }
