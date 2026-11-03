@@ -1,0 +1,88 @@
+@using FoodOrderingSystem.Models.Enums
+@using FoodOrderingSystem.ViewModels
+@model List<StaffOrderViewModel>
+@*
+    The Pass rail: one column per kitchen step. Rendered inside Index.cshtml, and again every 20 s by
+    staff-live.js through ?handler=Rail, so page paths are absolute.
+    Paying does not change an order's status, so a Served order stays here until it is Completed.
+*@
+@{
+    var columns = new (string Key, string Title, OrderStatus Status)[]
+    {
+        ("new", "New", OrderStatus.Pending),
+        ("preparing", "Preparing", OrderStatus.Preparing),
+        ("ready", "Ready", OrderStatus.ReadyToServe),
+        ("served", "Served", OrderStatus.Served)
+    };
+}
+
+<div class="ps-cols">
+    @foreach (var column in columns)
+    {
+        var orders = Model.Where(o => o.Status == column.Status).ToList();
+        <section class="ps-col" data-col="@column.Key" aria-label="@column.Title">
+            <h2 class="ps-col-head"><span>@column.Title</span><span class="ps-count">@orders.Count</span></h2>
+
+            @if (orders.Count == 0)
+            {
+                <p class="ps-empty">Nothing here</p>
+            }
+
+            @foreach (var order in orders)
+            {
+                var minutes = OrderAgeDisplay.MinutesSincePlaced(order.CreatedAt);
+                <article class="ps-ticket">
+                    <header class="ps-ticket-head">
+                        <span>@(order.TableNumber ?? "No table") · #@order.OrderId</span>
+                        @if (order.Status == OrderStatus.Served)
+                        {
+                            <partial name="/Pages/Payments/_PaymentStatusBadge.cshtml" model="order.PaymentStatus" />
+                        }
+                        else
+                        {
+                            <span class="ps-age @OrderAgeDisplay.ToneClass(minutes)">placed @(minutes)m ago</span>
+                        }
+                    </header>
+
+                    @* Notes often carry allergies, so they sit on top of the ticket *@
+                    @if (!string.IsNullOrEmpty(order.Notes))
+                    {
+                        <div class="ps-note">⚠ @order.Notes</div>
+                    }
+
+                    <ul class="ps-lines">
+                        @foreach (var line in order.Lines)
+                        {
+                            <li><strong>@line.Quantity×</strong> @line.Name</li>
+                        }
+                    </ul>
+
+                    <p class="ps-meta">@order.CustomerName · @order.CreatedAt.ToString("h:mm tt")</p>
+
+                    @if (order.Status == OrderStatus.Served && !order.IsPaid)
+                    {
+                        <a asp-page="/Staff/Billing/Bill" asp-route-id="@order.OrderId" class="btn btn-primary ps-action">
+                            Take payment · RM @order.TotalAmount.ToString("0.00") →
+                        </a>
+                    }
+                    else if (order.NextStatus != null)
+                    {
+                        <form method="post" asp-page="/Staff/Orders/Index" asp-page-handler="Advance"
+                              asp-route-id="@order.OrderId" asp-route-currentStatus="@order.Status" asp-route-mode="rail">
+                            <button type="submit" class="btn btn-primary ps-action">@OrderStatusDisplay.ActionLabel(order.NextStatus.Value)</button>
+                        </form>
+                    }
+
+                    @if (order.CanCancel)
+                    {
+                        <a asp-page="/Staff/Orders/Cancel" asp-route-id="@order.OrderId" class="ps-cancel">Cancel order</a>
+                    }
+                </article>
+            }
+        </section>
+    }
+</div>
+
+<p class="ps-foot" data-live-status data-updated="@DateTime.Now.ToString("h:mm tt")">
+    Updated @DateTime.Now.ToString("h:mm tt") · refreshes every 20 s
+</p>

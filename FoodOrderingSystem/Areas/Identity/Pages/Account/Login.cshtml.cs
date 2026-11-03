@@ -135,7 +135,7 @@ public class LoginModel : PageModel
                     }
                     if (await _signInManager.UserManager.IsInRoleAsync(existingUser, DbSeeder.StaffRole))
                     {
-                        return RedirectToPage("/Staff/Orders/Index", new { area = "" });
+                        return RedirectToPage("/Staff/Floor/Index", new { area = "" });
                     }
                 }
 

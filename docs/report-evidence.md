@@ -30,6 +30,39 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-30 | BUG6 receipt → My orders, UX1 add-to-cart dialog + toast | See the detailed entry below |
 | 2026-10-31 | PB20 order and payment notifications | See the detailed entry below |
 | 2026-11-01 | Back office redesign (admin + staff UI), BUG1, Dish sales report, dashboard refinements | See the detailed entry below |
+| 2026-11-01 | Staff side: Floor, The Pass, Today + order-to-table link (BUG8) | See the detailed entry below |
+
+### 2026-11-01 — Staff side: Floor, The Pass, Today (`feature/UI-staff-floor`, BUG8)
+
+**Ch.5 screenshots**
+1. Floor on iPad landscape with a drawer open on a Bill due table (Edge device mode, iPad Air landscape).
+2. Floor at 390 px with the bottom sheet open.
+3. The Pass rail with tickets in several columns and an allergy strip.
+4. Today with the NOW line and the Needs-you list.
+5. The Needs-you bar with plum, jade and amber chips.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-F02 | One table in each state (book within the hour; book and order; serve without paying) | Free / Booked / In use / Bill due tiles with the right colour and subtitle | |
+| TC-F03 | Pending booking → tap table → Confirm booking | Green banner, amber dot and "not confirmed" chip gone | |
+| TC-F05 | Bill due → Take payment → pay cash → back → Complete table | "Paid · ready to complete", then Free; order Completed | |
+| TC-F08 | Crafted POST `?handler=Complete` on a Bill due table | Red banner "Order #… is not finished or not paid yet…"; table unchanged | |
+| TC-O01 | Customer with a booking for now places an order | Banner "placed for your table T…"; ticket on The Pass shows the table | |
+
+**Ch.7 reflection notes**
+- *Researched before designing.* Malaysian F&B POS apps open front of house on a table layout and the kitchen on an
+  order queue, and keep money from staff. That answered D5 and set the staff landing page.
+- *3-tier across three domains.* `FloorService` combines Carynn's, Wallace's and my services and never touches the
+  database, so each domain's rules stay in one place.
+- *Testing found a gap the design assumed away.* `Order.ReservationId` existed but nothing ever set it, so no order
+  had a table. Fixed at checkout by matching the customer's current booking.
+- *Paying does not move an order on.* A paid order stays Served, so "Complete table" also completes paid orders,
+  and The Pass keeps Served orders until they are Completed.
+- *Time zones.* I assumed `CreatedAt` was UTC because the seed uses `UtcNow`; the real code saves local time. Every
+  timer would have read about 480 minutes. Checked the code that writes the value, not just the seed.
+- *Honest timers.* There is no cooking or served time on `Order`, so timers say "placed N min ago".
 
 ### 2026-11-01 — Back office redesign (`feature/UI-back-office`)
 

@@ -63,11 +63,11 @@
 
                         @if (isBackOfficeUser)
                         {
-                            @* One way in: admins land on the dashboard, staff on the orders board *@
+                            @* One way in: admins land on the dashboard, staff on the Floor (same as after login) *@
                             <li class="nav-item">
                                 <a class="nav-link"
                                    asp-area=""
-                                   asp-page="@(isAdmin ? "/Admin/Dashboard/Index" : "/Staff/Orders/Index")">Back office</a>
+                                   asp-page="@(isAdmin ? "/Admin/Dashboard/Index" : "/Staff/Floor/Index")">Back office</a>
                             </li>
                         }
                         else
