@@ -65,9 +65,15 @@ public class IndexModel : PageModel
         return BackToTable(success, message);
     }
 
-    public async Task<IActionResult> OnPostCompleteAsync(int reservationId)
+    // reservationId is empty for a walk-in party that ordered through the table QR; the table comes from the route
+    public async Task<IActionResult> OnPostCompleteAsync(int? reservationId)
     {
-        var (success, message) = await _floorService.CompleteTableAsync(reservationId);
+        if (Table == null)
+        {
+            return BackToTable(false, "Choose a table first.");
+        }
+
+        var (success, message) = await _floorService.CompleteTableAsync(Table.Value, reservationId);
         return BackToTable(success, message);
     }
 

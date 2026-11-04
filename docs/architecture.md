@@ -51,7 +51,7 @@ Adding the Services layer is the deliberate difference — explain this in Chapt
 | Notification | Id, UserId, Type, Message, IsRead, CreatedAt | B |
 | MenuCategory | Id, Name, Description, DisplayOrder, IsActive | C |
 | MenuItem | Id, MenuCategoryId, Name, Description, Price, ImageUrl, IsAvailable | C |
-| Order | Id, CustomerId, ReservationId?, Status, TotalAmount, Notes, CreatedAt | C |
+| Order | Id, CustomerId, ReservationId?, RestaurantTableId?, Status, TotalAmount, Notes, CreatedAt | C |
 | OrderItem | Id, OrderId, MenuItemId, Quantity, UnitPrice | C |
 | Payment | Id, OrderId, Amount, Method, Status, TransactionRef, PaidAt, RecordedByUserId? | C |
 
@@ -72,6 +72,12 @@ Keys follow the newest lab: `[Key] public int <Entity>Id` (`MenuItemId`, `OrderI
 Allowed order transitions: (Held →) Pending → Preparing → ReadyToServe → Served → Completed.
 Held is a pre-order for a confirmed booking, released to Pending by staff when the customer arrives.
 Cancelled is allowed from Held, Pending or Preparing only.
+
+Where an order goes (`OrderService`, PB14, decided 2–3 Nov), first match wins:
+1. the table QR the customer scanned in the last 3 h (`RestaurantTableId`; also `ReservationId` if their booking on now is at that table);
+2. their booking on now, from 15 min before the start (`ReservationId` + `RestaurantTableId`);
+3. their next **Confirmed** booking: a Held pre-order;
+4. otherwise refused. A walk-in party (QR, no booking) is closed on Floor with Complete table, which completes its paid orders.
 
 ## Reservation rules (agreed)
 | Rule | Value |

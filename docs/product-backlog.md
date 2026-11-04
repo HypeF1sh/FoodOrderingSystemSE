@@ -19,7 +19,7 @@ Update the Status column when an item changes. Owner domain: A = Carynn, B = Wal
 | PB11 | As a customer, I want to modify or cancel my reservation. | Medium | Basic | B | 2 | Done |
 | PB12 | As a staff member, I want to view daily reservations and confirm, modify or cancel them. | High | Basic | B | 3 | Done |
 | PB13 | As a staff member, I want to view customer requests, dining preferences and reservation history. | Medium | Basic | B | 3 | Done |
-| PB14 | As a customer, I want to place a food and beverage order. | High | Basic | C | 3 | Done (pre-orders added 2/11, in review) |
+| PB14 | As a customer, I want to place a food and beverage order. | High | Basic | C | 3 | Done (pre-orders 2/11, table QR ordering 3/11, in review) |
 | PB15 | As a staff member, I want to receive orders and update their status. | High | Intermediate | C | 3 | Done |
 | PB16 | As a customer, I want to pay online and track my payment status. | High | Intermediate | C | 3 | Done |
 | PB17 | As a staff member, I want to record payment status and manage billing. | Medium | Basic | B | 3 | Done |

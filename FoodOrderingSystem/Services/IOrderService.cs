@@ -8,14 +8,16 @@ public interface IOrderService
 {
     // ---- Customer (PB14) ----
 
-    /// <summary>Re-checks every dish, snapshots today's prices, and saves a Pending order with its items.
-    /// Returns (success, message, new order id). Nothing is saved if any dish fails the check.</summary>
+    /// <summary>Re-checks every dish, snapshots today's prices, and saves a Pending order with its items,
+    /// linked to the scanned table or the customer's booking (a Held pre-order for a confirmed booking later).
+    /// scannedTableId comes from ITableQrService.GetScannedTableId. Refused when there is no table and no
+    /// confirmed booking. Returns (success, message, new order id). Nothing is saved if any check fails.</summary>
     Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
-        string customerId, List<CartSessionItem> items, string? notes);
+        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId);
 
-    /// <summary>One line for the checkout page saying where an order placed now would go:
-    /// the customer's table now, a Held pre-order for their next confirmed booking, or no table.</summary>
-    Task<string> DescribeOrderTargetAsync(string customerId);
+    /// <summary>For the checkout page: whether an order can be placed now and where it would go
+    /// (scanned table, the customer's table now, or a pre-order), or why it cannot.</summary>
+    Task<OrderTargetViewModel> DescribeOrderTargetAsync(string customerId, int? scannedTableId);
 
     /// <summary>One order for the confirmation page, or null if it does not exist
     /// or belongs to a different customer.</summary>

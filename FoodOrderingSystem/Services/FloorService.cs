@@ -91,10 +91,16 @@ public class FloorService : IFloorService
         };
     }
 
-    public async Task<(bool Success, string Message)> CompleteTableAsync(int reservationId)
+    public async Task<(bool Success, string Message)> CompleteTableAsync(int restaurantTableId, int? reservationId)
     {
         var today = await LoadTodayAsync();
-        var orders = today.Orders.Where(o => o.ReservationId == reservationId).ToList();
+
+        // The party's orders: those for the booking, plus walk-in orders from the table QR (no booking).
+        // A pre-order for a later booking on the same table belongs to that party, so it is left alone.
+        var orders = today.Orders
+            .Where(o => (reservationId.HasValue && o.ReservationId == reservationId)
+                        || (o.ReservationId == null && o.RestaurantTableId == restaurantTableId))
+            .ToList();
 
         // 1. A table can only be closed once the kitchen is done and everything served is paid for.
         //    The button is hidden in that case, but a crafted POST must still be refused here.
@@ -116,8 +122,14 @@ public class FloorService : IFloorService
             }
         }
 
-        // 3. Then the booking itself (Wallace's service also sends the customer the "leave a rating" notification)
-        return await _reservationService.UpdateStatusByStaffAsync(reservationId, ReservationStatus.Completed);
+        // 3. Then the booking itself (Wallace's service also sends the customer the "leave a rating" notification).
+        //    A walk-in party has no booking, so completing its orders is all there is to do.
+        if (!reservationId.HasValue)
+        {
+            return (true, "Table completed.");
+        }
+
+        return await _reservationService.UpdateStatusByStaffAsync(reservationId.Value, ReservationStatus.Completed);
     }
 
     // ---------------------------------------------------------------------
@@ -162,8 +174,10 @@ public class FloorService : IFloorService
         var bookings = today.Reservations.Where(r => r.RestaurantTableId == table.RestaurantTableId).ToList();
         var openBookings = bookings.Where(IsOpenBooking).ToList();
         var bookingIds = bookings.Select(r => r.ReservationId).ToHashSet();
+        // Orders for one of this table's bookings, or walk-in orders sent here by the table QR
         var orders = today.Orders
-            .Where(o => o.ReservationId.HasValue && bookingIds.Contains(o.ReservationId.Value))
+            .Where(o => (o.ReservationId.HasValue && bookingIds.Contains(o.ReservationId.Value))
+                        || (o.ReservationId == null && o.RestaurantTableId == table.RestaurantTableId))
             .OrderBy(o => o.CreatedAt)
             .ToList();
 
@@ -182,8 +196,10 @@ public class FloorService : IFloorService
         if (tile.HeldOrders.Count > 0)
         {
             tile.Subtitle += " · pre-order";
-            // CompleteTableAsync refuses while a pre-order is held, so do not offer the button
-            if (tile.Action == TableAction.CompleteTable)
+            // CompleteTableAsync refuses while this party's pre-order is held, so do not offer the button.
+            // A pre-order for a later booking on this table does not stop the current party from leaving.
+            if (tile.Action == TableAction.CompleteTable
+                && tile.HeldOrders.Any(o => o.ReservationId == tile.ReservationId))
             {
                 tile.Action = TableAction.None;
             }
@@ -218,18 +234,21 @@ public class FloorService : IFloorService
             return;
         }
 
-        // 2. In use: the kitchen is working on an order, or a confirmed party is at the table.
+        // 2. In use: the kitchen is working on an order, a confirmed party is at the table,
+        //    or a walk-in (table QR) has eaten and paid but staff have not pressed Complete table yet.
         //    A party past its end time stays In use while it has orders, until staff press Complete table.
         var cooking = orders.FirstOrDefault(o => KitchenStatuses.Contains(o.Status));
         var seated = openBookings.FirstOrDefault(r =>
             r.Status == nameof(ReservationStatus.Confirmed)
             && Start(r) <= now
             && (now < End(r) || orders.Any(o => o.ReservationId == r.ReservationId)));
+        var paidWalkIn = orders.FirstOrDefault(o => o.ReservationId == null && o.Status == OrderStatus.Served);
 
-        if (cooking != null || seated != null)
+        if (cooking != null || seated != null || paidWalkIn != null)
         {
             tile.State = TableState.InUse;
-            SetBooking(tile, cooking != null ? FindBooking(bookings, cooking) : seated, orders);
+            // A walk-in's order has no booking, so fall back to the seated party (if any) for the drawer
+            SetBooking(tile, (cooking != null ? FindBooking(bookings, cooking) : null) ?? seated, orders);
 
             var ready = orders.FirstOrDefault(o => o.Status == OrderStatus.ReadyToServe);
             if (ready != null)
@@ -247,7 +266,7 @@ public class FloorService : IFloorService
             }
             else
             {
-                // seated! is safe: this branch only runs when cooking is null, so seated must be the match
+                // seated! is safe: with no cooking order and no orders at all, seated must be what matched
                 tile.Subtitle = orders.Count > 0 ? "Paid · ready to complete" : $"Seated · {seated!.PartySize} pax";
                 tile.Action = TableAction.CompleteTable;
             }
@@ -303,23 +322,23 @@ public class FloorService : IFloorService
         foreach (var order in today.Orders)
         {
             var booking = today.Reservations.FirstOrDefault(r => r.ReservationId == order.ReservationId);
-            var where = booking?.TableNumber ?? "no table";
+            var where = order.TableNumber ?? "no table";
             var minutes = OrderAgeDisplay.MinutesSincePlaced(order.CreatedAt);
 
             if (order.Status == OrderStatus.Pending && minutes > OrderWaitMinutes)
             {
-                var item = OrderItem(1, "plum", $"#{order.OrderId} waiting {minutes}m · {where}", order, booking);
+                var item = OrderItem(1, "plum", $"#{order.OrderId} waiting {minutes}m · {where}", order, booking, today.Areas);
                 item.HasAllergyNote = !string.IsNullOrWhiteSpace(order.Notes);
                 items.Add(item);
             }
             else if (IsBillDue(order))
             {
-                var label = booking != null ? $"{booking.TableNumber} bill due · #{order.OrderId}" : $"#{order.OrderId} bill due";
-                items.Add(OrderItem(2, "plum", label, order, booking));
+                var label = order.TableNumber != null ? $"{order.TableNumber} bill due · #{order.OrderId}" : $"#{order.OrderId} bill due";
+                items.Add(OrderItem(2, "plum", label, order, booking, today.Areas));
             }
             else if (order.Status == OrderStatus.ReadyToServe)
             {
-                items.Add(OrderItem(3, "jade", $"#{order.OrderId} ready · {where}", order, booking));
+                items.Add(OrderItem(3, "jade", $"#{order.OrderId} ready · {where}", order, booking, today.Areas));
             }
             else if (order.Status == OrderStatus.Held && booking != null
                      && today.Now >= Start(booking).AddMinutes(-PreOrderNoticeMinutes))
@@ -327,7 +346,7 @@ public class FloorService : IFloorService
                 // Staff check the customer has arrived (in person or by phone), then press Send to kitchen
                 var item = OrderItem(3, "jade",
                     $"{booking.TableNumber} pre-order #{order.OrderId} · {booking.CustomerName} {booking.StartTime:h:mm tt}",
-                    order, booking);
+                    order, booking, today.Areas);
                 item.SortTime = Start(booking);
                 items.Add(item);
             }
@@ -357,7 +376,8 @@ public class FloorService : IFloorService
     }
 
     private static NeedsYouItemViewModel OrderItem(
-        int priority, string tone, string text, StaffOrderViewModel order, ReservationDetailViewModel? booking) =>
+        int priority, string tone, string text, StaffOrderViewModel order, ReservationDetailViewModel? booking,
+        List<DiningArea> areas) =>
         new()
         {
             Priority = priority,
@@ -365,8 +385,10 @@ public class FloorService : IFloorService
             Text = text,
             SortTime = order.CreatedAt,
             OrderId = order.OrderId,
-            DiningAreaId = booking?.DiningAreaId,
-            RestaurantTableId = booking?.RestaurantTableId
+            // A walk-in order has no booking, so its own table is used, and the area is the one that table is in
+            DiningAreaId = booking?.DiningAreaId
+                ?? areas.FirstOrDefault(a => a.RestaurantTables.Any(t => t.RestaurantTableId == order.RestaurantTableId))?.DiningAreaId,
+            RestaurantTableId = booking?.RestaurantTableId ?? order.RestaurantTableId
         };
 
     private static NeedsYouItemViewModel BookingItem(

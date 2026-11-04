@@ -1,0 +1,26 @@
+/* Cards flow into as many columns as fit: one on a phone, three or four on a PC or A4 sheet */
+.tq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.tq-img {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    image-rendering: pixelated;   /* keep the squares sharp when the image is scaled */
+}
+
+/* Printing: no menu or buttons, and a card never splits across two pages */
+@media print {
+    .tq-no-print {
+        display: none !important;
+    }
+
+    .tq-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #000;
+    }
+}

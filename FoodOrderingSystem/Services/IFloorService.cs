@@ -11,5 +11,6 @@ public interface IFloorService
     Task<StaffTodayViewModel> GetTodayAsync();
 
     // Refuses while an order is still cooking or unpaid; otherwise completes paid, served orders, then the booking
-    Task<(bool Success, string Message)> CompleteTableAsync(int reservationId);
+    // reservationId is null for a walk-in party (table QR orders, no booking)
+    Task<(bool Success, string Message)> CompleteTableAsync(int restaurantTableId, int? reservationId);
 }
