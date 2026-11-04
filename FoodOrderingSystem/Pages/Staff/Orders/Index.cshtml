@@ -7,8 +7,12 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-        <h1 class="mb-0">The Pass</h1>
+    @* Shared back office header (bo-head) *@
+    <div class="bo-head">
+        <div>
+            <h1>The Pass</h1>
+            <p class="bo-head-sub">Kitchen tickets for @Model.SelectedDate.ToString("dddd, d MMMM"), oldest first</p>
+        </div>
 
         <nav class="ps-mode" aria-label="View">
             <a asp-page="./Index" asp-route-mode="rail" class="@(Model.IsHistory ? "" : "active")"

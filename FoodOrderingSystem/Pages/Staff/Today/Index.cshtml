@@ -35,7 +35,7 @@
             <h2 id="needsTitle" class="td-title">Needs you · @today.NeedsYou.Count</h2>
             @if (today.NeedsYou.Count == 0)
             {
-                <p class="text-muted">Nothing needs you right now.</p>
+                <partial name="_EmptyState" model='new FoodOrderingSystem.ViewModels.EmptyStateViewModel("All clear", "Nothing needs you right now. New orders, arrivals and bills due will show up here.", "ticket")' />
             }
             @foreach (var item in today.NeedsYou)
             {
@@ -59,7 +59,7 @@
             <h2 id="timelineTitle" class="td-title">Bookings today</h2>
             @if (today.Timeline.Count == 0)
             {
-                <p class="text-muted">No bookings today.</p>
+                <partial name="_EmptyState" model='new FoodOrderingSystem.ViewModels.EmptyStateViewModel("No bookings today", "Walk-ins can still order by scanning the QR code on their table.", "calendar")' />
             }
             <ol class="td-line">
                 @foreach (var booking in today.Timeline)

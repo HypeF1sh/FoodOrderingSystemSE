@@ -1,34 +1,34 @@
 ﻿@page
 @model FoodOrderingSystem.Pages.Staff.Billing.IndexModel
 @{
-    ViewData["Title"] = "Staff Billing & Payments";
+    ViewData["Title"] = "Billing";
 }
 
 <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    @* Shared back office header (bo-head): title, what is on screen, and stat tiles *@
+    <div class="bo-head">
         <div>
-            <h1 class="mb-0">Staff Billing &amp; Counter Payments</h1>
-            <p class="text-muted small mb-0">
-                Unpaid orders for @Model.EffectiveDate.ToString("dd/MM/yyyy") (@Model.UnpaidOrders.Count remaining)
-            </p>
+            <h1>Billing</h1>
+            <p class="bo-head-sub">Unpaid orders for @Model.EffectiveDate.ToString("dddd, d MMMM yyyy")</p>
         </div>
-        <span class="badge bg-warning text-dark p-2">
-            Unpaid Total: RM @Model.UnpaidOrders.Sum(o => o.TotalAmount).ToString("0.00")
-        </span>
+        <div class="bo-stats">
+            <div class="bo-stat is-amber"><strong>@Model.UnpaidOrders.Count</strong><span>Unpaid orders</span></div>
+            <div class="bo-stat is-plum"><strong>RM @Model.UnpaidOrders.Sum(o => o.TotalAmount).ToString("0.00")</strong><span>Still to collect</span></div>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">
         <!-- Filter Unpaid Orders by Date -->
         <div class="col-md-7">
-            <div class="card h-100">
-                <div class="card-body">
+            <div class="bo-filters h-100 mb-0">
+                <div>
                     <form method="get" class="row g-2 align-items-end">
                         <div class="col-sm-6">
-                            <label class="form-label fw-semibold">Filter Unpaid Orders by Date</label>
+                            <label class="form-label">Date</label>
                             <input type="date" name="FilterDate" value="@Model.EffectiveDate.ToString("yyyy-MM-dd")" class="form-control" />
                         </div>
                         <div class="col-sm-6 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-grow-1">Show Date</button>
+                            <button type="submit" class="btn btn-primary flex-grow-1">Show</button>
                             <a asp-page="Index" class="btn btn-outline-secondary">Today</a>
                         </div>
                     </form>
@@ -38,15 +38,15 @@
 
         <!-- Quick Order / Bill Lookup (For Paid Orders or Refunds) -->
         <div class="col-md-5">
-            <div class="card h-100">
-                <div class="card-body">
+            <div class="bo-filters h-100 mb-0">
+                <div>
                     <form method="post" asp-page-handler="LookupOrder" class="row g-2 align-items-end">
                         <div class="col-sm-7">
-                            <label class="form-label fw-semibold">Find Bill by Order #</label>
-                            <input type="number" name="orderId" min="1" class="form-control" placeholder="e.g. 101 (Pay or Refund)" required />
+                            <label class="form-label">Find a bill by order #</label>
+                            <input type="number" name="orderId" min="1" class="form-control" placeholder="e.g. 101 (pay or refund)" required />
                         </div>
                         <div class="col-sm-5 d-grid">
-                            <button type="submit" class="btn btn-outline-dark">Open Bill</button>
+                            <button type="submit" class="btn btn-outline-dark">Open bill</button>
                         </div>
                     </form>
                 </div>
@@ -56,9 +56,7 @@
 
     @if (!Model.UnpaidOrders.Any())
     {
-        <div class="alert alert-info">
-            No unpaid orders found for @Model.EffectiveDate.ToString("dd/MM/yyyy"). Use "Find Bill by Order #" above to view or refund an already settled order.
-        </div>
+        <partial name="_EmptyState" model='new FoodOrderingSystem.ViewModels.EmptyStateViewModel("All bills are settled", $"No unpaid orders for {Model.EffectiveDate:d MMMM}. To view or refund a paid order, find it by order number above.", "receipt")' />
     }
     else
     {

@@ -57,6 +57,28 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-04** — Jordan: **staff home redesigned as "Tonight"** (same branch). Picked from 4 static mockups
+  (dark console, action inbox, three-pane cockpit, dark inbox): Jordan chose the **action inbox** plus the cockpit's
+  table panel. The Floor page (still where staff land) is now a to-do list grouped Now / Next up, each row with its one
+  button (Take payment → Bill page, Mark served, Send to kitchen, Confirm booking, Check kitchen, Open table), beside
+  the table map and stat tiles. Tapping a table slides in its panel (guests, every order with dishes and prices, table
+  total, Take payment, plus "Open bill" on other unpaid orders). Buttons reuse the existing Floor handlers, so no rule
+  is written twice. `FloorService` now fills `Detail`, `Action`, `ReservationId` and `IsNow` on each Needs-you item;
+  `TableAction` gained `SendToKitchen` and `OpenTable`. Menu item Floor → Tonight. No schema change. Tested end to
+  end with order #7 at G1 (QR order → Pass → ready → Mark served → bill due → Take payment opens Bill/7), desktop and
+  375 px. Order #7 left unpaid on the laptop DB for the demo.
+  **Then matched to mockup B's look** (Jordan: "same as what I chose"): staff now get a **top bar instead of the side
+  menu** (`_StaffTopBar.cshtml`: wordmark, shift, pill tabs Tonight / Kitchen / Bookings / Bills / More, avatar menu);
+  `_BackOfficeLayout` picks it when the user is Staff and not Administrator, so admins keep the side menu. Tonight has
+  B's greeting, icon squares, waiting times, Now / Soon / Later groups, and side cards with a mini table map that opens
+  the table panel. Jobs come first on phones. Markup/CSS only on top of the earlier FloorService change.
+- **2026-11-04** — Jordan: **staff pages made consistent** on `feature/UI-staff-consistency` (stacked on `feature/UI-account-settings`, PR #64). Wallace's
+  Reservations, Billing and Reviews used a second style (long titles, Bootstrap badges as stats, cyan
+  `alert-info` empty messages, "(PB12)/(PB13)" in labels). Added shared pieces to `backoffice.css` (`bo-head`
+  header with stat tiles, `bo-filters` bar, `bo-empty` empty state) and a `_EmptyState` partial +
+  `EmptyStateViewModel` (inline SVG icons, no icon font). Applied to all staff pages; The Pass columns now say what
+  an empty column means. **Markup and CSS only** in Wallace's pages, no C#/service change. Build 0 warnings;
+  checked every staff page at 1440 px and 375 px.
 - **2026-11-04** — Jordan: **account settings redesign** on `feature/UI-account-settings` (off
   `feature/UI-shell-account-menu`, so it needs PR #63 merged first). Carynn's Identity Manage pages (PB02/PB03):
   new Manage `_Layout` with a profile card (initials, name, email, role) and a section menu (chips on phones);

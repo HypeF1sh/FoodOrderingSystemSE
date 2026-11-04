@@ -1,26 +1,29 @@
 @page
+@using Microsoft.AspNetCore.Identity
+@using FoodOrderingSystem.Models
 @using FoodOrderingSystem.ViewModels
+@inject UserManager<ApplicationUser> UserManager
 @model FoodOrderingSystem.Pages.Staff.Floor.IndexModel
 @{
-    ViewData["Title"] = "Floor";
+    ViewData["Title"] = "Tonight";
     var floor = Model.Floor;
     var selected = floor.SelectedTable;
+
+    // Greeting with the first name, read the same way the Today page does
+    var user = await UserManager.GetUserAsync(User);
+    var firstName = string.IsNullOrWhiteSpace(user?.FullName) ? null : user.FullName.Split(' ')[0];
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 }
 
+@*
+    Tonight: the staff home. A to-do list of everything that needs staff (each with the one button that
+    finishes it) beside the table map. Tapping a table slides in its panel: guests, orders, bill, Take payment.
+*@
 <div class="container mt-4 fl">
-    <div class="fl-head">
-        <h1 class="mb-0">Floor</h1>
-        @if (floor.Areas.Count > 1)
-        {
-            <nav class="fl-areas" aria-label="Dining areas">
-                @foreach (var area in floor.Areas)
-                {
-                    var isOn = area.DiningAreaId == floor.SelectedAreaId;
-                    <a asp-page="./Index" asp-route-areaId="@area.DiningAreaId"
-                       class="fl-area @(isOn ? "active" : "")" aria-current="@(isOn ? "page" : null)">@area.Name</a>
-                }
-            </nav>
-        }
+    <div class="tn-head">
+        <h1>@greeting@(firstName == null ? "" : ", " + firstName)</h1>
+        <p>Everything that needs you, most urgent first. Tap the button to finish it, or a table to see its orders and bill.</p>
     </div>
 
     @if (floor.Areas.Count == 0)
@@ -35,26 +38,12 @@
                 <partial name="_FloorGrid" model="floor" />
             </div>
 
-            @* A fixed panel from lg up (iPad landscape); a slide-in panel below lg, and a bottom sheet on phones *@
-            <aside id="tableDrawer" class="fl-drawer offcanvas-lg offcanvas-end" tabindex="-1"
-                   aria-labelledby="tableDrawerTitle" data-open="@(selected != null ? "true" : "false")">
-                @if (selected == null)
-                {
-                    <div class="fl-drawer-body">
-                    <h2 id="tableDrawerTitle" class="fl-drawer-title">Tonight at a glance</h2>
-                    <p class="fl-muted">@floor.SelectedAreaName · tap a table to see its booking, order and bill.</p>
-                    <dl class="fl-glance">
-                        @foreach (var state in TableStateDisplay.InLegendOrder)
-                        {
-                            <div class="is-@TableStateDisplay.CssName(state)">
-                                <dt>@TableStateDisplay.Label(state)</dt>
-                                <dd>@(floor.Tables.Count(t => t.State == state))</dd>
-                            </div>
-                        }
-                    </dl>
-                    </div>
-                }
-                else
+            @* Table panel: slides in from the right on every screen size (a bottom sheet on phones), so the
+               to-do list and the map keep the full width until a table is tapped *@
+            <aside id="tableDrawer" class="fl-drawer tn-drawer offcanvas offcanvas-end" tabindex="-1"
+                   aria-labelledby="tableDrawerTitle" data-open="@(selected != null ? "true" : "false")"
+                   data-close-url="@Url.Page("./Index", new { areaId = floor.SelectedAreaId })">
+                @if (selected != null)
                 {
                     @* One wrapping element keeps everything below in markup mode, so the nested @if/@switch are valid *@
                     <div class="fl-drawer-body">
@@ -99,6 +88,19 @@
                                 <span class="fw-semibold">RM @order.TotalAmount.ToString("0.00")</span>
                                 <partial name="/Pages/Payments/_PaymentStatusBadge.cshtml" model="order.PaymentStatus" />
                             </div>
+                            @* Any unpaid order can be opened on the Bill page, e.g. a guest paying before the food comes *@
+                            @if (!order.IsPaid && order.OrderId != selected.ActionOrderId)
+                            {
+                                <a asp-page="/Staff/Billing/Bill" asp-route-id="@order.OrderId" class="tn-bill-link">Open bill for #@order.OrderId →</a>
+                            }
+                        </div>
+                    }
+
+                    @if (selected.Orders.Count > 1)
+                    {
+                        <div class="fl-row tn-total">
+                            <span>Table total</span>
+                            <span>RM @selected.Orders.Sum(o => o.TotalAmount).ToString("0.00")</span>
                         </div>
                     }
 
@@ -177,11 +179,15 @@
 @section Scripts {
     <script src="~/js/staff-live.js" asp-append-version="true"></script>
     <script>
-        // Below the lg breakpoint the drawer is a slide-in panel, so open it when a table was chosen
+        // The table panel is a slide-in, so open it when a table was chosen (?table=...).
+        // Closing it goes back to Tonight without the table, so a refresh doesn't pop it open again.
         (function () {
             const drawer = document.getElementById('tableDrawer');
-            if (drawer && drawer.dataset.open === 'true' && window.matchMedia('(max-width: 991.98px)').matches) {
+            if (drawer && drawer.dataset.open === 'true') {
                 bootstrap.Offcanvas.getOrCreateInstance(drawer).show();
+                drawer.addEventListener('hidden.bs.offcanvas', function () {
+                    window.location.href = drawer.dataset.closeUrl;
+                });
             }
         })();
     </script>

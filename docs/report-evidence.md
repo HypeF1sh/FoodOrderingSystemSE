@@ -33,6 +33,52 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-11-01 | Staff side: Floor, The Pass, Today + order-to-table link (BUG8) | See the detailed entry below |
 | 2026-11-04 | Login and register restyle (`feature/UI-auth-pages`) | See the detailed entry below |
 | 2026-11-04 | Account settings redesign (`feature/UI-account-settings`) | See the detailed entry below |
+| 2026-11-04 | Staff pages made consistent (`feature/UI-staff-consistency`) | See the detailed entry below |
+| 2026-11-04 | Staff home "Tonight": to-do list + table panel | See the detailed entry below |
+
+### 2026-11-04 — Staff home "Tonight": to-do list + table panel
+
+**Ch.5 screenshots to capture**
+1. The four design mockups side by side (ports 5101–5104) to show the options considered, then the chosen one.
+2. `/Staff/Floor` (Tonight) with a "ready" job and a "bill due" job, map on the right.
+3. The table panel open on a bill-due table: dishes, total, Take payment.
+4. Tonight at phone width.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U15 | Customer orders via table QR (G1); staff start and finish it on The Pass; open Tonight | "#7 ready · G1" under Now with **Mark served** | As expected |
+| TC-U16 | Press Mark served | Banner "Order #7 is now served"; the job becomes "G1 bill due · #7, RM 34.00" with **Take payment**; G1 turns red | As expected |
+| TC-U17 | Tap table G1 | Panel slides in: order #7, both dishes with prices, RM 34.00, **Take payment** | As expected |
+| TC-U18 | Press Take payment (list or panel) | Opens the Bill page for order #7 | As expected |
+
+**Ch.7 reflection notes**
+- *Designing by comparing mockups.* Four throwaway HTML mockups on separate ports let me feel each option before touching the app. The chosen design mixed two of them.
+- *Reuse over rewrite.* The to-do buttons post to the handlers the table panel already had, and payment still goes through the existing Bill page, so no business rule exists twice.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the mockups, markup, CSS and the FloorService changes. [Write here your own part, only true statements.]
+
+### 2026-11-04 — Staff pages made consistent (`feature/UI-staff-consistency`)
+
+**Ch.5 screenshots to capture**
+1. `/Staff/Reservations` before (cyan "No reservations found" box, "Staff Reservation Management") and after (header with Pending / Confirmed / Special requests tiles, empty state).
+2. `/Staff/Billing` after: "Unpaid orders" and "Still to collect" tiles.
+3. `/Staff/Orders` (The Pass) with empty columns: dashed slots with "No new orders", "Nothing cooking".
+4. Any staff page at phone width.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U13 | Open Reservations, Billing and Reviews with no data | Each shows the same header style and a friendly empty state with an icon and a hint | As expected |
+| TC-U14 | Reservations: filter a date with bookings | Tiles count Pending / Confirmed / Special requests for that date; table shows the bookings | To run with demo data |
+
+**Ch.7 reflection notes**
+- *Two design languages in one back office.* Each member styled their own pages, so staff saw two products. A small set of shared CSS pieces (header, filter bar, empty state) fixed it without touching anyone's C#.
+- *Developer labels leaked into the UI.* "(PB12)" and "(PB13)" were in visible labels; moved to comments only.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the CSS and markup. [Write here your own part, only true statements.]
 
 ### 2026-11-04 — Account settings redesign (`feature/UI-account-settings`)
 
