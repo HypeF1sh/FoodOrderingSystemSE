@@ -1,0 +1,81 @@
+/* ===========================================================================
+   Styles scoped to Register.cshtml (CSS isolation).
+   Same frame as Login.cshtml.css - isolation is per page, so each page
+   carries its own copy. The form column is wider here for the paired fields.
+   =========================================================================== */
+
+/* Two columns on wide screens: brand panel, then the form */
+.rr-auth {
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    min-height: 34rem;
+    margin: 2.5rem 0 1rem;
+    overflow: hidden;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 0.75rem;
+}
+
+.rr-auth-form {
+    align-self: center;
+    width: 100%;
+    max-width: 34rem;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+}
+
+.rr-auth-form h1 {
+    font-size: var(--rr-h2);
+    margin-bottom: 0.375rem;
+}
+
+.rr-auth-form > p.text-muted {
+    margin-bottom: 1.75rem;
+}
+
+/* The validation summary renders even when empty; hide it until it has errors */
+.rr-auth-form ::deep .validation-summary-valid {
+    display: none;
+}
+
+.rr-auth-form ::deep .alert ul {
+    margin-bottom: 0;
+    padding-left: 1.125rem;
+}
+
+/* Links in the plum accent. Bootstrap 5.3 colours links from --bs-link-color-rgb,
+   which site.css does not override, so they would otherwise show Bootstrap blue. */
+.rr-auth-form ::deep a {
+    color: var(--rr-accent);
+}
+
+.rr-auth-form ::deep a:hover {
+    color: var(--rr-accent-dark);
+}
+
+.rr-auth-hint {
+    font-size: var(--rr-text-sm);
+    color: var(--rr-muted);
+}
+
+.rr-auth-switch {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    font-size: var(--rr-text-sm);
+    color: var(--rr-muted);
+}
+
+/* Phone: one column, no box - the form is the page */
+@media (max-width: 767.98px) {
+    .rr-auth {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        margin-top: 1.5rem;
+        background-color: transparent;
+        border: 0;
+    }
+
+    .rr-auth-form {
+        padding: 0;
+    }
+}

@@ -31,6 +31,33 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-10-31 | PB20 order and payment notifications | See the detailed entry below |
 | 2026-11-01 | Back office redesign (admin + staff UI), BUG1, Dish sales report, dashboard refinements | See the detailed entry below |
 | 2026-11-01 | Staff side: Floor, The Pass, Today + order-to-table link (BUG8) | See the detailed entry below |
+| 2026-11-04 | Login and register restyle (`feature/UI-auth-pages`) | See the detailed entry below |
+
+### 2026-11-04 — Login and register restyle (`feature/UI-auth-pages`)
+
+Carynn's pages (Domain A), restyled with her OK. Markup and page CSS only; her C# is unchanged.
+
+**Ch.5 screenshots to capture**
+1. `/Identity/Account/Login` before (template, from an old commit) and after, at desktop width.
+2. `/Identity/Account/Register` at desktop width (paired fields, password rules hint).
+3. Both pages at phone width (DevTools, 375 px): brand panel hidden, form full width.
+4. Login with a wrong password: the red "Invalid login attempt." box.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U01 | Log in with a wrong password, then the right one | Red error box; then logged in and sent home | As expected |
+| TC-U02 | Register with password `abcdef` | Error box lists every missing password rule; no account created | As expected |
+| TC-U03 | Register with Password and Confirm password different | "do not match" under Confirm password; no account created | As expected |
+| TC-U04 | Open both pages at 375 px | Single column, 16 px gutter, no sideways scroll | As expected |
+
+**Ch.7 reflection notes**
+- *Styles did not change after editing.* Scoped CSS (`.cshtml.css`) is bundled at build time, so the running app kept the old bundle until it was restarted.
+- *Links stayed blue.* Bootstrap 5.3 reads `--bs-link-color-rgb`, not `--bs-link-color`, so overriding the second did nothing. Fixed on these pages with a scoped rule; the site-wide fix belongs in the shared `site.css`.
+- *Tag-helper elements and scoped CSS.* `<a asp-page>` and `asp-validation-summary` are rendered without the scope attribute, so they are styled with `::deep` from a plain parent element.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the markup and CSS. [Write here your own part, only true statements.]
 | 2026-11-03 | Table QR ordering (PB14) | See the detailed entry below — TC-Q01–Q07 passed 3/11 |
 
 ### 2026-11-03 — Table QR ordering (`feature/PB14-table-qr`)
