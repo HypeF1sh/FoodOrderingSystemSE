@@ -32,6 +32,32 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-11-01 | Back office redesign (admin + staff UI), BUG1, Dish sales report, dashboard refinements | See the detailed entry below |
 | 2026-11-01 | Staff side: Floor, The Pass, Today + order-to-table link (BUG8) | See the detailed entry below |
 | 2026-11-04 | Login and register restyle (`feature/UI-auth-pages`) | See the detailed entry below |
+| 2026-11-04 | Account settings redesign (`feature/UI-account-settings`) | See the detailed entry below |
+
+### 2026-11-04 — Account settings redesign (`feature/UI-account-settings`)
+
+Carynn's Identity Manage pages (Domain A), restyled with one small C# addition (editable full name).
+
+**Ch.5 screenshots to capture**
+1. `/Identity/Account/Manage` at desktop width: profile card on the left, Profile card on the right.
+2. Same page at phone width: compact profile card and the section chips.
+3. Password page while typing a new password, showing the strength bar.
+4. Profile after saving a new name: green "Your profile has been updated" and the new initials in the header avatar.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U09 | Profile: change Full name, Save changes | Success message; side card and header avatar show the new name and initials | As expected |
+| TC-U10 | Profile: clear Full name, Save changes | "The Full name field is required."; nothing saved | As expected |
+| TC-U11 | Password: type `abc`, then `abcDEF12!xy` | Meter shows Weak, then Strong | As expected |
+| TC-U12 | Open the account pages at phone width | One column, menu as chips, no sideways scroll | As expected |
+
+**Ch.7 reflection notes**
+- *Template pages left as-is.* The scaffolded Identity pages were never restyled, and the profile had no way to change the full name, so the avatar kept showing whatever was typed at sign-up. Found while reviewing the new account menu.
+- *Strength meter is only a hint.* It counts the same five rules as `Program.cs`, but the server still checks them on submit, so turning off JavaScript cannot weaken a password.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the markup, CSS and the full-name change. [Write here your own part, only true statements.]
 
 ### 2026-11-04 — Login and register restyle (`feature/UI-auth-pages`)
 

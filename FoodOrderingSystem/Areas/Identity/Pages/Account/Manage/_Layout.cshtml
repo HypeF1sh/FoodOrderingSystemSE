@@ -1,26 +1,51 @@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 @{
-    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
-    {
-        Layout = parentLayout.ToString();
-    }
-    else
-    {
-        Layout = "/Areas/Identity/Pages/_Layout.cshtml";
-    }
+    // Account pages sit inside the normal site layout (header, footer, avatar menu)
+    Layout = "/Pages/Shared/_Layout.cshtml";
+
+    // Profile summary for the side card: name, email, role and initials (same rule as the avatar menu)
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = string.IsNullOrWhiteSpace(currentUser?.FullName)
+        ? User.Identity?.Name ?? "Your account"
+        : currentUser.FullName;
+    var email = currentUser?.Email ?? User.Identity?.Name;
+    var nameParts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = string.Concat(nameParts.Take(2).Select(part => char.ToUpperInvariant(part[0])));
+
+    var roles = currentUser == null ? new List<string>() : await UserManager.GetRolesAsync(currentUser);
+    var roleLabel = roles.Contains("Administrator") ? "Administrator"
+        : roles.Contains("Staff") ? "Staff"
+        : "Customer";
 }
 
-<h1>Manage your account</h1>
+@*
+    Account settings frame: a profile card with the section menu on the left and the page's own
+    card on the right. On phones the menu turns into a row of chips above the card.
+*@
+<div class="container rr-acct">
+    <header class="rr-acct-head">
+        <h1>Account settings</h1>
+        <p>Manage your details and how you sign in.</p>
+    </header>
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
+    <div class="rr-acct-grid">
+        <aside class="rr-acct-side">
+            <div class="rr-acct-who">
+                <span class="rr-acct-avatar" aria-hidden="true">@initials</span>
+                <div class="rr-acct-who-text">
+                    <p class="rr-acct-name">@displayName</p>
+                    <p class="rr-acct-email">@email</p>
+                    <span class="rr-acct-role">@roleLabel</span>
+                </div>
+            </div>
+
             <partial name="_ManageNav" />
-        </div>
-        <div class="col-md-9">
+        </aside>
+
+        <section class="rr-acct-main">
             @RenderBody()
-        </div>
+        </section>
     </div>
 </div>
 

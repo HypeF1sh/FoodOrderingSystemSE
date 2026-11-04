@@ -52,6 +52,12 @@ public class IndexModel : PageModel
     /// </summary>
     public class InputModel
     {
+        // Same rules as on Register, so a name can't be blanked out after sign-up
+        [Required]
+        [StringLength(100)]
+        [Display(Name = "Full name")]
+        public string FullName { get; set; } = string.Empty;
+
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -70,6 +76,7 @@ public class IndexModel : PageModel
 
         Input = new InputModel
         {
+            FullName = user.FullName,
             PhoneNumber = phoneNumber
         };
     }
@@ -98,6 +105,19 @@ public class IndexModel : PageModel
         {
             await LoadAsync(user);
             return Page();
+        }
+
+        // Full name is a custom column on ApplicationUser, so it is saved through UserManager.UpdateAsync
+        var fullName = Input.FullName.Trim();
+        if (fullName != user.FullName)
+        {
+            user.FullName = fullName;
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                StatusMessage = "Error: your name could not be saved. Try again.";
+                return RedirectToPage();
+            }
         }
 
         var phoneNumber = await _userManager.GetPhoneNumberAsync(user);

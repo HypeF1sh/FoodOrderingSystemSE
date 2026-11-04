@@ -57,6 +57,15 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-04** — Jordan: **account settings redesign** on `feature/UI-account-settings` (off
+  `feature/UI-shell-account-menu`, so it needs PR #63 merged first). Carynn's Identity Manage pages (PB02/PB03):
+  new Manage `_Layout` with a profile card (initials, name, email, role) and a section menu (chips on phones);
+  Profile, Email, Password and "Privacy and data" each in one card. **One C# change in Carynn's code:**
+  `Manage/Index.cshtml.cs` can now edit **Full name** (`[Required]`, max 100, saved with `UserManager.UpdateAsync`);
+  before, a name could only be set at sign-up. Password page shows the rules and a strength bar (vanilla JS, a hint
+  only; the server still enforces the rules). Two-factor and external logins left out of the menu (pages still
+  exist). No schema change. Build 0 warnings; tested name change (header avatar and card update), empty name refused,
+  strength bar, at 557 px and 1440 px.
 - **2026-11-04** — Jordan: **site shell and account menu** on `feature/UI-shell-account-menu` (off `dev`, after PR #62).
   Login and Register now use their own `_AuthLayout` (in `Areas/Identity/Pages/Account/`): white header with only the
   wordmark and one **Sign up** / **Log in** button (no nav links), the green tile pattern fills the page, the form is a
