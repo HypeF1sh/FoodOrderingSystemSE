@@ -58,6 +58,38 @@ Carynn's pages (Domain A), restyled with her OK. Markup and page CSS only; her C
 - *Tag-helper elements and scoped CSS.* `<a asp-page>` and `asp-validation-summary` are rendered without the scope attribute, so they are styled with `::deep` from a plain parent element.
 
 **AI use declaration note:** Claude (Anthropic) was used to draft the markup and CSS. [Write here your own part, only true statements.]
+| 2026-11-03 | Table QR ordering (PB14) | See the detailed entry below — TC-Q01–Q07 passed 3/11 |
+
+### 2026-11-03 — Table QR ordering (`feature/PB14-table-qr`)
+
+**What and why:** walk-ins have no booking, so an order needs its own table link. Each table gets a printed QR;
+scanning it opens the menu and orders go straight to that table. Orders with no table and no confirmed booking are
+now refused, so nobody at home can send food to the kitchen.
+
+**Ch.5 screenshots:** `/Staff/TableQr` (grid of codes, and the print preview); phone camera scanning a code; the menu
+with the green "You're at table G3" banner; Checkout "For table G3, sent to the kitchen now"; Checkout refused (yellow
+box + disabled Place order + Book a table link); Floor G3 tile In use with the walk-in order, then "Paid · ready to
+complete". Code excerpts: `TableQrService.CreateCode`/`ScanAsync` (Data Protection) and `OrderService.FindOrderTargetAsync`
+(the four rules in order).
+
+**Ch.6 test cases**
+| ID | Steps | Expected | Actual (3/11) |
+|---|---|---|---|
+| TC-Q01 | Customer, no booking, no scan → Checkout, then POST anyway | Yellow "scan the QR" box, button disabled, POST refused, nothing saved | Pass |
+| TC-Q02 | Staff opens Table QR codes | One card + QR per active table (8) | Pass |
+| TC-Q03 | Open a QR link with the code edited, and `/Orders/Table?code=3` | "That QR code is not valid", no table remembered | Pass |
+| TC-Q04 | Scan G3 → order | "Order #… placed for table G3"; row has RestaurantTableId, no ReservationId; on The Pass as "G3 · #…" | Pass |
+| TC-Q05 | Walk-in order served → cash payment → Complete table on Floor | Tile Bill due → "Paid · ready to complete" → Free; order Completed | Pass |
+| TC-Q06 | Pending booking tomorrow → Checkout; then booking Confirmed → Checkout | "Not confirmed yet" refusal; then Held pre-order for that table | Pass |
+| TC-Q07 | Booking on now at G3 + scan G3 → order | Order linked to both the booking and G3 | Pass |
+| TC-P05 | Held pre-order for the G3 booking → Floor drawer, then a crafted Complete POST | No Complete button; POST refused "Order #… is not finished or not paid yet" | Pass |
+
+**Ch.7 reflection:** signed link vs a random code column: Data Protection avoided a second schema change, but codes
+only work on the PC that made them (keys are per machine) — fine for a demo, a shared key store in production. The
+first test run failed to pay because the cash form needs an amount; test scripts must send every bound field. A
+refused order showed its message twice (warning box + validation summary), fixed by skipping the summary when the box
+already explains it. The migration and package are announced to the group before pushing, because two migrations made in parallel conflict.
+
 
 ### 2026-11-02 — Pre-orders for confirmed bookings (`feature/PB14-pre-orders`)
 

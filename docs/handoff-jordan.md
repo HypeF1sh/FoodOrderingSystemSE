@@ -9,7 +9,8 @@ without the chat history. The detailed history is in `docs/progress.md`; this fi
 |---|---|---|
 | `feature/UI-back-office` | **PR #56 merged** into `dev` (1 Nov, by speedup9) | Nothing |
 | `feature/UI-staff-floor` | Pushed. **PR #57 open → `dev`** (8 commits) | Get the group's OK on the shared files (below), then merge |
-| `feature/PB14-pre-orders` | Local, **not pushed**, off `feature/UI-staff-floor`. Pre-orders done and tested | Review, commit, push; PR after #57 merges |
+| `feature/PB14-pre-orders` | **PR #58 merged** into `dev` (2 Nov) | Nothing |
+| `feature/PB14-table-qr` | Local, off `dev`. Table QR ordering done and tested (3 Nov) | Announce migration + package, commit, push, PR → `dev` |
 | `fix/UX4-configurations-label` | 1 old commit, never merged | **Do not PR.** Superseded by the back office ("Back office" link replaced the "Admin" link). Safe to delete |
 | `backup/*-before-trailer-removal` | Local only, on the laptop | Safety copies. Never push |
 
@@ -37,8 +38,11 @@ linking to his Bill page, and `OrderService` reading Wallace's `GetCustomerReser
 arrived (Floor chip 5 min before the booking). **Built** on `feature/PB14-pre-orders`. Orders with no booking still go
 through as "No table" until table QR ordering exists; then they will be blocked.
 
-**Next: table QR ordering.** Walk-ins have no booking, so an order needs its own table link: a new
-`Order.RestaurantTableId` column (schema change, group OK first).
+**Built 3 Nov: table QR ordering** on `feature/PB14-table-qr` (off `dev`). New `Order.RestaurantTableId` column
+(migration `AddOrderRestaurantTable`, run `Update-Database` after pulling) and the QRCoder package. Staff print the
+codes from **Front of house → Table QR codes**. Orders with no table and no confirmed booking are now refused.
+To scan with a real phone, run the app on the PC's network address (not `localhost`) and open the QR page from that
+address before printing; codes only work on the PC that made them.
 
 ### Earlier brainstorm notes
 

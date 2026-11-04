@@ -5,8 +5,8 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 ## Current position
 - **Today's sprint:** Sprint 4 (29 Oct–3 Nov) — closing gaps (PB20 promotions, BUG1, UX3), then extras and UI refining
 - **Internal target:** 4 Nov · **Formal deadline:** Fri 6 Nov 2026
-- **Jordan, 2 Nov:** staff redesign in **PR #57** (open, needs group OK). **Pre-orders** built on
-  `feature/PB14-pre-orders` (off `feature/UI-staff-floor`, not pushed). Table QR ordering is next.
+- **Jordan, 3 Nov:** #57 (staff floor) and #58 (pre-orders) merged. **Table QR ordering** built on
+  `feature/PB14-table-qr` (off `dev`, not pushed): migration + QRCoder package, announce in the group first.
   Read **`docs/handoff-jordan.md`** first when continuing on another PC.
 
 | Sprint | Dates | Goal |
@@ -15,7 +15,7 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | 2 | 15–22 Oct | Customer can browse menu and book a table end to end |
 | 3 | 22–29 Oct | Full order → status → payment flow |
 | 4 | 29 Oct–3 Nov | History, feedback, notifications, analytics dashboard |
-| Freeze | 3–5 Nov | Testing, fixes, report finalisation |
+| Freeze | ~~3–5 Nov~~ postponed (3 Nov) | Testing, fixes, report finalisation. Work is not finished, so Sprint 5 continues; freeze date to be agreed |
 
 ## Open decisions (blocking)
 | # | Decision | Owner | Blocks |
@@ -67,6 +67,20 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
   does not set, so links site-wide are Bootstrap blue; fixed locally on these two pages only (site-wide fix needs a
   `site.css` change, group OK). Build 0 warnings; tested over HTTP (wrong password, good login, weak password,
   mismatched confirm — no account created) and at 375 px and 1280 px.
+- **2026-11-03** — Jordan: **table QR ordering** on `feature/PB14-table-qr`. New nullable `Order.RestaurantTableId`
+  (migration `AddOrderRestaurantTable`) and the **QRCoder** NuGet package (MIT, draws PNGs without System.Drawing).
+  Staff print `/Staff/TableQr` (Front of house menu); each QR holds a link signed with ASP.NET Data Protection, so
+  typing another table's id does not work. Scanning remembers the table in the session for 3 h (session idle limit
+  60 min still applies). Checkout order: scanned table → booking on now → Held pre-order → **refused** (no more
+  "No table" orders; Pending bookings get their own message). Floor shows walk-in orders on their table, and Complete
+  table works without a booking. TC-P05 run and passed. Shared files touched: `Program.cs` (1 `AddScoped`),
+  `Migrations/`, `.csproj`, `_BackOfficeNav.cshtml` (1 link). Known limits: QR links are tied to the PC that printed
+  them (Data Protection keys are per machine); a phone must reach the PC's network address, not `localhost`; booking
+  availability (Wallace) does not know about walk-ins; Carynn's table delete would fail for a table with walk-in
+  orders but no bookings (FK, no cascade).
+- **2026-11-03** — Jordan: **freeze postponed**: features are not finished, so Sprint 5 carries on. Agreed Carynn's
+  Sprint 5 asks (PB24 export on the Dashboard, PB28 `GetTopItemIdsAsync` in `IOrderService` + recommended row on
+  `/Menu`, 2 `AddScoped` lines, time-zone fix, lockout fix). Table QR ordering back on Jordan's list.
 - **2026-11-02** — Jordan: **pre-orders** on `feature/PB14-pre-orders` (off `feature/UI-staff-floor`). Ordering rule
   agreed with Jordan: at the restaurant the order goes to the table's booking as before; from outside, a customer
   with a **Confirmed** booking still to come places a **pre-order**, saved with the new status **`Held`** and kept off
