@@ -57,6 +57,16 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-04** — Jordan (Carynn's OK via Jordan): **login and register restyled** on `feature/UI-auth-pages` (off `dev`).
+  Split screen like the Uber Eats / OpenTable / Grab sign-in pages: a teal brand panel with a Peranakan tile pattern
+  (inline SVG, no image file) on the left and the form on the right; on phones the form takes the whole screen.
+  Removed the template's "no external services" note and the unused resend-confirmation link
+  (`RequireConfirmedAccount` is off). Register pairs name/phone and password/confirm on wide screens and shows the
+  password rules from `Program.cs` up front. **Markup and page CSS only** — `Login.cshtml.cs`, `Register.cshtml.cs`,
+  `site.css` and `_Layout` untouched. Found: Bootstrap 5.3 colours links from `--bs-link-color-rgb`, which `site.css`
+  does not set, so links site-wide are Bootstrap blue; fixed locally on these two pages only (site-wide fix needs a
+  `site.css` change, group OK). Build 0 warnings; tested over HTTP (wrong password, good login, weak password,
+  mismatched confirm — no account created) and at 375 px and 1280 px.
 - **2026-11-02** — Jordan: **pre-orders** on `feature/PB14-pre-orders` (off `feature/UI-staff-floor`). Ordering rule
   agreed with Jordan: at the restaurant the order goes to the table's booking as before; from outside, a customer
   with a **Confirmed** booking still to come places a **pre-order**, saved with the new status **`Held`** and kept off
