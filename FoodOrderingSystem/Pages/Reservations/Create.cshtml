@@ -13,38 +13,30 @@
     <!-- Step 1: Check Table Availability (PB09) -->
     <div class="card mb-4">
         <div class="card-header bg-light">
-            <strong>1. Check Table Availability</strong>
+            <strong>1. Pick a day, time and party size</strong>
             <span class="text-muted small ms-2">(90-minute dining slot)</span>
         </div>
         <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
+            @* Tap-to-choose picker (_BookingPicker): it posts the same Search.Date / Search.StartTime / Search.PartySize
+               fields as the old date, time and number boxes, so CreateModel and ReservationService are unchanged *@
+            <form method="get">
                 <input type="hidden" name="check" value="true" />
 
-                <div class="col-md-3">
-                    <label asp-for="Search.Date" class="form-label">Date</label>
-                    <input asp-for="Search.Date" type="date" class="form-control"
-                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
-                           max="@DateTime.Today.AddDays(60).ToString("yyyy-MM-dd")" />
+                <partial name="_BookingPicker" model='new FoodOrderingSystem.ViewModels.BookingPickerViewModel(Model.Search.Date, Model.Search.StartTime, Model.Search.PartySize, "Search.Date", "Search.StartTime", "Search.PartySize")' />
+
+                <div class="bp-label mt-3">Area</div>
+                <div class="bp-area" role="radiogroup" aria-label="Dining area">
+                    @foreach (var option in Model.DiningAreaOptions)
+                    {
+                        var isOn = option.Value == (Model.Search.DiningAreaId?.ToString() ?? "");
+                        <label class="bp-area-chip">
+                            <input type="radio" name="Search.DiningAreaId" value="@option.Value" checked="@isOn" />
+                            <span>@(option.Value == "" ? "Any area" : option.Text)</span>
+                        </label>
+                    }
                 </div>
 
-                <div class="col-md-2">
-                    <label asp-for="Search.StartTime" class="form-label">Start Time</label>
-                    <input asp-for="Search.StartTime" type="time" class="form-control" step="900" />
-                </div>
-
-                <div class="col-md-2">
-                    <label asp-for="Search.PartySize" class="form-label">Party Size (1–8)</label>
-                    <input asp-for="Search.PartySize" type="number" min="1" max="8" class="form-control" />
-                </div>
-
-                <div class="col-md-3">
-                    <label asp-for="Search.DiningAreaId" class="form-label">Dining Area</label>
-                    <select asp-for="Search.DiningAreaId" asp-items="Model.DiningAreaOptions" class="form-select"></select>
-                </div>
-
-                <div class="col-md-2 d-grid">
-                    <button type="submit" class="btn btn-primary">Check Tables</button>
-                </div>
+                <button type="submit" class="btn btn-primary mt-4 px-4">Find a table</button>
             </form>
             <div class="form-text mt-2">
                 Maximum online party size is 8 guests. Planning a larger gathering? Please call us directly so we can arrange combined seating.

@@ -448,9 +448,10 @@
     outline-offset: 2px;
 }
 
-.bo .fl-tile.is-booked  { border-color: var(--bo-jade); border-style: dashed; }
-.bo .fl-tile.is-inuse   { border-color: var(--bo-jade); background-color: #E3F1EC; }
-.bo .fl-tile.is-billdue { border-color: var(--rr-accent); background-color: #F6E3E7; }
+/* Table colours: free = plain, booked = amber dashed (not seated yet), occupied = red, bill due = deeper red */
+.bo .fl-tile.is-booked  { border-color: #D99A2B; border-style: dashed; }
+.bo .fl-tile.is-inuse   { border-color: #E07A7A; background-color: #FCE8E8; }
+.bo .fl-tile.is-billdue { border-color: #B42318; background-color: #F7D4D4; }
 
 .bo .fl-tile.selected {
     outline: 3px solid var(--rr-ink);
@@ -518,9 +519,9 @@
     background-color: var(--rr-raised);
 }
 
-.bo .fl-legend .is-booked::before  { border-color: var(--bo-jade); border-style: dashed; }
-.bo .fl-legend .is-inuse::before   { border-color: var(--bo-jade); background-color: #E3F1EC; }
-.bo .fl-legend .is-billdue::before { border-color: var(--rr-accent); background-color: #F6E3E7; }
+.bo .fl-legend .is-booked::before  { border-color: #D99A2B; border-style: dashed; }
+.bo .fl-legend .is-inuse::before   { border-color: #E07A7A; background-color: #FCE8E8; }
+.bo .fl-legend .is-billdue::before { border-color: #B42318; background-color: #F7D4D4; }
 
 .bo [data-live-status].is-offline {
     color: var(--rr-accent);
@@ -563,9 +564,9 @@
     color: var(--rr-muted);
 }
 
-.bo .fl-state.is-booked  { background-color: #E3F1EC; color: var(--bo-jade); }
-.bo .fl-state.is-inuse   { background-color: #E3F1EC; color: var(--bo-jade); }
-.bo .fl-state.is-billdue { background-color: #F6E3E7; color: var(--rr-accent); }
+.bo .fl-state.is-booked  { background-color: #FBEFD9; color: #94600B; }
+.bo .fl-state.is-inuse   { background-color: #FCE8E8; color: #B42318; }
+.bo .fl-state.is-billdue { background-color: #F7D4D4; color: #8E1B12; }
 
 .bo .fl-muted {
     color: var(--rr-muted);
@@ -913,9 +914,9 @@
     text-decoration: none;
 }
 
-.bo .tn-mini a.is-booked  { border: 1px dashed var(--bo-jade); color: var(--bo-jade); background-color: var(--rr-raised); }
-.bo .tn-mini a.is-inuse   { border-color: #BFE0D6; background-color: #E3F1EC; color: var(--bo-jade); }
-.bo .tn-mini a.is-billdue { border-color: var(--rr-accent); background-color: #F6E3E7; color: var(--rr-accent); }
+.bo .tn-mini a.is-booked  { border: 1px dashed #D99A2B; color: #94600B; background-color: var(--rr-raised); }
+.bo .tn-mini a.is-inuse   { border-color: #E07A7A; background-color: #FCE8E8; color: #B42318; }
+.bo .tn-mini a.is-billdue { border-color: #B42318; background-color: #F7D4D4; color: #8E1B12; }
 .bo .tn-mini a.selected   { outline: 2px solid var(--rr-ink); outline-offset: 1px; }
 
 .bo .tn-mini .fl-dot {
@@ -943,9 +944,9 @@
     vertical-align: -1px;
 }
 
-.bo .tn-legend .is-booked::before  { border: 1px dashed var(--bo-jade); }
-.bo .tn-legend .is-inuse::before   { background-color: #E3F1EC; border-color: #BFE0D6; }
-.bo .tn-legend .is-billdue::before { background-color: #F6E3E7; border-color: var(--rr-accent); }
+.bo .tn-legend .is-booked::before  { border: 1px dashed #D99A2B; }
+.bo .tn-legend .is-inuse::before   { background-color: #FCE8E8; border-color: #E07A7A; }
+.bo .tn-legend .is-billdue::before { background-color: #F7D4D4; border-color: #B42318; }
 
 .bo .tn-updated {
     margin: 0;
@@ -1624,10 +1625,138 @@
         justify-content: space-between;
     }
 
-    /* Narrower pills so all five fit at 375px (no sideways scroll, which would clip the More menu) */
+    /* Narrower pills so all six fit at 375px (no sideways scroll, which would clip the More menu) */
+    .bo-staff .st-tabs {
+        gap: 0;
+    }
+
     .bo-staff .st-tabs a,
     .bo-staff .st-tabs button {
-        padding: 0.375rem 0.625rem;
-        font-size: 0.8125rem;
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
     }
+}
+
+/* ---------------------------------------------------------------------------
+   12. Tables (Pages/Staff/Tables): big map on the left, the chosen table's
+   panel on the right (from mockup C, without its live tickets)
+   --------------------------------------------------------------------------- */
+.bo .tb {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.bo .tb-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.bo .tb-panel {
+    position: sticky;
+    top: 5.25rem;
+    max-height: calc(100vh - 6.5rem);
+    overflow-y: auto;
+    padding: 1.25rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 14px;
+    scroll-margin-top: 5.5rem;
+}
+
+.bo .tb-panel .bo-empty {
+    border: 0;
+    padding: 2rem 0.5rem;
+}
+
+@media (max-width: 1199.98px) {
+    .bo .tb {
+        grid-template-columns: minmax(0, 1fr) 340px;
+    }
+
+    .bo .tb-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Phone and small tablet: the panel goes under the map */
+@media (max-width: 991.98px) {
+    .bo .tb {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bo .tb-panel {
+        position: static;
+        max-height: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .bo .tb-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   13. Day stepper (Pages/Shared/_DayStepper.cshtml):  ‹  Today · Wed 4 Nov  ›  [Today]
+   --------------------------------------------------------------------------- */
+.bo .ds {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.bo .ds-arrow {
+    display: grid;
+    place-items: center;
+    width: 2.375rem;
+    height: 2.375rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 50%;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    font-size: 1.25rem;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.bo .ds-arrow:hover {
+    border-color: var(--rr-muted);
+}
+
+.bo .ds-day {
+    position: relative;
+    padding: 0.4375rem 1rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    background-color: var(--rr-raised);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.bo .ds-day b {
+    font-weight: 600;
+}
+
+/* The real date box covers the label but is invisible, so a tap opens the calendar */
+.bo .ds-day input[type="date"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.bo .ds-today {
+    padding: 0.4375rem 0.875rem;
+    border-radius: 999px;
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+    font-size: var(--rr-text-sm);
+    text-decoration: none;
+}
+
+.bo .ds-today:hover {
+    color: #FFFFFF;
 }

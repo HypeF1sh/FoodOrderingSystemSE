@@ -57,6 +57,17 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-04** — Jordan: **modern date pickers** (same branch, not committed yet). Compared with OpenTable / Grab /
+  Chope (booking) and calendar apps (day lists). **A · booking picker** (`_BookingPicker` partial +
+  `BookingPickerViewModel` + `wwwroot/js/booking-picker.js`): day strip for the next 14 days (closed days crossed
+  out, "Another date" for up to 60 days), 30-minute time chips inside opening hours up to the last seating, grouped
+  Lunch / Dinner (today hides slots inside the 30-min notice), guest chips 1–8; area chips on Book a table. Used on
+  Book a table, customer Change booking and staff Edit booking (Wallace's pages, markup only). **B · day stepper**
+  (`_DayStepper` + `DayStepperViewModel`): ‹ day › + Today on staff Bookings, Bills and Kitchen history; links change
+  only the page's own date field. Both post the **same field names as before**, so no PageModel/service change; the
+  server still checks hours, notice and overlaps. Covers most of **UX3**. Admin range picker (C) left as future work
+  (Dashboard already has quick ranges). Tested: today 7:00 PM for 4 found 4 tables; stepper on all 3 staff pages;
+  375 px. Full slots are not greyed out yet (would need an availability lookup in `ReservationService`).
 - **2026-11-04** — Jordan: **staff home redesigned as "Tonight"** (same branch). Picked from 4 static mockups
   (dark console, action inbox, three-pane cockpit, dark inbox): Jordan chose the **action inbox** plus the cockpit's
   table panel. The Floor page (still where staff land) is now a to-do list grouped Now / Next up, each row with its one
@@ -72,6 +83,15 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
   `_BackOfficeLayout` picks it when the user is Staff and not Administrator, so admins keep the side menu. Tonight has
   B's greeting, icon squares, waiting times, Now / Soon / Later groups, and side cards with a mini table map that opens
   the table panel. Jobs come first on phones. Markup/CSS only on top of the earlier FloorService change.
+  **Account settings for staff/admin:** Manage `_Layout` now uses `_BackOfficeAccountLayout` for Staff and
+  Administrator: a plain bar with the wordmark and "← Back to Tonight" (staff) or "← Back to Dashboard" (admin), no
+  customer links. Customers keep the normal site header.
+  **Tables tab** (from mockup C, without live tickets): new `/Staff/Tables` page, the full table map with the chosen
+  table's panel beside it (guests, orders, total, Take payment, Complete table). The panel markup moved into a shared
+  `Pages/Staff/_TablePanel.cshtml` (+ `TablePanelViewModel`) used by both Tonight's slide-in and Tables; its forms post
+  to the current page, and both pages have the same thin handlers calling the same services. Tested: pay order #7 in
+  cash → G1 "Paid · ready to complete" → Complete table → "Table completed.", G1 free. **Table colours changed**
+  (Jordan): free = plain, booked = amber dashed, in use = red, bill due = deeper red.
 - **2026-11-04** — Jordan: **staff pages made consistent** on `feature/UI-staff-consistency` (stacked on `feature/UI-account-settings`, PR #64). Wallace's
   Reservations, Billing and Reviews used a second style (long titles, Bootstrap badges as stats, cyan
   `alert-info` empty messages, "(PB12)/(PB13)" in labels). Added shared pieces to `backoffice.css` (`bo-head`

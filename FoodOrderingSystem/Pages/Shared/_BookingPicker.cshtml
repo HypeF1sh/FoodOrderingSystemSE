@@ -1,0 +1,83 @@
+@using System.Text.Json
+@using FoodOrderingSystem.Services
+@using FoodOrderingSystem.ViewModels
+@model BookingPickerViewModel
+@inject IOperatingHoursService OperatingHoursService
+@*
+    Booking picker, like OpenTable / Grab: tap a day, tap a time, tap the number of guests. No typing.
+    - Days: the next 14 days as chips; closed days are crossed out. "Another date" covers anything further ahead.
+    - Times: 30-minute slots inside opening hours, up to the last seating (closing time minus the 90-minute slot),
+      built by wwwroot/js/booking-picker.js for the chosen day. Today's slots that are too soon are hidden.
+    - Guests: 1 to 8 (the online limit), as chips.
+    Every choice is a plain radio button with the page's own field name, so the form posts exactly what it did before
+    and ReservationService still checks hours, notice and overlaps on the server.
+*@
+@{
+    var week = await OperatingHoursService.GetWeekAsync();
+    var hours = week.ToDictionary(
+        d => d.DayOfWeek,
+        d => new { open = d.OpenTime.ToString("HH:mm"), close = d.CloseTime.ToString("HH:mm"), closed = d.IsClosed });
+    var hoursJson = JsonSerializer.Serialize(hours);
+
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var days = Enumerable.Range(0, 14).Select(i => today.AddDays(i)).ToList();
+    // A booking further ahead than the strip (e.g. editing one for next month) still gets its own chip
+    if (!days.Contains(Model.Date) && Model.Date >= today)
+    {
+        days.Add(Model.Date);
+    }
+
+    bool IsClosed(DateOnly d) => week.FirstOrDefault(w => w.DayOfWeek == (int)d.DayOfWeek)?.IsClosed ?? false;
+    string TopLabel(DateOnly d) => d == today ? "Today" : d == today.AddDays(1) ? "Tmrw" : d.ToString("ddd");
+}
+
+<div class="bp" data-booking-picker
+     data-hours="@hoursJson"
+     data-time-name="@Model.TimeName"
+     data-selected-time="@Model.Time.ToString("HH:mm")"
+     data-today="@today.ToString("yyyy-MM-dd")"
+     data-min-advance="@ReservationService.MinAdvanceBookingMinutes"
+     data-dining="@ReservationService.DiningDurationMinutes">
+
+    <div class="bp-label">Day</div>
+    <div class="bp-days" role="radiogroup" aria-label="Day">
+        @foreach (var day in days)
+        {
+            var closed = IsClosed(day);
+            <label class="bp-day @(closed ? "is-closed" : "")">
+                <input type="radio" name="@Model.DateName" value="@day.ToString("yyyy-MM-dd")"
+                       checked="@(day == Model.Date && !closed)" disabled="@closed" />
+                <small>@TopLabel(day)</small>
+                <b>@day.Day</b>
+                <small>@(closed ? "Closed" : day.ToString("MMM"))</small>
+            </label>
+        }
+    </div>
+    <details class="bp-more">
+        <summary>Another date</summary>
+        <input type="date" class="form-control" data-other-date
+               min="@today.ToString("yyyy-MM-dd")"
+               max="@today.AddDays(ReservationService.MaxAdvanceBookingDays).ToString("yyyy-MM-dd")" />
+    </details>
+
+    <div class="bp-label">Time</div>
+    <div class="bp-slots" data-slots aria-live="polite">
+        @* Filled by booking-picker.js. Without JavaScript the plain time box below still works. *@
+        <noscript>
+            <input type="time" name="@Model.TimeName" value="@Model.Time.ToString("HH:mm")" step="1800" class="form-control" />
+        </noscript>
+    </div>
+
+    <div class="bp-label">Guests</div>
+    <div class="bp-chips" role="radiogroup" aria-label="Guests">
+        @for (var n = 1; n <= ReservationService.MaxOnlinePartySize; n++)
+        {
+            <label class="bp-chip">
+                <input type="radio" name="@Model.PartyName" value="@n" checked="@(n == Model.PartySize)" />
+                <span>@n</span>
+            </label>
+        }
+    </div>
+</div>
+
+<script src="~/js/booking-picker.js" asp-append-version="true"></script>

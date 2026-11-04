@@ -1,0 +1,61 @@
+@using Microsoft.AspNetCore.Http
+@using Microsoft.Extensions.Primitives
+@using FoodOrderingSystem.ViewModels
+@model DayStepperViewModel
+@*
+    Staff day stepper:  ‹  Today · Wed 4 Nov  ›   [Today]
+    The arrows go back or forward one day, the date opens the calendar, and Today jumps back. Each one is a link to
+    the same page with the page's own date field changed in the query string, so the PageModels are unchanged.
+    The hidden input keeps the day when a surrounding filter form is submitted.
+*@
+@{
+    var today = DateOnly.FromDateTime(DateTime.Today);
+
+    // Same page, same query string, with only the date field changed (and any DropKeys removed)
+    string UrlFor(DateOnly day)
+    {
+        var query = Context.Request.Query
+            .Where(q => !string.Equals(q.Key, Model.FieldName, StringComparison.OrdinalIgnoreCase)
+                        && !Model.DropKeys.Contains(q.Key, StringComparer.OrdinalIgnoreCase)
+                        && !string.Equals(q.Key, "handler", StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(q => q.Key, q => q.Value);
+        query[Model.FieldName] = new StringValues(day.ToString("yyyy-MM-dd"));
+        return Context.Request.Path + QueryString.Create(query);
+    }
+
+    var label = Model.Date == today ? "Today"
+        : Model.Date == today.AddDays(-1) ? "Yesterday"
+        : Model.Date == today.AddDays(1) ? "Tomorrow"
+        : Model.Date.ToString("dddd");
+}
+
+<div class="ds" data-day-stepper data-base-url="@UrlFor(today)" data-field="@Model.FieldName">
+    <input type="hidden" name="@Model.FieldName" value="@Model.Date.ToString("yyyy-MM-dd")" />
+    <a class="ds-arrow" href="@UrlFor(Model.Date.AddDays(-1))" aria-label="Previous day">‹</a>
+    <label class="ds-day">
+        <span><b>@label</b> · @Model.Date.ToString("ddd d MMM")</span>
+        @* Invisible date box over the label: tapping the date opens the browser's calendar *@
+        <input type="date" value="@Model.Date.ToString("yyyy-MM-dd")" aria-label="Pick a day" data-ds-pick />
+    </label>
+    <a class="ds-arrow" href="@UrlFor(Model.Date.AddDays(1))" aria-label="Next day">›</a>
+    @if (Model.Date != today)
+    {
+        <a class="ds-today" href="@UrlFor(today)">Today</a>
+    }
+</div>
+
+<script>
+    // Picking a day in the calendar goes to the same link the arrows use, with that day
+    document.querySelectorAll('[data-day-stepper]').forEach(function (stepper) {
+        const pick = stepper.querySelector('[data-ds-pick]');
+        if (pick.dataset.ready) { return; }
+        pick.dataset.ready = 'true';
+        pick.addEventListener('click', function () { if (pick.showPicker) { try { pick.showPicker(); } catch (e) { } } });
+        pick.addEventListener('change', function () {
+            if (!pick.value) { return; }
+            const url = new URL(stepper.dataset.baseUrl, window.location.origin);
+            url.searchParams.set(stepper.dataset.field, pick.value);
+            window.location.href = url.toString();
+        });
+    });
+</script>

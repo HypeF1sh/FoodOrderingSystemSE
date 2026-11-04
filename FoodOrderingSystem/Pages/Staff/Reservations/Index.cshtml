@@ -28,9 +28,11 @@
     <div class="bo-filters">
         <div>
             <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label asp-for="FilterDate" class="form-label">Date</label>
-                    <input asp-for="FilterDate" type="date" class="form-control" />
+                @* Day stepper: ‹ day › and Today change FilterDate straight away; its hidden FilterDate field keeps the
+                   day when the other filters are applied. Stepping clears "Show all dates". *@
+                <div class="col-12">
+                    <label class="form-label d-block">Day</label>
+                    <partial name="_DayStepper" model='new FoodOrderingSystem.ViewModels.DayStepperViewModel(Model.FilterDate ?? DateOnly.FromDateTime(DateTime.Today), "FilterDate", "ShowAllDates")' />
                 </div>
 
                 <div class="col-md-2">

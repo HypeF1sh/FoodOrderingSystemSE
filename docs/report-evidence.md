@@ -35,6 +35,29 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-11-04 | Account settings redesign (`feature/UI-account-settings`) | See the detailed entry below |
 | 2026-11-04 | Staff pages made consistent (`feature/UI-staff-consistency`) | See the detailed entry below |
 | 2026-11-04 | Staff home "Tonight": to-do list + table panel | See the detailed entry below |
+| 2026-11-04 | Modern date pickers: booking day strip + time chips, staff day stepper | See the detailed entry below |
+
+### 2026-11-04 — Modern date pickers
+
+**Ch.5 screenshots to capture**
+1. Book a table before (date box + time box + number spinner) and after (day strip, time chips, guest chips).
+2. Book a table at phone width: swiping the day strip.
+3. Staff Bookings with the day stepper on "Tomorrow".
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U19 | Open Book a table | Next 14 days as chips, Saturdays crossed out "Closed", tomorrow selected, 6:00 PM selected | As expected |
+| TC-U20 | Tap Today | Only times from now + 30 min appear (e.g. 5:00 PM onwards at 4:30 PM) | As expected |
+| TC-U21 | Today, 7:00 PM, 4 guests, Find a table | "4 available" tables for 7:00–8:30 PM; the picker keeps the choices | As expected |
+| TC-U22 | Staff Bookings: press › then Today | Shows "Tomorrow · Thu 5 Nov", then back to today | As expected |
+
+**Ch.7 reflection notes**
+- *Design by prevention.* The old form let customers type a closed day or a time outside opening hours and only told them after submitting. The picker only offers choices that can work; the server still validates in case the page is bypassed.
+- *No back-end change.* The picker posts the same field names as the old inputs, so Wallace's PageModels and `ReservationService` did not change.
+
+**AI use declaration note:** Claude (Anthropic) was used to research patterns and draft the partials, JavaScript and CSS. [Write here your own part, only true statements.]
 
 ### 2026-11-04 — Staff home "Tonight": to-do list + table panel
 

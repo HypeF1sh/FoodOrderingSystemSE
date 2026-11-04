@@ -22,16 +22,9 @@
         <div class="col-md-7">
             <div class="bo-filters h-100 mb-0">
                 <div>
-                    <form method="get" class="row g-2 align-items-end">
-                        <div class="col-sm-6">
-                            <label class="form-label">Date</label>
-                            <input type="date" name="FilterDate" value="@Model.EffectiveDate.ToString("yyyy-MM-dd")" class="form-control" />
-                        </div>
-                        <div class="col-sm-6 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-grow-1">Show</button>
-                            <a asp-page="Index" class="btn btn-outline-secondary">Today</a>
-                        </div>
-                    </form>
+                    <label class="form-label d-block">Day</label>
+                    @* Day stepper: ‹ day › and Today, links that change FilterDate in the URL *@
+                    <partial name="_DayStepper" model='new FoodOrderingSystem.ViewModels.DayStepperViewModel(Model.EffectiveDate, "FilterDate")' />
                 </div>
             </div>
         </div>
