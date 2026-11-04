@@ -4,24 +4,25 @@
    each page carries its own copy.
    =========================================================================== */
 
-/* Two columns on wide screens: brand panel, then the form */
+/* Two columns on wide screens: brand text, then the form card.
+   No box of its own - it sits on the green page from _AuthLayout.
+   Same columns and card width as Register, so the two pages match. */
 .rr-auth {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    min-height: 34rem;
-    margin: 2.5rem 0 1rem;
-    overflow: hidden;
-    background-color: var(--rr-raised);
-    border: 1px solid var(--rr-line);
-    border-radius: 0.75rem;
+    grid-template-columns: 2fr 3fr;
+    min-height: 30rem;
 }
 
+/* White card, very slightly see-through so a hint of the tile pattern shows */
 .rr-auth-form {
     align-self: center;
     width: 100%;
-    max-width: 26rem;
+    max-width: 34rem;
     margin: 0 auto;
     padding: 2.5rem 2rem;
+    background-color: rgba(255, 255, 255, 0.93);
+    border-radius: 0.75rem;
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.25);
 }
 
 .rr-auth-form h1 {
@@ -70,17 +71,14 @@
     color: var(--rr-muted);
 }
 
-/* Phone: one column, no box - the form is the page */
+/* Phone: one column, just the card on the green page */
 @media (max-width: 767.98px) {
     .rr-auth {
         grid-template-columns: 1fr;
         min-height: 0;
-        margin-top: 1.5rem;
-        background-color: transparent;
-        border: 0;
     }
 
     .rr-auth-form {
-        padding: 0;
+        padding: 1.75rem 1.25rem;
     }
 }

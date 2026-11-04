@@ -56,6 +56,19 @@ Carynn's pages (Domain A), restyled with her OK. Markup and page CSS only; her C
 - *Styles did not change after editing.* Scoped CSS (`.cshtml.css`) is bundled at build time, so the running app kept the old bundle until it was restarted.
 - *Links stayed blue.* Bootstrap 5.3 reads `--bs-link-color-rgb`, not `--bs-link-color`, so overriding the second did nothing. Fixed on these pages with a scoped rule; the site-wide fix belongs in the shared `site.css`.
 - *Tag-helper elements and scoped CSS.* `<a asp-page>` and `asp-validation-summary` are rendered without the scope attribute, so they are styled with `::deep` from a plain parent element.
+- *Hiding the navbar without touching the shared layout.* After review I wanted a focused sign-in page (no nav links, full-page green background). Editing `_Layout.cshtml` would need group agreement, so Login and Register got their own `_AuthLayout` instead: same head, header bar and footer, minus the links.
+
+- *Layout that fits any screen.* The page sat in a narrow 1120 px column with empty sides, and the footer stacked into three lines on phones. Fixed with responsive CSS rather than JavaScript: full-width header/footer bars, a wider content cap, and a gutter set with `clamp()` so spacing grows with the screen.
+- *Following familiar patterns.* Compared with Grab / foodpanda / OpenTable: logo top-left goes home, one "Log in" button for guests, an avatar menu top-right once signed in. I kept the account top-right (not under the logo) because that is where users look for it.
+
+**Ch.5 screenshots to add:** Login at desktop width after the follow-up (white header with only the wordmark, green page, see-through card, slim footer); home page as a guest (single Log in button); the open avatar menu at desktop and at phone width.
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U05 | As a guest, open any customer page | Header shows only one "Log in" button on the right | As expected |
+| TC-U06 | Log in as customer, click the avatar | Menu shows name, email, My account, Password and security, Log out; Log out signs out | As expected |
+| TC-U07 | Log in as staff, open /Menu, click the avatar | Menu also shows Back office | As expected |
+| TC-U08 | Open the home page at phone width | Avatar stays visible next to the menu button; footer is one line | As expected |
 
 **AI use declaration note:** Claude (Anthropic) was used to draft the markup and CSS. [Write here your own part, only true statements.]
 | 2026-11-03 | Table QR ordering (PB14) | See the detailed entry below — TC-Q01–Q07 passed 3/11 |

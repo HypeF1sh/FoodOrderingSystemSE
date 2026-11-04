@@ -32,7 +32,9 @@
     --rr-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
 
     /* Spacing step and corner radius */
-    --rr-gutter: 1rem;
+    /* Side gutter grows with the screen: 16px on a phone, up to 40px on a wide monitor.
+       clamp(min, preferred, max) is what makes the layout fit any width without JavaScript. */
+    --rr-gutter: clamp(1rem, 3vw, 2.5rem);
     --rr-radius: 0.375rem;
 
     /* --- Bootstrap variable overrides (Bootstrap reads these itself) --- */
@@ -73,11 +75,17 @@ main {
     flex: 1 0 auto;
 }
 
-/* Keep a 16px gutter at phone width so nothing touches the screen edge.
-   The width cap stops content stranding itself on the left of a wide monitor -
-   the navbar, page body and footer all share it so everything stays aligned. */
+/* Page content: the fluid gutter, and a cap wide enough to use a laptop screen
+   but short enough that text lines stay readable on a big monitor. */
 .container {
-    max-width: 1120px;
+    max-width: 1320px;
+    padding-left: var(--rr-gutter);
+    padding-right: var(--rr-gutter);
+}
+
+/* Header and footer bars run edge to edge (container-fluid), with the same gutter */
+.rr-header .container-fluid,
+.rr-footer .container-fluid {
     padding-left: var(--rr-gutter);
     padding-right: var(--rr-gutter);
 }
@@ -333,6 +341,73 @@ h3 { font-size: var(--rr-h3); }
     gap: 0.75rem;
 }
 
+/* Signed in: initials circle + first name, opening the account menu */
+.rr-account-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    font-size: 0.9375rem;
+}
+
+.rr-account-toggle:hover,
+.rr-account-toggle:focus,
+.rr-account-toggle.show {
+    border-color: var(--rr-muted);
+}
+
+.rr-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.rr-account-menu {
+    min-width: 14rem;
+    padding: 0.375rem;
+    border-color: var(--rr-line);
+    border-radius: 0.625rem;
+    box-shadow: 0 0.75rem 2rem rgba(15, 46, 43, 0.12);
+    font-size: 0.9375rem;
+}
+
+.rr-account-menu .dropdown-header {
+    color: var(--rr-ink);
+    white-space: normal;
+}
+
+.rr-account-menu .dropdown-header small {
+    display: block;
+    color: var(--rr-muted);
+    font-weight: 400;
+}
+
+.rr-account-menu .dropdown-item {
+    border-radius: var(--rr-radius);
+    color: var(--rr-ink);
+}
+
+.rr-account-menu .dropdown-item:hover,
+.rr-account-menu .dropdown-item:focus {
+    background-color: var(--rr-surface);
+}
+
+.rr-account-menu .rr-logout {
+    color: var(--rr-accent);
+}
+
 /* Keep the hamburger quiet */
 .rr-header .navbar-toggler {
     border-color: var(--rr-line);
@@ -343,22 +418,22 @@ h3 { font-size: var(--rr-h3); }
     box-shadow: none;
 }
 
-/* One quiet row above a hairline. Wraps on narrow screens. */
+/* One quiet row above a hairline - stays one row on phones too */
 .rr-footer {
     flex-shrink: 0;
     margin-top: 4rem;
-    padding: 1.5rem 0;
+    padding: 1rem 0;
     background-color: var(--rr-raised);
     border-top: 1px solid var(--rr-line);
     font-size: var(--rr-text-sm);
     color: var(--rr-muted);
 }
 
-.rr-footer .container {
+.rr-footer .container-fluid {
     display: flex;
-    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.5rem 1.5rem;
+    gap: 1.5rem;
+    white-space: nowrap;
 }
 
 .rr-footer-mark {
@@ -398,18 +473,17 @@ h3 { font-size: var(--rr-h3); }
         display: none;
     }
 
-    .rr-account {
-        margin-top: 0.5rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid var(--rr-line);
+    /* Just the avatar on a phone; the name is in the menu header */
+    .rr-account-name {
+        display: none;
     }
 
-    .rr-footer .container {
-        flex-direction: column;
+    .rr-account-toggle {
+        padding: 0.125rem;
     }
 
-    .rr-footer-meta:last-of-type {
-        margin-left: 0;
+    .rr-footer .container-fluid {
+        gap: 1rem;
     }
 }
 

@@ -33,11 +33,17 @@
 <body>
     <header class="rr-header">
         <nav class="navbar navbar-expand-md">
-            <div class="container">
+            <div class="container-fluid">
 
                 <a class="navbar-brand rr-wordmark" asp-page="/Index">@RestaurantName</a>
 
-                <button class="navbar-toggler"
+                @* Account sits outside the collapsing menu so it stays visible on phones:
+                   order-md-last puts it at the far right on wider screens *@
+                <div class="rr-account ms-auto order-md-last">
+                    <partial name="_LoginPartial" />
+                </div>
+
+                <button class="navbar-toggler ms-2"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#rrNav"
@@ -106,10 +112,6 @@
                         }
                     </ul>
 
-                    <div class="rr-account">
-                        <partial name="_LoginPartial" />
-                    </div>
-
                 </div>
             </div>
         </nav>
@@ -124,7 +126,7 @@
     </main>
 
     <footer class="rr-footer">
-        <div class="container">
+        <div class="container-fluid">
             <span class="rr-footer-mark">@RestaurantName</span>
             <a asp-page="/Privacy">Privacy</a>
             <span class="rr-footer-meta">&copy; @DateTime.Now.Year</span>

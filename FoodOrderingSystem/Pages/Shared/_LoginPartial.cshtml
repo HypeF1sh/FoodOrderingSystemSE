@@ -3,30 +3,64 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
-<ul class="navbar-nav">
+@*
+    Top-right account area, the same pattern as most apps:
+    - guest: one "Log in" button (Register is linked from the login page)
+    - signed in: initials + first name; clicking opens a small menu with the account pages and Log out
+*@
 @if (SignInManager.IsSignedIn(User))
 {
     var currentUser = await UserManager.GetUserAsync(User);
     var displayName = string.IsNullOrWhiteSpace(currentUser?.FullName)
-        ? User.Identity?.Name
+        ? User.Identity?.Name ?? "Account"
         : currentUser.FullName;
+    var email = currentUser?.Email ?? User.Identity?.Name;
 
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @displayName!</a>
-    </li>
-    <li class="nav-item">
-        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })" method="post">
-            <button type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
-        </form>
-    </li>
+    // Initials from the first two words of the name ("Jordan Lee" -> "JL"); one letter for an email
+    var nameParts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = string.Concat(nameParts.Take(2).Select(part => char.ToUpperInvariant(part[0])));
+    var firstName = nameParts.Length > 0 ? nameParts[0] : displayName;
+
+    var isBackOfficeUser = User.IsInRole("Administrator") || User.IsInRole("Staff");
+
+    <div class="dropdown">
+        <button class="rr-account-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Account menu for @displayName">
+            <span class="rr-avatar" aria-hidden="true">@initials</span>
+            <span class="rr-account-name">@firstName</span>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end rr-account-menu">
+            <li>
+                <h6 class="dropdown-header">
+                    @displayName
+                    <small>@email</small>
+                </h6>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">My account</a></li>
+            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/ChangePassword">Password and security</a></li>
+            @if (isBackOfficeUser)
+            {
+                <li>
+                    <a class="dropdown-item"
+                       asp-area=""
+                       asp-page="@(User.IsInRole("Administrator") ? "/Admin/Dashboard/Index" : "/Staff/Floor/Index")">Back office</a>
+                </li>
+            }
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })" method="post">
+                    <button type="submit" class="dropdown-item rr-logout">Log out</button>
+                </form>
+            </li>
+        </ul>
+    </div>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
+    <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Login">Log in</a>
 }
-</ul>
