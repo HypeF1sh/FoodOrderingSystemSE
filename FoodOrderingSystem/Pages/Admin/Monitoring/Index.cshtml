@@ -154,7 +154,7 @@
                     {
                         <tr>
                             <td>#@o.OrderId</td>
-                            <td>@o.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            <td>@o.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
                             <td>@o.CustomerName</td>
                             <td>@o.Lines.Count</td>
                             <td class="text-end">RM @o.TotalAmount.ToString("N2")</td>
@@ -202,7 +202,7 @@
                     {
                         <tr>
                             <td>#@p.PaymentId</td>
-                            <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            <td>@p.PaidAt.ToString("dd MMM yyyy HH:mm")</td>
                             <td>#@p.OrderId</td>
                             <td>@p.CustomerName</td>
                             <td>@p.Method</td>

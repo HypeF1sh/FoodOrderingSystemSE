@@ -10,17 +10,21 @@
     var toText = Model.SelectedTo.ToString("yyyy-MM-dd");
 }
 
-<style media="print">
-    .rr-header, .rr-footer, .no-print { display: none !important; }
-    .container { max-width: 100% !important; }
-    .card a.align-self-start { display: none !important; }
-</style>
+<link rel="stylesheet" href="~/css/report-print.css" media="print" asp-append-version="true" />
 
-<div class="container mt-4">
-    <div class="mb-3">
+<div class="container mt-4 print-area">
+    <div class="mb-3 d-print-none">
         <h1 class="mb-1">Dashboard</h1>
         <p class="text-muted mb-0">Sales, bookings and popular dishes for the dates you choose.</p>
     </div>
+
+<div class="print-header d-none d-print-block">
+    <h1 class="print-title">Dashboard report</h1>
+    <div class="print-meta">
+        Period: @Model.SelectedFrom.ToString("dd MMM yyyy") &ndash; @Model.SelectedTo.ToString("dd MMM yyyy")
+        &middot; Printed @DateTime.Now.ToString("dd MMM yyyy HH:mm")
+    </div>
+</div>
 
     <!-- Filter bar: a GET form, so the chosen range is in the URL and can be bookmarked.
          admin-dashboard.js submits it as soon as a date or the grouping changes. -->
@@ -67,7 +71,7 @@
         </div>
 
         <!-- Headline numbers -->
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4 print-tiles">
             <div class="col-6 col-xl-3">
                 <div class="card h-100 rr-stat">
                     <div class="card-body">
@@ -167,4 +171,24 @@
     }
     @* Always loaded: it also submits the filter form on change, which is needed even when the range is invalid *@
     <script src="~/js/admin-dashboard.js" asp-append-version="true"></script>
+
+    <script>
+        // PB24: before printing, swap each chart for a picture of it, so it scales to fit its card
+        window.addEventListener('beforeprint', function () {
+            document.querySelectorAll('.rr-chart canvas').forEach(function (canvas) {
+                var img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                img.className = 'print-chart-img';
+                img.alt = canvas.getAttribute('aria-label') || 'Chart';
+                img.style.width = canvas.clientWidth + 'px';
+                canvas.style.display = 'none';
+                canvas.parentNode.insertBefore(img, canvas);
+            });
+        });
+
+        window.addEventListener('afterprint', function () {
+            document.querySelectorAll('.print-chart-img').forEach(function (img) { img.remove(); });
+            document.querySelectorAll('.rr-chart canvas').forEach(function (canvas) { canvas.style.display = ''; });
+        });
+    </script>
 }
