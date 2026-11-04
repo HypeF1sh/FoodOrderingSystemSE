@@ -57,6 +57,16 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-04** — Jordan: **site shell and account menu** on `feature/UI-shell-account-menu` (off `dev`, after PR #62).
+  Login and Register now use their own `_AuthLayout` (in `Areas/Identity/Pages/Account/`): white header with only the
+  wordmark and one **Sign up** / **Log in** button (no nav links), the green tile pattern fills the page, the form is a
+  white card at 93% opacity (same width on both pages), and the footer is one slim line. **Shared files** (Jordan owns
+  layout/styling; group heads-up needed): `_Layout.cshtml`, `_LoginPartial.cshtml` (Carynn's partial), `site.css`.
+  Header and footer bars are full width (`container-fluid`); page content cap 1120 → 1320 px; side gutter is
+  `clamp(1rem, 3vw, 2.5rem)` so it scales with the screen; footer stays one line on phones. Guests see one **Log in**
+  button; signed-in users see an initials avatar + first name that opens a menu (My account, Password and security,
+  Back office for staff/admin, Log out). The avatar sits outside the collapsing menu so it stays visible on phones.
+  Back office layout unchanged. Build 0 warnings; checked as guest, customer and staff at 557 px and 1440 px.
 - **2026-11-04** — Jordan (Carynn's OK via Jordan): **login and register restyled** on `feature/UI-auth-pages` (off `dev`).
   Split screen like the Uber Eats / OpenTable / Grab sign-in pages: a teal brand panel with a Peranakan tile pattern
   (inline SVG, no image file) on the left and the form on the right; on phones the form takes the whole screen.

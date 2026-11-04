@@ -1,0 +1,66 @@
+@*
+    Layout for Log in and Register only. Same head and footer as the main _Layout, but no navbar:
+    the green tiled background fills the whole page and the form card sits on top of it.
+    A separate layout keeps the shared _Layout.cshtml untouched.
+*@
+@{
+    const string RestaurantName = "Rumah Rasa";
+
+    // The header offers the other page: Sign up while logging in, Log in while registering
+    var onRegister = ViewContext.RouteData.Values["page"]?.ToString() == "/Account/Register";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @RestaurantName</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
+</head>
+<body>
+    @* Same white header bar as the main layout, but no navigation links, so the user can focus on
+       signing in. The wordmark goes home (as on every page); the one button swaps Log in / Sign up. *@
+    <header class="rr-header">
+        <nav class="navbar">
+            <div class="container-fluid">
+                <a class="navbar-brand rr-wordmark" asp-area="" asp-page="/Index">@RestaurantName</a>
+                @if (onRegister)
+                {
+                    <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Login">Log in</a>
+                }
+                else
+                {
+                    <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Register">Sign up</a>
+                }
+            </div>
+        </nav>
+    </header>
+
+    <main class="rr-auth-page">
+        <div class="rr-auth-tiles" aria-hidden="true"></div>
+
+        <div class="container rr-auth-container">
+            <partial name="_Banners" />
+
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="rr-footer rr-auth-footer">
+        <div class="container-fluid">
+            <span class="rr-footer-mark">@RestaurantName</span>
+            <a asp-area="" asp-page="/Privacy">Privacy</a>
+            <span class="rr-footer-meta">&copy; @DateTime.Now.Year</span>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

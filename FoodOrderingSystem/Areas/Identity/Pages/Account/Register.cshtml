@@ -2,77 +2,77 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Register";
+    // No navbar here: the auth layout fills the page with the green background
+    Layout = "_AuthLayout";
 }
 
 @*
     Same split screen as Log in. Fields pair up on wide screens and stack on phones.
     Only the markup changed - RegisterModel and its validation are untouched.
 *@
-<div class="container">
-    <div class="rr-auth">
-        <partial name="_AuthBrand" />
+<div class="rr-auth">
+    <partial name="_AuthBrand" />
 
-        <section class="rr-auth-form">
-            <h1>Create your account</h1>
-            <p class="text-muted">It takes a minute, then you can book and order online.</p>
+    <section class="rr-auth-form">
+        <h1>Create your account</h1>
+        <p class="text-muted">It takes a minute, then you can book and order online.</p>
 
-            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-sm-6">
-                        <div class="form-floating">
-                            <input asp-for="Input.FullName" class="form-control" autocomplete="name" placeholder="Full name" />
-                            <label asp-for="Input.FullName">Full name</label>
-                        </div>
-                        <span asp-validation-for="Input.FullName" class="text-danger small"></span>
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.FullName" class="form-control" autocomplete="name" placeholder="Full name" />
+                        <label asp-for="Input.FullName">Full name</label>
                     </div>
-                    <div class="col-sm-6">
-                        <div class="form-floating">
-                            <input asp-for="Input.PhoneNumber" class="form-control" type="tel" autocomplete="tel" placeholder="Phone number" />
-                            <label asp-for="Input.PhoneNumber">Phone number</label>
-                        </div>
-                        <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
-                    </div>
+                    <span asp-validation-for="Input.FullName" class="text-danger small"></span>
                 </div>
-
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
-                </div>
-
-                <div class="row g-3 mb-2">
-                    <div class="col-sm-6">
-                        <div class="form-floating">
-                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" aria-describedby="password-rules" placeholder="password" />
-                            <label asp-for="Input.Password">Password</label>
-                        </div>
-                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                <div class="col-sm-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.PhoneNumber" class="form-control" type="tel" autocomplete="tel" placeholder="Phone number" />
+                        <label asp-for="Input.PhoneNumber">Phone number</label>
                     </div>
-                    <div class="col-sm-6">
-                        <div class="form-floating">
-                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                            <label asp-for="Input.ConfirmPassword">Confirm password</label>
-                        </div>
-                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
-                    </div>
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
                 </div>
+            </div>
 
-                @* Mirrors the password options in Program.cs, so people know the rules before they submit *@
-                <p id="password-rules" class="rr-auth-hint mb-4">
-                    At least 8 characters, with an uppercase letter, a lowercase letter, a number and a symbol.
-                </p>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            </div>
 
-                <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Create account</button>
-            </form>
+            <div class="row g-3 mb-2">
+                <div class="col-sm-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" aria-describedby="password-rules" placeholder="password" />
+                        <label asp-for="Input.Password">Password</label>
+                    </div>
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                        <label asp-for="Input.ConfirmPassword">Confirm password</label>
+                    </div>
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                </div>
+            </div>
 
-            <p class="rr-auth-switch">
-                Already have an account?
-                <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a>
+            @* Mirrors the password options in Program.cs, so people know the rules before they submit *@
+            <p id="password-rules" class="rr-auth-hint mb-4">
+                At least 8 characters, with an uppercase letter, a lowercase letter, a number and a symbol.
             </p>
-        </section>
-    </div>
+
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Create account</button>
+        </form>
+
+        <p class="rr-auth-switch">
+            Already have an account?
+            <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a>
+        </p>
+    </section>
 </div>
 
 @section Scripts {

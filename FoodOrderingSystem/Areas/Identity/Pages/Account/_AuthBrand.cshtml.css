@@ -1,40 +1,16 @@
 /* ===========================================================================
    Styles scoped to _AuthBrand.cshtml (CSS isolation).
-   Deep teal panel with a Peranakan-style tile pattern in the plum accent.
+   White wordmark and tagline on the green page background from _AuthLayout.
    =========================================================================== */
 
 .rr-auth-brand {
-    position: relative;
     display: flex;
     align-items: flex-end;
-    min-height: 100%;
-    padding: 2.5rem;
-    overflow: hidden;
-    background-color: var(--rr-ink);
+    padding: 2.5rem 2.5rem 2.5rem 0;
     color: #FFFFFF;
 }
 
-/* The tile: one 64px SVG (a flower in a diamond, quarter rings in the corners)
-   repeated across the panel. Inline as a data URI, so there is no image file. */
-.rr-auth-brand-tiles {
-    position: absolute;
-    inset: 0;
-    opacity: 0.55;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' fill='none' stroke='%23C4566D' stroke-width='1.5'%3E%3Cpath d='M32 8 56 32 32 56 8 32Z'/%3E%3Ccircle cx='32' cy='32' r='7'/%3E%3Cpath d='M32 25v-6M32 39v6M25 32h-6M39 32h6'/%3E%3Ccircle cx='0' cy='0' r='10'/%3E%3Ccircle cx='64' cy='0' r='10'/%3E%3Ccircle cx='0' cy='64' r='10'/%3E%3Ccircle cx='64' cy='64' r='10'/%3E%3C/svg%3E");
-    background-size: 64px 64px;
-}
-
-/* Darkens the bottom so the wordmark sits on a calm area */
-.rr-auth-brand::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, var(--rr-ink) 20%, rgba(15, 46, 43, 0.2) 75%);
-}
-
 .rr-auth-brand-text {
-    position: relative;
-    z-index: 1;
     max-width: 22rem;
 }
 

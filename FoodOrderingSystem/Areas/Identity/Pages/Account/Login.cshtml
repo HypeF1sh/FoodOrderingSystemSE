@@ -3,52 +3,52 @@
 
 @{
     ViewData["Title"] = "Log in";
+    // No navbar here: the auth layout fills the page with the green background
+    Layout = "_AuthLayout";
 }
 
 @*
-    Split screen: brand panel on the left, form on the right (form only on phones).
+    Split screen: brand text on the left, form card on the right (form only on phones).
     Only the markup changed - LoginModel, its fields and the lockout rule are untouched.
 *@
-<div class="container">
-    <div class="rr-auth">
-        <partial name="_AuthBrand" />
+<div class="rr-auth">
+    <partial name="_AuthBrand" />
 
-        <section class="rr-auth-form">
-            <h1>Welcome back</h1>
-            <p class="text-muted">Log in to book a table, order and pay.</p>
+    <section class="rr-auth-form">
+        <h1>Welcome back</h1>
+        <p class="text-muted">Log in to book a table, order and pay.</p>
 
-            <form id="account" method="post">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <form id="account" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            </div>
+
+            <div class="form-floating mb-2">
+                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.Password">Password</label>
+                <span asp-validation-for="Input.Password" class="text-danger small"></span>
+            </div>
+
+            <div class="rr-auth-row mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    <label class="form-check-label" asp-for="Input.RememberMe">Remember me</label>
                 </div>
+                <a id="forgot-password" asp-page="./ForgotPassword">Forgot password?</a>
+            </div>
 
-                <div class="form-floating mb-2">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
-                </div>
+            <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+        </form>
 
-                <div class="rr-auth-row mb-4">
-                    <div class="form-check">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        <label class="form-check-label" asp-for="Input.RememberMe">Remember me</label>
-                    </div>
-                    <a id="forgot-password" asp-page="./ForgotPassword">Forgot password?</a>
-                </div>
-
-                <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-            </form>
-
-            <p class="rr-auth-switch">
-                New here?
-                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a>
-            </p>
-        </section>
-    </div>
+        <p class="rr-auth-switch">
+            New here?
+            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a>
+        </p>
+    </section>
 </div>
 
 @section Scripts {
