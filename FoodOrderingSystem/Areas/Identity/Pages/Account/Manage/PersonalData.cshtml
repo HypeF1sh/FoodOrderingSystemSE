@@ -1,24 +1,23 @@
 @page
 @model PersonalDataModel
 @{
-    ViewData["Title"] = "Personal Data";
+    ViewData["Title"] = "Privacy and data";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 }
 
-<h3>@ViewData["Title"]</h3>
+<div class="rr-acct-card">
+    <h2>Privacy and data</h2>
+    <p class="rr-acct-lead">Your account holds the details you gave us. You can download a copy at any time.</p>
 
-<div class="row">
-    <div class="col-md-6">
-        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
-        <p>
-            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-        </p>
-        <form id="download-data" asp-page="DownloadPersonalData" method="post">
-            <button class="btn btn-primary" type="submit">Download</button>
-        </form>
-        <p>
-            <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger">Delete</a>
-        </p>
+    <form id="download-data" asp-page="DownloadPersonalData" method="post">
+        <button class="btn btn-outline-secondary" type="submit">Download my data</button>
+    </form>
+
+    @* Kept apart and in red: deleting cannot be undone *@
+    <div class="rr-acct-danger">
+        <h3 class="h6 mb-1">Delete account</h3>
+        <p class="rr-acct-hint">This permanently removes your account. It can't be recovered.</p>
+        <a id="delete" asp-page="DeletePersonalData" class="btn btn-outline-danger">Delete account</a>
     </div>
 </div>
 

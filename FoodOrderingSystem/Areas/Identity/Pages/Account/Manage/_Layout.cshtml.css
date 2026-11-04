@@ -1,0 +1,237 @@
+/* ===========================================================================
+   Styles scoped to the account settings layout (CSS isolation).
+   The menu links and each page's card come from other files, so they are
+   reached with ::deep from an element that belongs to this layout.
+   =========================================================================== */
+
+.rr-acct {
+    padding-top: 2rem;
+}
+
+.rr-acct-head h1 {
+    margin-bottom: 0.25rem;
+}
+
+.rr-acct-head p {
+    margin-bottom: 1.5rem;
+    color: var(--rr-muted);
+}
+
+/* Profile card + menu on the left, the section's card on the right */
+.rr-acct-grid {
+    display: grid;
+    grid-template-columns: 17rem minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.rr-acct-side {
+    position: sticky;
+    top: 5.5rem;
+    padding: 1.25rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 0.75rem;
+}
+
+.rr-acct-who {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rr-line);
+}
+
+.rr-acct-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 0.75rem;
+    border-radius: 50%;
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.rr-acct-name {
+    margin-bottom: 0.125rem;
+    font-weight: 600;
+}
+
+.rr-acct-email {
+    margin-bottom: 0.5rem;
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+    word-break: break-all;
+}
+
+.rr-acct-role {
+    display: inline-block;
+    padding: 0.125rem 0.625rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    color: var(--rr-muted);
+    font-size: 0.75rem;
+}
+
+/* Menu: a quiet list with the current section marked by an accent bar */
+.rr-acct-side ::deep .rr-acct-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.rr-acct-side ::deep .rr-acct-nav a {
+    padding: 0.5rem 0.75rem;
+    border-left: 3px solid transparent;
+    border-radius: 0 var(--rr-radius) var(--rr-radius) 0;
+    color: var(--rr-muted);
+    text-decoration: none;
+}
+
+.rr-acct-side ::deep .rr-acct-nav a:hover {
+    background-color: var(--rr-surface);
+    color: var(--rr-ink);
+}
+
+.rr-acct-side ::deep .rr-acct-nav a.active {
+    border-left-color: var(--rr-accent);
+    background-color: var(--rr-surface);
+    color: var(--rr-ink);
+    font-weight: 600;
+}
+
+/* Each page's content card */
+.rr-acct-main ::deep .rr-acct-card {
+    padding: 1.75rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 0.75rem;
+}
+
+.rr-acct-main ::deep .rr-acct-card h2 {
+    margin-bottom: 0.25rem;
+    font-size: var(--rr-h3);
+}
+
+.rr-acct-main ::deep .rr-acct-lead {
+    margin-bottom: 1.5rem;
+    color: var(--rr-muted);
+}
+
+.rr-acct-main ::deep .rr-acct-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.rr-acct-main ::deep .rr-acct-hint {
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+}
+
+.rr-acct-main ::deep .validation-summary-valid {
+    display: none;
+}
+
+.rr-acct-main ::deep a:not(.btn) {
+    color: var(--rr-accent);
+}
+
+/* Password strength meter (ChangePassword) */
+.rr-acct-main ::deep .rr-strength {
+    height: 4px;
+    margin: 0.375rem 0 0.25rem;
+    border-radius: 2px;
+    background-color: var(--rr-line);
+    overflow: hidden;
+}
+
+.rr-acct-main ::deep .rr-strength-bar {
+    width: 0;
+    height: 100%;
+    transition: width 0.2s, background-color 0.2s;
+}
+
+.rr-acct-main ::deep .rr-strength-label {
+    font-size: 0.75rem;
+    color: var(--rr-muted);
+}
+
+/* A separated block for actions that cannot be undone (Privacy and data) */
+.rr-acct-main ::deep .rr-acct-danger {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rr-line);
+}
+
+/* Phone and small tablet: one column, profile card compact, menu as chips */
+@media (max-width: 767.98px) {
+    .rr-acct {
+        padding-top: 1.25rem;
+    }
+
+    .rr-acct-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+    }
+
+    .rr-acct-side {
+        position: static;
+        padding: 1rem;
+    }
+
+    .rr-acct-who {
+        flex-direction: row;
+        text-align: left;
+        gap: 0.875rem;
+    }
+
+    .rr-acct-avatar {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 0;
+        font-size: 1.0625rem;
+        flex-shrink: 0;
+    }
+
+    .rr-acct-email {
+        margin-bottom: 0.375rem;
+    }
+
+    .rr-acct-side ::deep .rr-acct-nav {
+        flex-direction: row;
+        gap: 0.5rem;
+        overflow-x: auto;
+    }
+
+    .rr-acct-side ::deep .rr-acct-nav a {
+        flex-shrink: 0;
+        padding: 0.375rem 0.875rem;
+        border: 1px solid var(--rr-line);
+        border-radius: 999px;
+        white-space: nowrap;
+        font-size: var(--rr-text-sm);
+    }
+
+    .rr-acct-side ::deep .rr-acct-nav a.active {
+        border-color: var(--rr-accent);
+        background-color: var(--rr-accent);
+        color: #FFFFFF;
+    }
+
+    .rr-acct-main ::deep .rr-acct-card {
+        padding: 1.25rem;
+    }
+
+    .rr-acct-main ::deep .rr-acct-actions .btn {
+        width: 100%;
+    }
+}

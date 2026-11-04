@@ -1,42 +1,45 @@
 @page
 @model EmailModel
 @{
-    ViewData["Title"] = "Manage Email";
+    ViewData["Title"] = "Email";
     ViewData["ActivePage"] = ManageNavPages.Email;
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="email-form" method="post">
-            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-            @if (Model.IsEmailConfirmed)
-            {
-                <div class="form-floating mb-3 input-group">
-                    <input asp-for="Email" class="form-control" placeholder="Please enter your email." disabled />
-                        <div class="input-group-append">
-                            <span class="h-100 input-group-text text-success font-weight-bold">?</span>
-                        </div>
-                    <label asp-for="Email" class="form-label"></label>
-                </div>
-            }
-            else
-            {
-                <div class="form-floating mb-3">
-                    <input asp-for="Email" class="form-control" placeholder="Please enter your email." disabled />
-                    <label asp-for="Email" class="form-label"></label>
-                    <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link">Send verification email</button>
-                </div>
-            }
-            <div class="form-floating mb-3">
-                <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Please enter new email." />
-                <label asp-for="Input.NewEmail" class="form-label"></label>
-                <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
-            </div>
-            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="w-100 btn btn-lg btn-primary">Change email</button>
-        </form>
-    </div>
+<div class="rr-acct-card">
+    <h2>Email</h2>
+    <p class="rr-acct-lead">This is where your booking and order updates are sent.</p>
+
+    <partial name="_StatusMessage" for="StatusMessage" />
+
+    <form id="email-form" method="post">
+        <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+        <div class="form-floating mb-1">
+            <input asp-for="Email" class="form-control" placeholder="Current email" disabled />
+            <label asp-for="Email">Current email</label>
+        </div>
+        @if (Model.IsEmailConfirmed)
+        {
+            <p class="rr-acct-hint mb-3">Verified</p>
+        }
+        else
+        {
+            <p class="rr-acct-hint mb-3">
+                Not verified yet.
+                <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link btn-sm p-0 align-baseline">Send verification email</button>
+            </p>
+        }
+
+        <div class="form-floating mb-3">
+            <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="New email" />
+            <label asp-for="Input.NewEmail"></label>
+            <span asp-validation-for="Input.NewEmail" class="text-danger small"></span>
+        </div>
+
+        <div class="rr-acct-actions">
+            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary">Change email</button>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
