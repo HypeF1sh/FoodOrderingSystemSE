@@ -89,6 +89,25 @@ public class PromotionService : IPromotionService
             .ToListAsync();
     }
 
+    // A promotion's code is derived from its id (PROMO3), so no new column is needed
+    public static string CodeFor(int promotionId) => $"PROMO{promotionId}";
+
+    public async Task<Promotion?> GetActiveByCodeAsync(string? code)
+    {
+        code = code?.Trim().ToUpperInvariant();
+        if (string.IsNullOrEmpty(code) || !code.StartsWith("PROMO")
+            || !int.TryParse(code.AsSpan(5), out var promotionId))
+            return null;
+
+        var today = DateTime.Today;
+        return await _db.Promotions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.PromotionId == promotionId
+                                      && p.IsActive
+                                      && p.StartDate <= today && p.EndDate >= today
+                                      && p.DiscountPercent >= 1 && p.DiscountPercent <= MaxDiscountPercent);
+    }
+
     private static string? Validate(string title, decimal discountPercent, DateTime startDate, DateTime endDate)
     {
         if (string.IsNullOrWhiteSpace(title)) return "Title is required.";
