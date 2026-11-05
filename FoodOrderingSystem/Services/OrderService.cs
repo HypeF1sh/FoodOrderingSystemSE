@@ -18,21 +18,25 @@ public class OrderService : IOrderService
     private readonly INotificationService _notificationService;
     private readonly IReservationService _reservationService;
     private readonly IDiningAreaService _diningAreaService;
+    private readonly IPromotionService _promotionService;   // promo codes
+
 
     public OrderService(
         ApplicationDbContext context,
         INotificationService notificationService,
         IReservationService reservationService,
-        IDiningAreaService diningAreaService)
+        IDiningAreaService diningAreaService,
+        IPromotionService promotionService)
     {
         _context = context;
         _notificationService = notificationService;
         _reservationService = reservationService;
         _diningAreaService = diningAreaService;
+        _promotionService = promotionService;
     }
 
     public async Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
-        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId)
+        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId, string? promoCode = null)
     {
         if (string.IsNullOrEmpty(customerId))
             return (false, "Please log in to place an order.", null);
@@ -66,23 +70,47 @@ public class OrderService : IOrderService
             return (false, $"Sorry, these are no longer available: {string.Join(", ", problems)}. "
                            + "Please remove them from your cart.", null);
 
-        // 3. Build the order. UnitPrice is a snapshot, so later price changes do not alter this order.
+        // 3. Optional promo code. The discount lowers each dish's saved price, so the order total, the payment
+        //    and the receipt all agree (the schema has no separate discount column).
+        Promotion? promotion = null;
+        if (!string.IsNullOrWhiteSpace(promoCode))
+        {
+            promotion = await _promotionService.GetActiveByCodeAsync(promoCode);
+            if (promotion == null)
+                return (false, "That promo code is not valid, has expired, or is not active.", null);
+        }
+
+        // The promotion is written in front of the customer's notes, so staff and the receipt can see it
+        var finalNotes = notes?.Trim() ?? string.Empty;
+        if (promotion != null)
+        {
+            var promoLine = $"Promo {PromotionService.CodeFor(promotion.PromotionId)} ({promotion.Title}): "
+                            + $"{promotion.DiscountPercent:0.##}% off";
+            finalNotes = finalNotes.Length > 0 ? $"{promoLine} | {finalNotes}" : promoLine;
+            if (finalNotes.Length > 500) finalNotes = finalNotes.Substring(0, 500);
+        }
+
+        // Build the order. UnitPrice is a snapshot, so later price changes do not alter this order.
         var order = new Order
         {
             CustomerId = customerId,
             Status = OrderStatus.Pending,
-            Notes = notes?.Trim() ?? string.Empty,
+            Notes = finalNotes,
             CreatedAt = DateTime.Now   // restaurant local time, as agreed in the coding conventions
         };
 
         foreach (var item in items)
         {
+            var price = dishes[item.MenuItemId].Price;
+            if (promotion != null)
+                price = Math.Round(price * (100m - promotion.DiscountPercent) / 100m, 2, MidpointRounding.AwayFromZero);
+
             order.OrderItems.Add(new OrderItem
             {
                 MenuItemId = item.MenuItemId,
                 // Clamped again here in case the session value was tampered with
                 Quantity = Math.Clamp(item.Quantity, 1, CartService.MaxQuantityPerLine),
-                UnitPrice = dishes[item.MenuItemId].Price
+                UnitPrice = price
             });
         }
 

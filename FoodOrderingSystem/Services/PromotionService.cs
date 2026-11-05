@@ -105,7 +105,7 @@ public class PromotionService : IPromotionService
             .FirstOrDefaultAsync(p => p.PromotionId == promotionId
                                       && p.IsActive
                                       && p.StartDate <= today && p.EndDate >= today
-                                      && p.DiscountPercent >= 1 && p.DiscountPercent <= MaxDiscountPercent);
+                                      && p.DiscountPercent >= 1 && p.DiscountPercent <= 90);
     }
 
     private static string? Validate(string title, decimal discountPercent, DateTime startDate, DateTime endDate)

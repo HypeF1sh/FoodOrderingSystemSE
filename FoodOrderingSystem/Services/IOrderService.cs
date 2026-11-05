@@ -13,7 +13,7 @@ public interface IOrderService
     /// scannedTableId comes from ITableQrService.GetScannedTableId. Refused when there is no table and no
     /// confirmed booking. Returns (success, message, new order id). Nothing is saved if any check fails.</summary>
     Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
-        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId);
+        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId, string? promoCode = null);
 
     /// <summary>For the checkout page: whether an order can be placed now and where it would go
     /// (scanned table, the customer's table now, or a pre-order), or why it cannot.</summary>
@@ -43,7 +43,7 @@ public interface IOrderService
     /// <summary>Cancels an order that is still Pending or Preparing and has not been paid. Returns (success, message).</summary>
     Task<(bool Success, string Message)> CancelOrderAsync(int orderId, OrderStatus currentStatus);
 
-    // ---- Admin monitoring (for PB21 / PB23, Carynn) ----
+    // ---- Admin monitoring (for PB21 / PB23, Caryn) ----
 
     /// <summary>Orders whose CreatedAt falls between from and to (both days included), newest first,
     /// with their payment status. status null = all statuses. Read-only: NextStatus and CanCancel are
