@@ -178,7 +178,7 @@
                                     <span class="rr-bar-body"> &mdash; @p.Description</span>
                                 }
                             </div>
-                            <span class="rr-code">PROMO@p.PromotionId</span>
+                            <span class="rr-code">PROMO@(p.PromotionId)</span>
                             <span class="rr-bar-until">until @p.EndDate.ToString("dd MMM")</span>
                         </div>
                     }
@@ -212,7 +212,7 @@
                             {
                                 <div class="rr-offer-text">@p.Description</div>
                             }
-                            <div class="mb-1">Code: <span class="rr-code">PROMO@p.PromotionId</span></div>
+                            <div class="mb-1">Code: <span class="rr-code">PROMO@(p.PromotionId)</span></div>
                             <div class="rr-offer-until">Valid until @p.EndDate.ToString("dd MMM yyyy")</div>
                         </div>
                     }
