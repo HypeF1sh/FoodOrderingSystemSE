@@ -62,6 +62,8 @@ builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ICustomerActivityService, CustomerActivityService>();
 builder.Services.AddScoped<IAdminMonitoringService, AdminMonitoringService>();
 
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+
 // PB14 cart lives in the session (dish ids + quantities only; prices are re-read from the DB)
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
