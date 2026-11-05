@@ -25,4 +25,9 @@ public class ReceiptViewModel
 
     // Receipt R-000123 is simply the payment id, padded
     public string ReceiptNumber => $"R-{PaymentId:D6}";
+
+    // The order's notes. When a promo code was used, PlaceOrderAsync wrote it at the start ("Promo PROMO3 (name): 10% off | ...")
+    public string Notes { get; set; } = string.Empty;
+    public string? PromotionLine =>
+        Notes.StartsWith("Promo ", StringComparison.Ordinal) ? Notes.Split(" | ")[0] : null;
 }

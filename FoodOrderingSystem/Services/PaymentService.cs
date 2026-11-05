@@ -9,7 +9,7 @@ namespace FoodOrderingSystem.Services;
 
 public class PaymentService : IPaymentService
 {
-    // Same placeholder as _Layout.cshtml. To be read from Carynn's restaurant settings later (spec §10 Q4).
+    // Same placeholder as _Layout.cshtml. To be read from Caryn's restaurant settings later (spec §10 Q4).
     public const string RestaurantName = "Rumah Rasa";
 
     // Typo guard for cash: staff cannot type in more than RM 1,000 over the bill
@@ -45,6 +45,7 @@ public class PaymentService : IPaymentService
                 CreatedAt = o.CreatedAt,
                 OrderStatus = o.Status,
                 TotalAmount = o.TotalAmount,
+                Notes = o.Notes,
                 Lines = o.OrderItems
                     .OrderBy(oi => oi.OrderItemId)
                     .Select(oi => new OrderLineViewModel
@@ -206,6 +207,7 @@ public class PaymentService : IPaymentService
                 PaymentId = p.PaymentId,
                 RestaurantName = RestaurantName,
                 OrderId = p.OrderId,
+                Notes = p.Order!.Notes,
                 CustomerName = p.Order!.Customer == null ? "(unknown)"
                     : p.Order.Customer.FullName != "" ? p.Order.Customer.FullName : (p.Order.Customer.Email ?? "(unknown)"),
                 PaidAt = p.PaidAt,

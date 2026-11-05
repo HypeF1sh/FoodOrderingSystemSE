@@ -32,6 +32,12 @@
                             }
                         </ul>
                     </details>
+
+                    @if (order.PromotionLine != null)
+                    {
+                        <div class="small text-success mb-2">@order.PromotionLine</div>
+                    }
+
                     <div class="d-flex justify-content-between fw-semibold fs-5 mb-4">
                         <span>Total</span>
                         <span>RM @order.TotalAmount.ToString("0.00")</span>
