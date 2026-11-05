@@ -1,37 +1,320 @@
 /* ===========================================================================
-   Styles scoped to Index.cshtml (CSS isolation).
+   Styles scoped to Index.cshtml (CSS isolation): the landing page.
    =========================================================================== */
 
-.rr-hero {
-    padding: 4.5rem 0 3.5rem;
+/* ---------------------------------------------------------------------------
+   Hero: full-width photo slideshow. Each slide fades in and slowly zooms
+   (a "Ken Burns" effect); a dark gradient keeps the white text readable.
+   Height: the whole screen minus the header and a "peek" strip, so the heading
+   and the top of the dish photos show below it - a hint that there is more to
+   scroll to. svh = the visible height on phones (address bar excluded).
+   --------------------------------------------------------------------------- */
+.lp-hero {
+    --lp-header: 4.625rem;   /* the sticky site header (74px) */
+    --lp-peek: 9rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: max(26rem, calc(100vh - var(--lp-header) - var(--lp-peek)));
+    min-height: max(26rem, calc(100svh - var(--lp-header) - var(--lp-peek)));
+    overflow: hidden;
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
 }
 
-.rr-hero h1 {
-    font-size: clamp(2rem, 5vw, 3rem);
-    max-width: 24ch;
+.lp-slides,
+.lp-slide {
+    position: absolute;
+    inset: 0;
+}
+
+.lp-slide {
+    background-position: center;
+    background-size: cover;
+    opacity: 0;
+    transform: scale(1);
+    transition: opacity 1.4s ease, transform 7s ease-out;
+}
+
+.lp-slide.is-on {
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+/* Placeholder tones until photos are added to wwwroot/images/landing/ (with a photo, background-image wins) */
+.lp-tone-0 { background-color: #5A2F22; background-image: radial-gradient(circle at 70% 30%, #9C5A3C 0, #5A2F22 55%, #2A1712 100%); }
+.lp-tone-1 { background-color: #173D33; background-image: radial-gradient(circle at 30% 40%, #2F7D6D 0, #173D33 55%, #0E1716 100%); }
+.lp-tone-2 { background-color: #5C1F2E; background-image: radial-gradient(circle at 60% 60%, #A3334A 0, #5C1F2E 55%, #26121A 100%); }
+
+/* Darkens the lower left, where the text sits */
+.lp-slides::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(10, 20, 18, 0.85) 0%, rgba(10, 20, 18, 0.35) 55%, rgba(10, 20, 18, 0.1) 100%);
+}
+
+.lp-hero-text {
+    position: relative;
+    z-index: 1;
+    padding-top: 6rem;
+    padding-bottom: 3rem;
+}
+
+.lp-kicker {
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: var(--rr-text-sm);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.lp-hero h1 {
+    max-width: 18ch;
     margin-bottom: 1rem;
+    color: #FFFFFF;
+    font-size: clamp(2.25rem, 6vw, 3.75rem);
+    line-height: 1.05;
 }
 
-.rr-hero p {
+.lp-lead {
+    max-width: 38rem;
+    margin-bottom: 1.75rem;
+    color: rgba(255, 255, 255, 0.85);
     font-size: var(--rr-text-lg);
-    margin-bottom: 2rem;
 }
 
-.rr-hero-actions {
+.lp-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
 }
 
+/* Links built with asp-page don't get the CSS-isolation attribute, so they are styled with ::deep from a parent */
+.lp-actions ::deep .lp-btn-ghost {
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    color: #FFFFFF;
+}
+
+.lp-actions ::deep .lp-btn-ghost:hover,
+.lp-actions ::deep .lp-btn-ghost:focus {
+    background-color: #FFFFFF;
+    color: var(--rr-ink);
+}
+
+.lp-today {
+    margin: 1.25rem 0 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: var(--rr-text-sm);
+}
+
+.lp-dots {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0.375rem;
+    padding-bottom: 1.25rem;
+}
+
+.lp-dots i {
+    width: 1.75rem;
+    height: 3px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.35);
+    transition: background-color 0.6s;
+}
+
+.lp-dots i.is-on {
+    background-color: #FFFFFF;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-slide,
+    .lp-slide.is-on {
+        transition: none;
+        transform: none;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   Sections below the hero
+   --------------------------------------------------------------------------- */
+.lp-section {
+    padding: 3rem 0 0;
+}
+
+/* The first section sits closer to the hero, so its heading and photo tops fit in the peek strip */
+.lp-section:first-child {
+    padding-top: 1.75rem;
+}
+
+.lp-section h2 {
+    font-size: var(--rr-h3);
+    margin-bottom: 1.25rem;
+}
+
+.lp-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.lp-section-head ::deep a {
+    color: var(--rr-accent);
+    text-decoration: none;
+}
+
+/* Signature dishes: one endless row drifting left. The edges fade out so cards slide in and out softly.
+   The track holds the cards twice (copied by the page script), so moving it left by half its width - one copy plus
+   half a gap - lands exactly where it started, and the loop has no visible jump. */
+.lp-marquee {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+
+.lp-dishes {
+    --lp-gap: 1.125rem;
+    display: flex;
+    gap: var(--lp-gap);
+    width: max-content;
+    padding: 0.25rem 0 0.5rem;
+}
+
+.lp-dishes.is-moving {
+    animation: lp-drift 50s linear infinite;
+}
+
+.lp-marquee:hover .lp-dishes {
+    animation-play-state: paused;
+}
+
+@keyframes lp-drift {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(-50% - var(--lp-gap) / 2)); }
+}
+
+.lp-dishes ::deep .lp-dish {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 16.5rem;
+    overflow: hidden;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 0.75rem;
+    color: var(--rr-ink);
+    text-decoration: none;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.lp-dishes ::deep .lp-dish:hover {
+    transform: translateY(-2px);
+    border-color: var(--rr-muted);
+}
+
+.lp-dishes ::deep .lp-dish img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background-color: var(--rr-surface);
+}
+
+.lp-dishes ::deep .lp-dish-name {
+    padding: 0.875rem 1rem 1rem;
+    font-family: var(--rr-serif);
+    font-size: var(--rr-text-lg);
+}
+
+/* Photo credit in the hero's bottom-right corner */
+.lp-credit {
+    position: absolute;
+    right: var(--rr-gutter);
+    bottom: 1rem;
+    z-index: 1;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.75rem;
+}
+
+/* Our story + visit us side by side */
+.lp-two {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+}
+
+.lp-address {
+    margin-bottom: 0.75rem;
+}
+
+.lp-address a {
+    color: var(--rr-accent);
+}
+
+/* What's on: promotions and announcements as cards */
+.lp-news {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1rem;
+}
+
+.lp-news-item {
+    padding: 1.25rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 0.75rem;
+}
+
+.lp-news-item.is-promo {
+    border-color: #E7C2CA;
+    background-color: #FBF1F3;
+}
+
+.lp-news-item h3 {
+    margin-bottom: 0.375rem;
+    font-size: var(--rr-text-lg);
+}
+
+.lp-news-item p {
+    margin-bottom: 0.5rem;
+    color: var(--rr-muted);
+}
+
+.lp-news-item small {
+    color: var(--rr-muted);
+}
+
+.lp-badge {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Closing call to action */
+.lp-cta {
+    margin-top: 3.5rem;
+    padding: 3rem 1.5rem;
+    border-radius: 1rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    text-align: center;
+}
+
+.lp-cta h2 {
+    font-size: var(--rr-h2);
+    margin-bottom: 0.5rem;
+}
+
 /* ---------------------------------------------------------------------------
    Opening hours - hairline-separated rows, the way a restaurant lists them.
    --------------------------------------------------------------------------- */
-.rr-hours {
-    padding: 2.5rem 0 1rem;
-    border-top: 1px solid var(--rr-line);
-    max-width: 32rem;
-}
-
 .rr-hours h2 {
     font-size: var(--rr-h3);
     margin-bottom: 1.25rem;
@@ -53,6 +336,12 @@
     border-bottom: none;
 }
 
+.rr-hours-list > div.is-today dt,
+.rr-hours-list > div.is-today dd {
+    color: var(--rr-ink);
+    font-weight: 600;
+}
+
 .rr-hours-list dt {
     font-weight: 400;
     color: var(--rr-muted);
@@ -61,4 +350,27 @@
 .rr-hours-list dd {
     margin: 0;
     font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* No drift: the row simply scrolls sideways by hand */
+    .lp-marquee {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .lp-dishes ::deep .lp-dish {
+        flex-basis: 13rem;
+    }
+
+    .lp-two {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2rem;
+    }
+
+    .lp-hero-text {
+        padding-top: 4rem;
+        padding-bottom: 2rem;
+    }
 }
