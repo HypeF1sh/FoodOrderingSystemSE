@@ -23,10 +23,28 @@
                             </li>
                         }
                     </ul>
-                    <div class="d-flex justify-content-between fw-semibold mb-4">
-                        <span>Total</span>
-                        <span>RM @cart.Total.ToString("0.00")</span>
-                    </div>
+                    @if (Model.DiscountedTotal != null)
+                    {
+                        <div class="d-flex justify-content-between text-muted">
+                            <span>Subtotal</span>
+                            <span>RM @cart.Total.ToString("0.00")</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-success">
+                            <span>Promo: @Model.AppliedPromoText</span>
+                            <span>&minus; RM @Model.DiscountAmount!.Value.ToString("0.00")</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-semibold mb-4">
+                            <span>Total to pay</span>
+                            <span>RM @Model.DiscountedTotal.Value.ToString("0.00")</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-between fw-semibold mb-4">
+                            <span>Total</span>
+                            <span>RM @cart.Total.ToString("0.00")</span>
+                        </div>
+                    }
 
                     @if (Model.OrderTarget.CanOrder)
                     {
@@ -43,6 +61,17 @@
 
                     <form method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="PromoCode" class="form-label">Promo code (optional)</label>
+                            <div class="input-group">
+                                <input asp-for="PromoCode" class="form-control" maxlength="20"
+                                       placeholder="e.g. PROMO3" autocomplete="off" />
+                                <button type="submit" asp-page-handler="Apply" formnovalidate
+                                        class="btn btn-outline-secondary">Apply</button>
+                            </div>
+                            <span asp-validation-for="PromoCode" class="text-danger"></span>
+                        </div>
 
                         <div class="mb-3">
                             <label asp-for="Input.Notes" class="form-label"></label>

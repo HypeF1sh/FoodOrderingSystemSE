@@ -92,6 +92,10 @@ public class PromotionService : IPromotionService
     // A promotion's code is derived from its id (PROMO3), so no new column is needed
     public static string CodeFor(int promotionId) => $"PROMO{promotionId}";
 
+    // One place for the discount rule, used by the order service and by the checkout preview
+    public static decimal ApplyDiscount(decimal unitPrice, decimal discountPercent) =>
+        Math.Round(unitPrice * (100m - discountPercent) / 100m, 2, MidpointRounding.AwayFromZero);
+
     public async Task<Promotion?> GetActiveByCodeAsync(string? code)
     {
         code = code?.Trim().ToUpperInvariant();

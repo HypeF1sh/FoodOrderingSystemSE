@@ -103,7 +103,7 @@ public class OrderService : IOrderService
         {
             var price = dishes[item.MenuItemId].Price;
             if (promotion != null)
-                price = Math.Round(price * (100m - promotion.DiscountPercent) / 100m, 2, MidpointRounding.AwayFromZero);
+                price = PromotionService.ApplyDiscount(price, promotion.DiscountPercent); // promotion
 
             order.OrderItems.Add(new OrderItem
             {
