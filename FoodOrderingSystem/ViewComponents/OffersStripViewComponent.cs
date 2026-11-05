@@ -1,10 +1,12 @@
-﻿using FoodOrderingSystem.Services;
+﻿using FoodOrderingSystem.Models;
+using FoodOrderingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodOrderingSystem.ViewComponents;
 
-// A strip of current announcements and promotions. Add it to any page with:
-//     @await Component.InvokeAsync("OffersStrip")
+// Current announcements and promotions. Add it to a page with, for example:
+//     @await Component.InvokeAsync("OffersStrip", new { compact = true })                 (home page)
+//     @await Component.InvokeAsync("OffersStrip", new { showAnnouncements = false })      (menu page)
 public class OffersStripViewComponent : ViewComponent
 {
     private readonly IAnnouncementService _announcementService;
@@ -16,10 +18,17 @@ public class OffersStripViewComponent : ViewComponent
         _promotionService = promotionService;
     }
 
-    public async Task<IViewComponentResult> InvokeAsync()
+    public async Task<IViewComponentResult> InvokeAsync(
+        bool showAnnouncements = true, bool showPromotions = true, bool compact = false)
     {
-        var announcements = (await _announcementService.GetActiveAsync()).Take(2).ToList();
-        var promotions = (await _promotionService.GetActiveAsync()).Take(3).ToList();
-        return View((announcements, promotions));
+        var announcements = showAnnouncements
+            ? (await _announcementService.GetActiveAsync()).Take(5).ToList()
+            : new List<Announcement>();
+
+        var promotions = showPromotions
+            ? (await _promotionService.GetActiveAsync()).Take(5).ToList()
+            : new List<Promotion>();
+
+        return View((announcements, promotions, compact));
     }
 }

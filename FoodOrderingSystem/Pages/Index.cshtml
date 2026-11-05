@@ -25,6 +25,8 @@
         </div>
     </div>
 
+    @await Component.InvokeAsync("OffersStrip", new { compact = true })
+
     <!-- Opening hours, as set by the administrator on /Admin/OperatingHours (BUG4) -->
     <section class="rr-hours">
         <h2>Opening hours</h2>

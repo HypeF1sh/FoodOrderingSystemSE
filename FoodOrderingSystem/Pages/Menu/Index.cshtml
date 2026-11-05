@@ -7,7 +7,7 @@
     var returnUrl = Request.Path + Request.QueryString;
 }
 
-@await Component.InvokeAsync("OffersStrip")
+@await Component.InvokeAsync("OffersStrip", new { showAnnouncements = false })
 
 <div class="container mt-4">
 

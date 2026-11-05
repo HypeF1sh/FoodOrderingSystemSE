@@ -1,4 +1,4 @@
-﻿using FoodOrderingSystem.Data;     // <-- match your project namespace
+﻿using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -92,7 +92,7 @@ public class PromotionService : IPromotionService
     private static string? Validate(string title, decimal discountPercent, DateTime startDate, DateTime endDate)
     {
         if (string.IsNullOrWhiteSpace(title)) return "Title is required.";
-        if (discountPercent < 1 || discountPercent > 100) return "Discount must be between 1 and 100 percent.";
+        if (discountPercent < 1 || discountPercent > 90) return "Discount must be between 1 and 90 percent.";
         if (endDate.Date < startDate.Date) return "End date must be on or after the start date.";
         return null;
     }

@@ -29,7 +29,7 @@ public class EditModel : PageModel
         [StringLength(500)]
         public string? Description { get; set; }
 
-        [Range(typeof(decimal), "1", "100", ErrorMessage = "Discount must be between 1 and 100.")]
+        [Range(typeof(decimal), "1", "90", ErrorMessage = "Discount must be between 1 and 90.")]
         [Display(Name = "Discount (%)")]
         public decimal DiscountPercent { get; set; }
 
