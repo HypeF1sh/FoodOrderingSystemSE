@@ -144,27 +144,30 @@
                         <th>Placed</th>
                         <th>Customer</th>
                         <th>Items</th>
-                        <th class="text-end">Total</th>
+                        <th>Total</th>
                         <th>Status</th>
                         <th>Payment</th>
+                        <th>Promotion</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var o in Model.Orders.Orders)
                     {
+                        var promoLine = o.Notes.StartsWith("Promo ", StringComparison.Ordinal) ? o.Notes.Split(" | ")[0] : null;
                         <tr>
                             <td>#@o.OrderId</td>
                             <td>@o.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                             <td>@o.CustomerName</td>
                             <td>@o.Lines.Count</td>
-                            <td class="text-end">RM @o.TotalAmount.ToString("N2")</td>
+                            <td>RM @o.TotalAmount.ToString("N2")</td>
                             <td><span class="badge @OrderBadge(o.Status.ToString())">@o.Status</span></td>
                             <td><span class="badge @PaymentBadge(o.PaymentStatus.ToString())">@o.PaymentStatus</span></td>
+                            <td class="small">@(promoLine ?? "-")</td>
                         </tr>
                     }
                     @if (!Model.Orders.Orders.Any())
                     {
-                        <tr><td colspan="7" class="text-muted text-center">No orders match these filters.</td></tr>
+                        <tr><td colspan="8" class="text-muted text-center">No orders match these filters.</td></tr>
                     }
                 </tbody>
             </table>
