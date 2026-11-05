@@ -1,0 +1,113 @@
+﻿@model (List<FoodOrderingSystem.Models.Announcement> Announcements, List<FoodOrderingSystem.Models.Promotion> Promotions)
+
+@* Shows nothing when there is no active announcement or promotion *@
+@if (Model.Announcements.Count > 0 || Model.Promotions.Count > 0)
+{
+    <style>
+        .rr-offers { margin-top: 1rem; }
+
+        /* Announcement: slim notice with a plum edge */
+        .rr-offer-notice {
+            display: flex;
+            gap: 0.875rem;
+            align-items: flex-start;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.625rem;
+            background: var(--rr-raised, #fff);
+            border: 1px solid var(--rr-line, #e3dde0);
+            border-left: 4px solid var(--rr-accent, #a5334b);
+            border-radius: var(--rr-radius, 8px);
+        }
+
+        .rr-offer-tag {
+            flex: 0 0 auto;
+            padding: 0.125rem 0.5rem;
+            background: #f8eef1;
+            color: var(--rr-accent, #a5334b);
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .rr-offer-title {
+            font-weight: 600;
+            color: var(--rr-ink, #1f1f1f);
+        }
+
+        .rr-offer-text {
+            margin-top: 0.125rem;
+            color: var(--rr-muted, #6b6b6b);
+            font-size: var(--rr-text-sm, 0.9rem);
+            white-space: pre-line;
+        }
+
+        /* Promotions: cards in a responsive grid */
+        .rr-offer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .rr-offer-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.875rem 1rem;
+            background: var(--rr-raised, #fff);
+            border: 1px solid var(--rr-line, #e3dde0);
+            border-top: 4px solid var(--rr-accent, #a5334b);
+            border-radius: var(--rr-radius, 8px);
+        }
+
+        .rr-offer-badge {
+            align-self: flex-start;
+            padding: 0.125rem 0.625rem;
+            background: var(--rr-accent, #a5334b);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .rr-offer-until {
+            margin-top: auto;
+            padding-top: 0.375rem;
+            color: var(--rr-muted, #6b6b6b);
+            font-size: 0.8rem;
+        }
+    </style>
+
+    <div class="container rr-offers">
+        @foreach (var a in Model.Announcements)
+        {
+            <div class="rr-offer-notice" role="status">
+                <span class="rr-offer-tag">News</span>
+                <div>
+                    <div class="rr-offer-title">@a.Title</div>
+                    <div class="rr-offer-text">@a.Body</div>
+                </div>
+            </div>
+        }
+
+        @if (Model.Promotions.Count > 0)
+        {
+            <div class="rr-offer-grid">
+                @foreach (var p in Model.Promotions)
+                {
+                    <div class="rr-offer-card">
+                        <span class="rr-offer-badge">@p.DiscountPercent.ToString("0.##")% off</span>
+                        <div class="rr-offer-title">@p.Title</div>
+                        @if (!string.IsNullOrWhiteSpace(p.Description))
+                        {
+                            <div class="rr-offer-text">@p.Description</div>
+                        }
+                        <div class="rr-offer-until">Valid until @p.EndDate.ToString("dd MMM yyyy")</div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

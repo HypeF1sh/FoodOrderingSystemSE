@@ -10,4 +10,5 @@ public interface IPromotionService
     Task<(bool Success, string Message)> UpdateAsync(int id, string title, string? description, decimal discountPercent, DateTime startDate, DateTime endDate, bool isActive);
     Task<(bool Success, string Message)> ToggleActiveAsync(int id);
     Task<(bool Success, string Message)> DeleteAsync(int id);
+    Task<List<Promotion>> GetActiveAsync();
 }

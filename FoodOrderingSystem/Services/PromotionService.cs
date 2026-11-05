@@ -77,6 +77,18 @@ public class PromotionService : IPromotionService
         return (true, $"Promotion \"{promo.Title}\" was deleted.");
     }
 
+    public async Task<List<Promotion>> GetActiveAsync()
+    {
+        var today = DateTime.Today;   // dates are saved without a time, so the end day is included
+
+        return await _db.Promotions
+            .AsNoTracking()
+            .Where(p => p.IsActive && p.StartDate <= today && p.EndDate >= today)
+            .OrderByDescending(p => p.DiscountPercent)
+            .ThenBy(p => p.EndDate)
+            .ToListAsync();
+    }
+
     private static string? Validate(string title, decimal discountPercent, DateTime startDate, DateTime endDate)
     {
         if (string.IsNullOrWhiteSpace(title)) return "Title is required.";
