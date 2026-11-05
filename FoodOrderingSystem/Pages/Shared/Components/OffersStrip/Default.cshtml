@@ -26,6 +26,18 @@
             white-space: nowrap;
         }
 
+        .rr-code {
+            display: inline-block;
+            padding: 0 0.4rem;
+            border: 1px dashed var(--rr-accent, #a5334b);
+            border-radius: 6px;
+            color: var(--rr-accent, #a5334b);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
         /* ---- Full version (menu page): cards ---- */
         .rr-offers { margin-top: 1rem; }
 
@@ -166,6 +178,7 @@
                                     <span class="rr-bar-body"> &mdash; @p.Description</span>
                                 }
                             </div>
+                            <span class="rr-code">PROMO@p.PromotionId</span>
                             <span class="rr-bar-until">until @p.EndDate.ToString("dd MMM")</span>
                         </div>
                     }
@@ -199,6 +212,7 @@
                             {
                                 <div class="rr-offer-text">@p.Description</div>
                             }
+                            <div class="mb-1">Code: <span class="rr-code">PROMO@p.PromotionId</span></div>
                             <div class="rr-offer-until">Valid until @p.EndDate.ToString("dd MMM yyyy")</div>
                         </div>
                     }
