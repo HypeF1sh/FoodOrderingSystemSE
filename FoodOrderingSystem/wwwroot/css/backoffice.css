@@ -448,9 +448,10 @@
     outline-offset: 2px;
 }
 
-.bo .fl-tile.is-booked  { border-color: var(--bo-jade); border-style: dashed; }
-.bo .fl-tile.is-inuse   { border-color: var(--bo-jade); background-color: #E3F1EC; }
-.bo .fl-tile.is-billdue { border-color: var(--rr-accent); background-color: #F6E3E7; }
+/* Table colours: free = plain, booked = amber dashed (not seated yet), occupied = red, bill due = deeper red */
+.bo .fl-tile.is-booked  { border-color: #D99A2B; border-style: dashed; }
+.bo .fl-tile.is-inuse   { border-color: #E07A7A; background-color: #FCE8E8; }
+.bo .fl-tile.is-billdue { border-color: #B42318; background-color: #F7D4D4; }
 
 .bo .fl-tile.selected {
     outline: 3px solid var(--rr-ink);
@@ -518,9 +519,9 @@
     background-color: var(--rr-raised);
 }
 
-.bo .fl-legend .is-booked::before  { border-color: var(--bo-jade); border-style: dashed; }
-.bo .fl-legend .is-inuse::before   { border-color: var(--bo-jade); background-color: #E3F1EC; }
-.bo .fl-legend .is-billdue::before { border-color: var(--rr-accent); background-color: #F6E3E7; }
+.bo .fl-legend .is-booked::before  { border-color: #D99A2B; border-style: dashed; }
+.bo .fl-legend .is-inuse::before   { border-color: #E07A7A; background-color: #FCE8E8; }
+.bo .fl-legend .is-billdue::before { border-color: #B42318; background-color: #F7D4D4; }
 
 .bo [data-live-status].is-offline {
     color: var(--rr-accent);
@@ -563,9 +564,9 @@
     color: var(--rr-muted);
 }
 
-.bo .fl-state.is-booked  { background-color: #E3F1EC; color: var(--bo-jade); }
-.bo .fl-state.is-inuse   { background-color: #E3F1EC; color: var(--bo-jade); }
-.bo .fl-state.is-billdue { background-color: #F6E3E7; color: var(--rr-accent); }
+.bo .fl-state.is-booked  { background-color: #FBEFD9; color: #94600B; }
+.bo .fl-state.is-inuse   { background-color: #FCE8E8; color: #B42318; }
+.bo .fl-state.is-billdue { background-color: #F7D4D4; color: #8E1B12; }
 
 .bo .fl-muted {
     color: var(--rr-muted);
@@ -662,31 +663,17 @@
     }
 }
 
-/* iPad landscape and up: side menu visible, 4 tiles per row, drawer becomes a fixed panel on the right */
+/* iPad landscape and up: side menu visible, 4 tiles per row.
+   The table panel is a slide-in on every size now (Tonight), so the page keeps its full width. */
 @media (min-width: 992px) {
-    .bo .fl-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
-        gap: 1.25rem;
-        align-items: start;
-    }
-
     .bo .fl-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .bo .fl-drawer {
-        position: sticky;
-        top: 4.5rem;   /* below the sticky top bar */
-        max-height: calc(100vh - 5.5rem);
-        border: 1px solid var(--rr-line);
-        border-radius: var(--bo-radius);
     }
 }
 
 /* Phones: the drawer comes up from the bottom (easy to reach with a thumb) instead of from the right */
 @media (max-width: 767.98px) {
-    .bo .fl-drawer.offcanvas-lg.offcanvas-end {
+    .bo .fl-drawer.offcanvas-end {
         top: auto;
         left: 0;
         right: 0;
@@ -698,9 +685,331 @@
         transform: translateY(100%);
     }
 
-    .bo .fl-drawer.offcanvas-lg.offcanvas-end.showing,
-    .bo .fl-drawer.offcanvas-lg.offcanvas-end.show:not(.hiding) {
+    .bo .fl-drawer.offcanvas-end.showing,
+    .bo .fl-drawer.offcanvas-end.show:not(.hiding) {
         transform: none;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   9b. Tonight (staff home), after mockup B "action inbox":
+   greeting, to-do list grouped Now / Soon / Later, side cards with a mini map
+   --------------------------------------------------------------------------- */
+.bo .tn-head h1 {
+    margin-bottom: 0.125rem;
+    font-size: 1.875rem;
+}
+
+.bo .tn-head p {
+    margin-bottom: 1.5rem;
+    color: var(--rr-muted);
+}
+
+.bo .tn {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.bo .tn-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    color: var(--rr-muted);
+    font-family: var(--rr-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.bo .tn-group span {
+    padding: 0 0.4375rem;
+    border-radius: 999px;
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+    font-size: 0.6875rem;
+    letter-spacing: 0;
+}
+
+.bo .tn-item + .tn-group {
+    margin-top: 1.375rem;
+}
+
+/* One job per row: icon square, what to do, how long it has waited, the one button */
+.bo .tn-item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-bottom: 0.5rem;
+    padding: 0.875rem 1rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 14px;
+}
+
+.bo .tn-ic {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.625rem;
+    height: 2.625rem;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.bo .tn-ic.is-plum  { background-color: #F6E3E7; color: var(--rr-accent); }
+.bo .tn-ic.is-jade  { background-color: #E3F1EC; color: var(--bo-jade); }
+.bo .tn-ic.is-amber { background-color: #FBEFD9; color: #94600B; }
+
+.bo .tn-what {
+    flex: 1;
+    min-width: 0;
+    color: var(--rr-ink);
+    text-decoration: none;
+}
+
+.bo .tn-what b {
+    display: block;
+    font-weight: 600;
+}
+
+.bo .tn-what > span {
+    display: block;
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bo .tn-what:hover b {
+    text-decoration: underline;
+}
+
+.bo .tn-tag {
+    display: inline-block;
+    margin-left: 0.375rem;
+    padding: 0 0.4375rem;
+    border-radius: 6px;
+    background-color: #FBEFD9;
+    color: #94600B;
+    font-size: 0.75rem;
+    font-weight: 600;
+    vertical-align: 1px;
+}
+
+.bo .tn-wait {
+    color: var(--rr-muted);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.bo .tn-wait.is-hot {
+    color: var(--rr-accent);
+    font-weight: 600;
+}
+
+.bo .tn-item form {
+    margin: 0;
+}
+
+.bo .tn-act {
+    padding: 0.625rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.bo .tn-soft {
+    background-color: var(--rr-surface);
+    border: 1px solid var(--rr-line);
+    color: var(--rr-ink);
+}
+
+.bo .tn-soft:hover {
+    border-color: var(--rr-muted);
+    color: var(--rr-ink);
+}
+
+/* Side cards */
+.bo .tn-side {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: sticky;
+    top: 5.25rem;
+}
+
+.bo .tn-card {
+    padding: 1rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 14px;
+}
+
+.bo .tn-stat {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.bo .tn-stat b {
+    font-family: var(--rr-serif);
+    font-size: 1.875rem;
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+.bo .tn-stat span {
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+    text-align: right;
+}
+
+.bo .tn-areas {
+    display: flex;
+    gap: 0.25rem;
+    margin: 0.75rem 0 0;
+}
+
+.bo .tn-areas a {
+    padding: 0.1875rem 0.625rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    color: var(--rr-muted);
+    font-size: 0.75rem;
+    text-decoration: none;
+}
+
+.bo .tn-areas a.on {
+    border-color: var(--rr-ink);
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+/* Mini map: small coloured squares, same colours as the old Floor tiles */
+.bo .tn-mini {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.375rem;
+    margin-top: 0.75rem;
+}
+
+.bo .tn-mini a {
+    position: relative;
+    padding: 0.5rem 0;
+    border: 1px solid var(--rr-line);
+    border-radius: 8px;
+    background-color: var(--rr-surface);
+    color: var(--rr-muted);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+}
+
+.bo .tn-mini a.is-booked  { border: 1px dashed #D99A2B; color: #94600B; background-color: var(--rr-raised); }
+.bo .tn-mini a.is-inuse   { border-color: #E07A7A; background-color: #FCE8E8; color: #B42318; }
+.bo .tn-mini a.is-billdue { border-color: #B42318; background-color: #F7D4D4; color: #8E1B12; }
+.bo .tn-mini a.selected   { outline: 2px solid var(--rr-ink); outline-offset: 1px; }
+
+.bo .tn-mini .fl-dot {
+    top: 3px;
+    right: 3px;
+}
+
+.bo .tn-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    margin-top: 0.625rem;
+    color: var(--rr-muted);
+    font-size: 0.6875rem;
+}
+
+.bo .tn-legend span::before {
+    content: "";
+    display: inline-block;
+    width: 0.625rem;
+    height: 0.625rem;
+    margin-right: 0.25rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 3px;
+    vertical-align: -1px;
+}
+
+.bo .tn-legend .is-booked::before  { border: 1px dashed #D99A2B; }
+.bo .tn-legend .is-inuse::before   { background-color: #FCE8E8; border-color: #E07A7A; }
+.bo .tn-legend .is-billdue::before { background-color: #F7D4D4; border-color: #B42318; }
+
+.bo .tn-updated {
+    margin: 0;
+    color: var(--rr-muted);
+    font-size: 0.75rem;
+}
+
+/* Table panel */
+.bo .tn-drawer {
+    --bs-offcanvas-width: 420px;
+}
+
+.bo .tn-bill-link {
+    display: inline-block;
+    margin-top: 0.375rem;
+    font-size: var(--rr-text-sm);
+}
+
+.bo .tn-total {
+    margin: 0.75rem 0;
+    padding-top: 0.75rem;
+    border-top: 2px solid var(--rr-ink);
+    font-size: var(--rr-text-lg);
+    font-weight: 600;
+}
+
+/* Tablet: the side cards become a strip under the list (jobs stay first); phone: rows wrap, buttons full width */
+@media (max-width: 991.98px) {
+    .bo .tn {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bo .tn-side {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .bo .tn-side .tn-card {
+        flex: 1 1 160px;
+    }
+
+    .bo .tn-side .tn-card:first-child {
+        flex-basis: 100%;
+    }
+
+    .bo .tn-mini {
+        grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .bo .tn-item {
+        flex-wrap: wrap;
+    }
+
+    .bo .tn-wait {
+        margin-left: auto;
+    }
+
+    .bo .tn-item .tn-act,
+    .bo .tn-item form {
+        width: 100%;
     }
 }
 
@@ -792,8 +1101,13 @@
     color: var(--rr-muted);
 }
 
+/* Empty column: a dashed slot where tickets will land, so it reads as "waiting", not broken */
 .bo .ps-empty {
     margin: 0;
+    padding: 1.5rem 0.75rem;
+    text-align: center;
+    border: 1px dashed var(--rr-line);
+    border-radius: var(--bo-radius);
     color: var(--rr-muted);
     font-size: var(--rr-text-sm);
 }
@@ -1058,6 +1372,130 @@
 }
 
 /* ---------------------------------------------------------------------------
+   7b. Shared page pieces - so every staff page looks like one product
+   bo-head: title, one-line summary and stat tiles; bo-filters: the compact
+   filter bar; bo-empty: friendly empty state (_EmptyState.cshtml).
+   --------------------------------------------------------------------------- */
+.bo .bo-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.bo .bo-head h1 {
+    margin-bottom: 0;
+}
+
+.bo .bo-head-sub {
+    margin: 0.125rem 0 0;
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+}
+
+/* Stat tiles: number on top, label underneath, tinted by meaning */
+.bo .bo-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.bo .bo-stat {
+    display: flex;
+    flex-direction: column;
+    min-width: 6.5rem;
+    padding: 0.5rem 0.875rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: var(--bo-radius);
+    line-height: 1.2;
+}
+
+.bo .bo-stat strong {
+    font-family: var(--rr-serif);
+    font-size: 1.375rem;
+    font-weight: 400;
+    color: var(--rr-ink);
+}
+
+.bo .bo-stat span {
+    color: var(--rr-muted);
+    font-size: 0.75rem;
+}
+
+.bo .bo-stat.is-amber { border-color: #EED9B5; background-color: #FDF7EC; }
+.bo .bo-stat.is-amber strong { color: #94600B; }
+.bo .bo-stat.is-jade  { border-color: #BFE0D6; background-color: #F1F8F5; }
+.bo .bo-stat.is-jade strong { color: var(--bo-jade); }
+.bo .bo-stat.is-plum  { border-color: #E7C2CA; background-color: #FBF1F3; }
+.bo .bo-stat.is-plum strong { color: var(--rr-accent); }
+
+/* Filter bar: one quiet card, small uppercase labels, controls on one line where they fit */
+.bo .bo-filters {
+    margin-bottom: 1.25rem;
+    padding: 0.875rem 1rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: var(--bo-radius);
+}
+
+.bo .bo-filters .form-label {
+    margin-bottom: 0.25rem;
+    color: var(--rr-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Empty state: an invitation, not an error */
+.bo .bo-empty {
+    padding: 2.5rem 1.25rem;
+    text-align: center;
+    background-color: var(--rr-raised);
+    border: 1px dashed var(--rr-line);
+    border-radius: var(--bo-radius);
+}
+
+.bo .bo-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.75rem;
+    border-radius: 50%;
+    background-color: var(--rr-surface);
+    color: var(--bo-jade);
+}
+
+.bo .bo-empty-title {
+    margin-bottom: 0.25rem;
+    font-family: var(--rr-serif);
+    font-size: var(--rr-text-lg);
+}
+
+.bo .bo-empty-text {
+    max-width: 28rem;
+    margin: 0 auto;
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+}
+
+.bo .bo-empty .btn {
+    margin-top: 1rem;
+}
+
+/* Any info alert left on a staff page uses the calm palette instead of Bootstrap cyan */
+.bo .alert-info {
+    background-color: #E3EEF2;
+    border-color: #C9DDE5;
+    color: #2B5F73;
+}
+
+/* ---------------------------------------------------------------------------
    8. Phone and tablet
    --------------------------------------------------------------------------- */
 @media (max-width: 991.98px) {
@@ -1074,4 +1512,251 @@
     .bo-date {
         display: none;
     }
+}
+
+/* ---------------------------------------------------------------------------
+   11. Staff top bar (_StaffTopBar.cshtml) - staff only; admins keep the side menu
+   White bar, wordmark, the shift, pill tabs, avatar menu. Content is centred,
+   up to 1240px, like the customer site.
+   --------------------------------------------------------------------------- */
+.bo-staff {
+    background-color: var(--rr-surface);
+}
+
+.bo-staff .st-top {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem var(--rr-gutter);
+    background-color: var(--rr-raised);
+    border-bottom: 1px solid var(--rr-line);
+}
+
+.bo-staff .st-brand {
+    font-family: var(--rr-serif);
+    font-size: 1.3125rem;
+    color: var(--rr-ink);
+    text-decoration: none;
+}
+
+.bo-staff .st-shift {
+    padding-left: 1rem;
+    border-left: 1px solid var(--rr-line);
+    color: var(--rr-muted);
+    font-size: var(--rr-text-sm);
+    white-space: nowrap;
+}
+
+/* Pill tabs in one rounded track */
+.bo-staff .st-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: auto;
+    padding: 0.1875rem;
+    background-color: var(--rr-surface);
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+}
+
+.bo-staff .st-tabs a,
+.bo-staff .st-tabs button {
+    padding: 0.375rem 0.875rem;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--rr-muted);
+    font: inherit;
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.bo-staff .st-tabs a:hover,
+.bo-staff .st-tabs button:hover {
+    color: var(--rr-ink);
+}
+
+.bo-staff .st-tabs .on {
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+.bo-staff .st-tabs .on:hover {
+    color: #FFFFFF;
+}
+
+.bo-staff .st-account {
+    display: flex;
+    align-items: center;
+}
+
+.bo-staff .st-main {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 var(--rr-gutter) 3rem;
+}
+
+/* Tablet: drop the shift label. Phone: tabs move to their own full-width row */
+@media (max-width: 991.98px) {
+    .bo-staff .st-shift {
+        display: none;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .bo-staff .st-top {
+        flex-wrap: wrap;
+        row-gap: 0.625rem;
+    }
+
+    .bo-staff .st-account {
+        margin-left: auto;
+    }
+
+    .bo-staff .st-tabs {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        justify-content: space-between;
+    }
+
+    /* Narrower pills so all six fit at 375px (no sideways scroll, which would clip the More menu) */
+    .bo-staff .st-tabs {
+        gap: 0;
+    }
+
+    .bo-staff .st-tabs a,
+    .bo-staff .st-tabs button {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   12. Tables (Pages/Staff/Tables): big map on the left, the chosen table's
+   panel on the right (from mockup C, without its live tickets)
+   --------------------------------------------------------------------------- */
+.bo .tb {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.bo .tb-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.bo .tb-panel {
+    position: sticky;
+    top: 5.25rem;
+    max-height: calc(100vh - 6.5rem);
+    overflow-y: auto;
+    padding: 1.25rem;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 14px;
+    scroll-margin-top: 5.5rem;
+}
+
+.bo .tb-panel .bo-empty {
+    border: 0;
+    padding: 2rem 0.5rem;
+}
+
+@media (max-width: 1199.98px) {
+    .bo .tb {
+        grid-template-columns: minmax(0, 1fr) 340px;
+    }
+
+    .bo .tb-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Phone and small tablet: the panel goes under the map */
+@media (max-width: 991.98px) {
+    .bo .tb {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bo .tb-panel {
+        position: static;
+        max-height: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .bo .tb-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   13. Day stepper (Pages/Shared/_DayStepper.cshtml):  ‹  Today · Wed 4 Nov  ›  [Today]
+   --------------------------------------------------------------------------- */
+.bo .ds {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.bo .ds-arrow {
+    display: grid;
+    place-items: center;
+    width: 2.375rem;
+    height: 2.375rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 50%;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    font-size: 1.25rem;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.bo .ds-arrow:hover {
+    border-color: var(--rr-muted);
+}
+
+.bo .ds-day {
+    position: relative;
+    padding: 0.4375rem 1rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    background-color: var(--rr-raised);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.bo .ds-day b {
+    font-weight: 600;
+}
+
+/* The real date box covers the label but is invisible, so a tap opens the calendar */
+.bo .ds-day input[type="date"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.bo .ds-today {
+    padding: 0.4375rem 0.875rem;
+    border-radius: 999px;
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+    font-size: var(--rr-text-sm);
+    text-decoration: none;
+}
+
+.bo .ds-today:hover {
+    color: #FFFFFF;
 }

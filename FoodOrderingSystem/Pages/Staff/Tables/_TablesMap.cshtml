@@ -1,0 +1,42 @@
+@using FoodOrderingSystem.ViewModels
+@model FloorViewModel
+@*
+    Live part of Tables: the big table tiles and the legend. Rendered inside Index.cshtml, and again every 20 s
+    by staff-live.js through ?handler=Map, so page paths are absolute.
+*@
+@if (Model.Tables.Count == 0)
+{
+    <partial name="_EmptyState" model='new EmptyStateViewModel("No tables here", $"No active tables in {Model.SelectedAreaName}.", "table")' />
+}
+else
+{
+    <div class="fl-grid tb-grid">
+        @foreach (var tile in Model.Tables)
+        {
+            var isOpen = tile.RestaurantTableId == Model.SelectedTableId;
+            <a href="@Url.Page("/Staff/Tables/Index", null, new { areaId = tile.DiningAreaId, table = tile.RestaurantTableId }, null, null, "panel")"
+               class="fl-tile is-@TableStateDisplay.CssName(tile.State) @(isOpen ? "selected" : "")"
+               aria-current="@(isOpen ? "true" : null)">
+                @if (tile.IsPendingBooking)
+                {
+                    <span class="fl-dot" title="Booking not confirmed yet"></span>
+                }
+                <span class="fl-tile-num">@tile.TableNumber</span>
+                <span class="fl-tile-state">@TableStateDisplay.Label(tile.State)</span>
+                <span class="fl-tile-sub">@tile.Subtitle</span>
+            </a>
+        }
+    </div>
+}
+
+<div class="fl-foot">
+    <span class="fl-legend">
+        @foreach (var state in TableStateDisplay.InLegendOrder)
+        {
+            <span class="is-@TableStateDisplay.CssName(state)">@TableStateDisplay.Label(state)</span>
+        }
+    </span>
+    <span data-live-status data-updated="@Model.UpdatedAt.ToString("h:mm tt")">
+        Updated @Model.UpdatedAt.ToString("h:mm tt") · refreshes every 20 s
+    </span>
+</div>

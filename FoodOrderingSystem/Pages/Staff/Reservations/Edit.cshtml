@@ -26,17 +26,9 @@
                 </div>
                 <div class="card-body">
                     <form method="get" class="row g-3 align-items-end">
-                        <div class="col-md-4">
-                            <label class="form-label">Date</label>
-                            <input type="date" name="date" value="@Model.Input.Date.ToString("yyyy-MM-dd")" class="form-control" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Start Time</label>
-                            <input type="time" name="startTime" value="@Model.Input.StartTime.ToString("HH:mm")" step="900" class="form-control" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Party Size (1–8)</label>
-                            <input type="number" name="partySize" value="@Model.Input.PartySize" min="1" max="8" class="form-control" />
+                        @* Tap-to-choose picker; posts the same date / startTime / partySize fields as before *@
+                        <div class="col-12">
+                            <partial name="_BookingPicker" model='new FoodOrderingSystem.ViewModels.BookingPickerViewModel(Model.Input.Date, Model.Input.StartTime, Model.Input.PartySize, "date", "startTime", "partySize")' />
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-sm btn-outline-primary">

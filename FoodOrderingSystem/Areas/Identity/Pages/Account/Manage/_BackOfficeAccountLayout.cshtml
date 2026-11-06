@@ -1,0 +1,56 @@
+@*
+    Outer layout for account settings when the user is Staff or Administrator.
+    No customer links (Home, Menu, Back office): just the wordmark and one button back to their own panel,
+    so account settings feel like part of the back office, not the customer site.
+    Customers keep the normal site layout (see Manage/_Layout.cshtml).
+*@
+@{
+    const string RestaurantName = "Rumah Rasa";
+
+    // Admins go back to the Dashboard, staff to Tonight - the same pages they land on after login
+    var isAdmin = User.IsInRole("Administrator");
+    var panelPage = isAdmin ? "/Admin/Dashboard/Index" : "/Staff/Floor/Index";
+    var panelName = isAdmin ? "Dashboard" : "Tonight";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @RestaurantName</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="rr-header">
+        <nav class="navbar">
+            <div class="container-fluid">
+                <a class="navbar-brand rr-wordmark" asp-area="" asp-page="@panelPage">@RestaurantName</a>
+                <a class="btn btn-outline-secondary btn-sm" asp-area="" asp-page="@panelPage">&larr; Back to @panelName</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <partial name="_Banners" />
+        </div>
+
+        @RenderBody()
+    </main>
+
+    <footer class="rr-footer">
+        <div class="container-fluid">
+            <span class="rr-footer-mark">@RestaurantName</span>
+            <span class="rr-footer-meta">&copy; @DateTime.Now.Year</span>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

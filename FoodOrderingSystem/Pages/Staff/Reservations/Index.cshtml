@@ -2,34 +2,37 @@
 @using FoodOrderingSystem.Models.Enums
 @model FoodOrderingSystem.Pages.Staff.Reservations.IndexModel
 @{
-    ViewData["Title"] = "Manage Reservations";
+    ViewData["Title"] = "Reservations";
     int pendingCount = Model.Reservations.Count(r => r.Status == "Pending");
     int confirmedCount = Model.Reservations.Count(r => r.Status == "Confirmed");
     int requestsCount = Model.Reservations.Count(r => !string.IsNullOrWhiteSpace(r.SpecialRequests));
 }
 
 <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    @* Shared back office header (bo-head): title, what is on screen, and stat tiles *@
+    <div class="bo-head">
         <div>
-            <h1 class="mb-0">Staff Reservation Management</h1>
-            <p class="text-muted small mb-0">
-                @(Model.ShowAllDates ? "Showing all dates" : $"Showing bookings for {(Model.FilterDate ?? DateOnly.FromDateTime(DateTime.Today)):dd/MM/yyyy}")
+            <h1>Reservations</h1>
+            <p class="bo-head-sub">
+                @(Model.ShowAllDates ? "Showing all dates" : $"Bookings for {(Model.FilterDate ?? DateOnly.FromDateTime(DateTime.Today)):dddd, d MMMM yyyy}")
             </p>
         </div>
-        <div class="d-flex gap-2">
-            <span class="badge bg-warning text-dark p-2">Pending: @pendingCount</span>
-            <span class="badge bg-success p-2">Confirmed: @confirmedCount</span>
-            <span class="badge bg-info text-dark p-2">With Special Requests: @requestsCount</span>
+        <div class="bo-stats">
+            <div class="bo-stat is-amber"><strong>@pendingCount</strong><span>Pending</span></div>
+            <div class="bo-stat is-jade"><strong>@confirmedCount</strong><span>Confirmed</span></div>
+            <div class="bo-stat is-plum"><strong>@requestsCount</strong><span>Special requests</span></div>
         </div>
     </div>
 
     <!-- Filter Bar (PB12 & PB13) -->
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="bo-filters">
+        <div>
             <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label asp-for="FilterDate" class="form-label">Date</label>
-                    <input asp-for="FilterDate" type="date" class="form-control" />
+                @* Day stepper: ‹ day › and Today change FilterDate straight away; its hidden FilterDate field keeps the
+                   day when the other filters are applied. Stepping clears "Show all dates". *@
+                <div class="col-12">
+                    <label class="form-label d-block">Day</label>
+                    <partial name="_DayStepper" model='new FoodOrderingSystem.ViewModels.DayStepperViewModel(Model.FilterDate ?? DateOnly.FromDateTime(DateTime.Today), "FilterDate", "ShowAllDates")' />
                 </div>
 
                 <div class="col-md-2">
@@ -43,7 +46,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label asp-for="SearchTerm" class="form-label">Search Customer / Table / Request</label>
+                    <label asp-for="SearchTerm" class="form-label">Search</label>
                     <input asp-for="SearchTerm" class="form-control" placeholder="Name, email, table, note..." />
                 </div>
 
@@ -59,7 +62,7 @@
                     </div>
                     <div class="form-check">
                         <input asp-for="OnlyWithRequests" class="form-check-input" />
-                        <label asp-for="OnlyWithRequests" class="form-check-label small">Only bookings with special requests (PB13)</label>
+                        <label asp-for="OnlyWithRequests" class="form-check-label small">Only bookings with special requests</label>
                     </div>
                 </div>
             </form>
@@ -68,9 +71,7 @@
 
     @if (!Model.Reservations.Any())
     {
-        <div class="alert alert-info">
-            No reservations found matching the current filters.
-        </div>
+        <partial name="_EmptyState" model='new FoodOrderingSystem.ViewModels.EmptyStateViewModel("No bookings here", "Nothing matches these filters. Pick another date, tick Show all dates, or press Today to reset.", "calendar")' />
     }
     else
     {
@@ -85,8 +86,8 @@
                         <th>Table &amp; Area</th>
                         <th>Party</th>
                         <th>Status</th>
-                        <th>Special Requests (PB13)</th>
-                        <th class="text-end">Staff Actions (PB12)</th>
+                        <th>Special requests</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

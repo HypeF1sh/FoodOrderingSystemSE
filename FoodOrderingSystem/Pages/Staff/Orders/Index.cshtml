@@ -7,8 +7,12 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-        <h1 class="mb-0">The Pass</h1>
+    @* Shared back office header (bo-head) *@
+    <div class="bo-head">
+        <div>
+            <h1>The Pass</h1>
+            <p class="bo-head-sub">Kitchen tickets for @Model.SelectedDate.ToString("dddd, d MMMM"), oldest first</p>
+        </div>
 
         <nav class="ps-mode" aria-label="View">
             <a asp-page="./Index" asp-route-mode="rail" class="@(Model.IsHistory ? "" : "active")"
@@ -35,14 +39,10 @@
     else
     {
         <div class="ps-history">
-        <!-- Day picker: a GET form, so the chosen day is in the URL -->
-        <form method="get" asp-page="./Index" class="d-flex gap-2 mb-3">
-            <input type="hidden" name="mode" value="history" />
-            <input type="hidden" name="filter" value="@Model.Filter" />
-            <label for="orderDate" class="visually-hidden">Day</label>
-            <input id="orderDate" type="date" name="date" value="@date" class="form-control" style="max-width: 12rem" />
-            <button type="submit" class="btn btn-outline-primary">Show</button>
-        </form>
+        <!-- Day stepper: ‹ day › and Today; links keep mode and filter in the URL and change only the date -->
+        <div class="mb-3">
+            <partial name="_DayStepper" model='new FoodOrderingSystem.ViewModels.DayStepperViewModel(Model.SelectedDate, "date")' />
+        </div>
 
         <!-- Filter pills -->
         <ul class="nav nav-pills mb-3">

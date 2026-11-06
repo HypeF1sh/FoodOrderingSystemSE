@@ -1,37 +1,35 @@
 ﻿@page
 @model FoodOrderingSystem.Pages.Staff.Feedback.IndexModel
 @{
-    ViewData["Title"] = "Customer Feedback";
+    ViewData["Title"] = "Reviews";
     double avgRating = Model.Feedbacks.Any() ? Model.Feedbacks.Average(f => f.Rating) : 0;
 }
 
 <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    @* Shared back office header (bo-head): title, what is on screen, and stat tiles *@
+    <div class="bo-head">
         <div>
-            <h1 class="mb-0">Customer Ratings &amp; Feedback</h1>
-            <p class="text-muted small mb-0">
-                Showing @Model.Feedbacks.Count review(s)
-            </p>
+            <h1>Reviews</h1>
+            <p class="bo-head-sub">What guests said after their meal</p>
         </div>
-        <div class="d-flex gap-2 align-items-center">
-            <span class="badge bg-warning text-dark p-2 fs-6">
-                Average: @avgRating.ToString("0.0") / 5.0 ★
-            </span>
+        <div class="bo-stats">
+            <div class="bo-stat is-amber"><strong>@avgRating.ToString("0.0") ★</strong><span>Average rating</span></div>
+            <div class="bo-stat"><strong>@Model.Feedbacks.Count</strong><span>Reviews shown</span></div>
         </div>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="bo-filters">
+        <div>
             <form method="get" class="row g-2 align-items-end">
                 <div class="col-sm-4">
-                    <label class="form-label fw-semibold">Filter by Star Rating</label>
+                    <label class="form-label">Rating</label>
                     <select asp-for="RatingFilter" class="form-select">
-                        <option value="">All Ratings (1–5 ★)</option>
-                        <option value="5">5 Stars Only</option>
-                        <option value="4">4 Stars Only</option>
-                        <option value="3">3 Stars Only</option>
-                        <option value="2">2 Stars Only</option>
-                        <option value="1">1 Star Only</option>
+                        <option value="">All ratings</option>
+                        <option value="5">5 stars</option>
+                        <option value="4">4 stars</option>
+                        <option value="3">3 stars</option>
+                        <option value="2">2 stars</option>
+                        <option value="1">1 star</option>
                     </select>
                 </div>
                 <div class="col-sm-4 d-flex gap-2">
@@ -44,7 +42,7 @@
 
     @if (!Model.Feedbacks.Any())
     {
-        <div class="alert alert-info">No customer feedback found matching the selected filter.</div>
+        <partial name="_EmptyState" model='new FoodOrderingSystem.ViewModels.EmptyStateViewModel("No reviews yet", "Guests can rate their meal after paying. New reviews will show up here.", "star")' />
     }
     else
     {

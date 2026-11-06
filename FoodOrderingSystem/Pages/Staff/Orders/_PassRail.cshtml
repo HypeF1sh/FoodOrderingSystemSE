@@ -7,12 +7,13 @@
     Paying does not change an order's status, so a Served order stays here until it is Completed.
 *@
 @{
-    var columns = new (string Key, string Title, OrderStatus Status)[]
+    // Each column says what an empty column means, instead of a bare "Nothing here"
+    var columns = new (string Key, string Title, OrderStatus Status, string EmptyText)[]
     {
-        ("new", "New", OrderStatus.Pending),
-        ("preparing", "Preparing", OrderStatus.Preparing),
-        ("ready", "Ready", OrderStatus.ReadyToServe),
-        ("served", "Served", OrderStatus.Served)
+        ("new", "New", OrderStatus.Pending, "No new orders"),
+        ("preparing", "Preparing", OrderStatus.Preparing, "Nothing cooking"),
+        ("ready", "Ready", OrderStatus.ReadyToServe, "Nothing waiting at the pass"),
+        ("served", "Served", OrderStatus.Served, "No tables eating yet")
     };
 }
 
@@ -25,7 +26,7 @@
 
             @if (orders.Count == 0)
             {
-                <p class="ps-empty">Nothing here</p>
+                <p class="ps-empty">@column.EmptyText</p>
             }
 
             @foreach (var order in orders)
