@@ -607,11 +607,210 @@ Design direction, the decision to cap the content width and all review of the ou
 
 | Date | Item | Evidence / note |
 |---|---|---|
+| 2026-11-5 | Customer offers + promo-code checkout (Sprint 5) | PR #69 — see the detailed entry below |
+| 2026-11-5 | PB28 recommended dishes (Sprint 5) | PR #67 — see the detailed entry below |
+| 2026-11-5 | PB24 export and print reports (Sprint 5) | PR #66 — see the detailed entry below |
+| 2026-10-29 | BUG2, BUG3, UX4 small fixes (Sprint 4) | PR #47 — see the detailed entry below |
+| 2026-10-29 | PB23 customer activity report (Sprint 3/4) | PR #52 — see the detailed entry below |
+| 2026-10-29 | PB21 admin monitoring (Sprint 3/4) | PR #51 — see the detailed entry below |
 | 2026-10-23 | Sprint 2 tidy-up | PR #12 — backup file removed, Menu hub card, CS8618 fix, this evidence entry |
 | 2026-10-22 | PB07 promotions, announcements, settings, admin hub (Sprint 2) | PR #10 — see the detailed entry below |
 | 2026-10-22 | PB05 dining areas, tables, operating hours (Sprint 2) | PR #9 — see the detailed entry below |
 | 2026-10-15 | PB04 role locks + admin user management (Sprint 1) | PR #6 — see the detailed entry below |
 | 2026-10-12 | PB01–PB04 Identity setup (Sprint 1) | PR #3 — see the detailed entry below |
+
+### 2026-11-5 — Customer offers and promo-code checkout (`feature/customer-offers`, `feature/promo-checkout`)
+
+**Example commits**
+- feat(offers): add OffersStrip view component for announcements and promotions
+- feat(offers): show News and Promotions bars on the home page and a card row on the menu
+- feat(promo): add promo code (PROMO + id) lookup and discount calculation to PromotionService
+- feat(promo): add promo box and Apply preview to checkout
+- feat(promo): show promotion on payment page, receipt and admin Orders tab
+- fix(promo): cap discount at 90%
+
+**Ch.5 screenshots to capture**
+1. Home page with the News and Promotions bars.
+2. Menu page with the promotion cards and the code (e.g. PROMO3).
+3. Checkout with a code applied (preview of the new total).
+4. Payment page and receipt showing the promotion line.
+5. Admin Monitoring → Orders with the Promotion column.
+6. Code excerpt: `PromotionService.ApplyDiscount` and the promo block in `OrderService.PlaceOrderAsync`.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A42 | Create an active 20% promotion; apply its code at checkout | Preview shows a 20% lower total (e.g. RM 58.90 → RM 47.12) | |
+| TC-A43 | Place the order with the code | Saved prices and total are discounted; promo line is in Notes | |
+| TC-A44 | Open the pay page and receipt for that order | Total matches the discounted amount; promotion line shown | |
+| TC-A45 | Enter an expired, inactive or unknown code | "Not valid, expired or not active"; order not placed | |
+| TC-A46 | Try to set a discount above 90% as admin | Rejected | |
+| TC-A47 | Admin opens Monitoring → Orders | Promotion column shows the code and percentage | |
+
+**Ch.7 reflection notes**
+- *No schema change.* The schema was locked after Sprint 1, so a code is `"PROMO" + PromotionId` and the discount lowers each `OrderItem.UnitPrice`. Order total, payment and receipt all agree because they all read the same saved prices.
+- *Early mistakes.* I first allowed 100% promotions and said Monitoring would show the promotion before the column existed. I capped the discount at 90% and added the column afterwards.
+- *Bugs found while testing.* `PROMO@p.PromotionId` printed literally in Razor (fixed with `@(...)`), and the Place order button stayed on the page because the form posted to the Apply handler (fixed with `asp-page`).
+- *Server prices only.* The code is checked again on the server when the order is placed, so changing the browser cannot give a discount.
+
+**AI use declaration note:** Claude (Anthropic) was used to explain the design and to draft the code and the test cases. [Write here your own part. Only true statements.]
+
+### 2026-11-5 — PB28 recommended dishes (`feature/PB28-recommendations`)
+
+**Example commits**
+- feat(PB28): add GetTopItemIdsAsync to IOrderService and OrderService
+- feat(PB28): add RecommendationService and view model
+- feat(PB28): show recommended row on the menu page
+
+**Ch.5 screenshots to capture**
+1. Menu page with the "Recommended for you" row (logged in, with order history).
+2. The same page logged out or for a new customer (popular dishes instead).
+3. Code excerpt: `RecommendationService` (own history first, then restaurant-wide popular dishes; sold-out dishes skipped).
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A38 | Customer with past orders opens the menu | Their most-ordered available dishes appear | |
+| TC-A39 | New customer with no orders | Restaurant's popular dishes appear instead | |
+| TC-A40 | Mark a recommended dish as sold out | It no longer appears in the row | |
+| TC-A41 | Very small menu (fewer than 2 candidates) | Row is hidden, no error | |
+
+**Ch.7 reflection notes**
+- *Reading orders through Jordan's service.* I added one method, `GetTopItemIdsAsync`, to `IOrderService` rather than reading the Orders table, to keep to the cross-domain rule; Jordan reviewed the change.
+- *Simple rule instead of machine learning.* The brief's recommendation item is met with frequency counts: they are explainable in the viva and need no extra package.
+- *Limits:* 2 to 3 dishes are shown (`MinShown`, `MaxShown`) so the row never looks empty or crowded.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the service and the test cases. [Write here your own part. Only true statements.]
+
+### 2026-11-5 — PB24 export and print reports (`feature/PB24-export-print`)
+
+**Example commits**
+- feat(PB24): add ExportService for CSV (UTF-8 BOM, quoting, formula-injection guard)
+- feat(PB24): add CSV export to sales dashboard and customer activity report
+- feat(PB24): add print stylesheet (report-print.css) and print header
+- fix(PB24): print chart as an image so it does not overflow the page
+
+**Ch.5 screenshots to capture**
+1. Dashboard with the Export CSV and Print buttons.
+2. The CSV opened in Excel (Malay/English text and RM amounts read correctly).
+3. Print preview of the dashboard (no sidebar, chart fits the page, header text visible).
+4. Print preview of Customer Activity.
+5. Code excerpt: `ExportService` (quoting and the leading-apostrophe guard) and `report-print.css`.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A33 | Export the dashboard CSV for a date range | File downloads; rows match the screen | |
+| TC-A34 | Export with a customer name containing a comma and a quote | Fields are quoted correctly; columns do not shift | |
+| TC-A35 | Export a value starting with `=` (e.g. a name `=1+1`) | Opens as text, not as a formula | |
+| TC-A36 | Print preview of the dashboard | Sidebar and buttons hidden; chart inside page; table header visible | |
+| TC-A37 | Customer logs in and opens the export URL | Access Denied | |
+
+**Ch.7 reflection notes**
+- *Print looked wrong at first.* The back-office layout showed the sidebar, table headers were invisible (a CSS specificity problem) and the chart overflowed. I fixed these by hiding everything except `.print-area`, using a more specific header selector, and converting the chart canvas to an image before printing.
+- *CSV safety.* Cells that start with `=`, `+`, `-` or `@` get an apostrophe, to stop spreadsheet formula injection. The BOM makes Excel read UTF-8.
+- *Choosing the formats.* I chose CSV and print-to-PDF because they need no new NuGet package; the lead's rule was no new packages without approval.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the export service, the print CSS and the test cases. [Write here your own part. Only true statements.]
+
+### 2026-10-29 — BUG2, BUG3, UX4 small fixes (`fix/bug2-bug3-ux4-carynn`)
+
+**Example commits**
+- fix(BUG2): add phone number to Register
+- fix(BUG3): show full name in navbar
+- fix(UX4): rename Admin to Configurations
+
+**Ch.5 screenshots to capture**
+1. The Register page with the new phone number field.
+2. The navbar after login showing the full name ("Hello Admin User!").
+3. The navbar and hub page showing "Configurations".
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A29 | Register with a valid phone number; look at `AspNetUsers` | PhoneNumber column is filled | |
+| TC-A30 | Register with the letters "abc" as the phone number | Validation error; no account created | |
+| TC-A31 | Log in as admin@rroms.com | Navbar shows the full name, not the email | |
+| TC-A32 | Log in as admin, open the menu and hub page | Link and heading say "Configurations"; URL is still `/Admin` | |
+
+**Ch.7 reflection notes**
+- *No schema change for the phone number.* `IdentityUser` already has a `PhoneNumber` field, so the fix only needed the form, the page model and one assignment, with no migration.
+- *Falling back safely.* The navbar uses the full name when it exists and the email when it does not, so accounts without a full name still show something.
+- *Rename only what users see.* For UX4 I changed the visible words only, not the URL, the folder names, the `Administrator` role or the page paths, so nothing else broke.
+
+**AI use declaration note:** Claude (Anthropic) was used to explain the changes and to draft the code. [Write here your own part. Only true statements.]
+
+### 2026-10-29 — PB23 customer activity report (`feature/PB23-customer-activity`)
+
+**Example commits**
+- feat(PB23): add CustomerActivityService and view model
+- feat(PB23): add customer activity report page and hub card
+
+**Ch.5 screenshots to capture**
+1. `/Admin/Reports/CustomerActivity` with several customers, sorted by "Most active".
+2. The same page sorted by "Highest spend" (the order of rows should change).
+3. The footnote under the table that explains how each number is worked out.
+4. The validation error for an end date before the start date.
+5. Code excerpt: the loops in `CustomerActivityService.GetCustomerActivityAsync` that group by `CustomerId`, and the `Paid`-only total.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A23 | Customer makes a booking, places an order and pays for it; open the report | That customer shows 1 reservation, 1 order, the paid total, and a last visit date | |
+| TC-A24 | Cancel one reservation and one order for a customer; reload the report | Cancelled ones are not counted | |
+| TC-A25 | A customer has a Failed payment and a refunded payment | Neither is added to Total spent | |
+| TC-A26 | Switch Sort by to "Highest spend" | Rows reorder with the highest spender first | |
+| TC-A27 | End date before start date; a range over 62 days | Error message each time; no crash | |
+| TC-A28 | Log in as customer or staff, open `/Admin/Reports/CustomerActivity` | Access Denied | |
+
+**Ch.7 reflection notes**
+- *Defining the numbers.* "Total spent" and "last visit" are not defined by the brief, so I defined them: total spent is the sum of Paid payments (a refund changes the payment to Refunded, so refunds are already left out); cancelled reservations and orders are not counted; last visit is the latest Completed reservation or Paid payment. The page shows these rules in a footnote so the admin is not misled.
+- *Grouping by CustomerId.* Customer names are not unique, so the report groups by CustomerId, not by name. This needed the other members to include CustomerId in their view models, which I asked for.
+- *Cross-domain rule.* The report reads through `IReservationService`, `IOrderService` and `IPaymentService` and never touches their tables, so it depends on their method names and shapes. I could not start until Jordan's list methods were merged.
+- *Limit and improvement.* Reservations can only be read one day at a time, so the range is capped at 62 days and a long range makes up to 62 service calls. A range method on the reservation service, or a database query that groups the results, would be faster.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the service and page code and the test cases. [Write here your own part, such as choosing the metric definitions, running and testing each case, and fixing build errors. Only true statements.]
+
+### 2026-10-29 — PB21 admin monitoring (`feature/PB21-admin-monitoring`)
+
+**Example commits**
+- feat(PB21): add AdminMonitoringService and monitor view models
+- feat(PB21): add admin monitoring page with reservations, orders and payments tabs
+- feat(PB21): add Monitoring card to admin hub
+
+**Ch.5 screenshots to capture**
+1. `/Admin/Monitoring` Reservations tab with the status counts and a table of bookings.
+2. The Orders tab with the status badges, payment badges and the total value.
+3. The Payments tab with the Paid and Refunded totals.
+4. One tab with a status filter applied (list shorter, counts unchanged).
+5. The page at phone width, to show the table scrolling inside its own container.
+6. Code excerpt: `AdminMonitoringService.GetOrdersAsync` (one call, counts taken before the status filter) and `LoadReservationsAsync` (one call per day).
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual |
+|---|---|---|---|
+| TC-A17 | Make a booking as a customer; open the Reservations tab | The booking shows with the right customer, table, time and status | |
+| TC-A18 | Place an order and pay for it; open the Orders and Payments tabs | The order shows with its total and a Paid badge; the payment shows with the Paid total updated | |
+| TC-A19 | Choose a status filter on each tab | List shrinks to that status; the badge counts stay the same | |
+| TC-A20 | End date before start date; then a range over 62 days | Error message each time; no crash | |
+| TC-A21 | Change the date range to one with no data | "No ... match these filters" row, totals show 0 | |
+| TC-A22 | Log in as customer or staff, open `/Admin/Monitoring` | Access Denied | |
+
+**Ch.7 reflection notes**
+- *The cross-domain rule.* The lead's rule is that admin pages read through the other members' services, not their tables. That meant I could not build the Orders and Payments tabs until Jordan added `GetOrdersAsync` and `GetPaymentsAsync`. I asked for them by message, with the exact method signature and the fields I needed, and built the Reservations tab first so the work was not blocked.
+- *Requirements changed after I started.* My first design was separate pages for each list; the lead then asked for one page with tabs. Because the service and view models were already separate from the page, only the page had to change.
+- *Reservations are read one day at a time.* `GetStaffDailyReservationsAsync` takes a single date, so the service loops over the range and caps it at 62 days. This is a performance trade-off, written in a comment so it can be replaced if a range method is added.
+- *Status filtering in my service.* I filter by status after reading the whole range, so the badge counts always cover the full range and the filter does not depend on the exact status text another service expects.
+- *Read-only by design.* The order list sets no `NextStatus` or `CanCancel`, so the admin page cannot show staff actions.
+- *Splitting PB21 and PB23.* Both started in one service, which would have caused merge conflicts, so PB23 got its own `CustomerActivityService` and the two PRs share no files except `Program.cs` and the hub page.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the service and page code and the test cases. [Write here your own part. Only true statements.]
 
 ### 2026-10-22 — PB07 promotions, announcements, settings, admin hub (`feature/PB07-promotions-settings`)
 
