@@ -57,6 +57,18 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **(Partly: available tables are listed smallest first; bigger tables are still offered to small parties.)** **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-06** — Jordan: **logo** on `feature/UI-logo`. The RR house logo (from `Logo/2R.pdf`) cut out to transparent
+  PNGs in `wwwroot/images/brand/` (colour + white, mark + full). Used in the customer header and footer, the sign-in
+  pages (full white logo on the green panel), the back office side menu (white) and the staff top bar; new
+  `favicon.ico` and phone home-screen icon. Shared files touched: `_Layout`, `_BackOfficeLayout`, `_StaffTopBar`,
+  `site.css`, `backoffice.css`. Build 0 warnings; all pages and logo files checked.
+- **2026-11-06** — Jordan: **menu photos** on `feature/menu-photos` (off the `dev` hotfix #70). 15 dish photos
+  supplied by Jordan, resized to 900 px (911 KB total, from 3 MB), committed in `wwwroot/images/menu/` so every PC
+  has them. `DbSeeder` step 6 links each seeded dish to its photo **by name**, on every start, but **only when the
+  dish has no photo**, so teammates' existing databases get them on the next run and an admin upload is never
+  replaced. Admin upload (PB06) is unchanged: it still saves to the git-ignored `wwwroot/uploads/menu/`.
+  `DbSeeder.cs` is Wallace's/Carynn's file: group OK needed. Tested: all 15 linked and served (HTTP 200), Menu and
+  landing "From our kitchen" show them, an admin-uploaded photo survives a restart, an emptied one is refilled.
 - **2026-11-05** — Jordan: **status review + landing page.** Checked every Known issue / Idea / Decision against the
   code and marked the cleared ones above (D1, D3–D5, BUG1–3, BUG6–8, UX1, UX2, UX4). Still open: BUG5 on 3 customer
   pages, UX3 booking reach (14/60 days vs 1 week), staff/admin can still open customer pages, PB27 (Jordan), PB28
