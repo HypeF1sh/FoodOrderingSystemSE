@@ -1,0 +1,294 @@
+/* ===========================================================================
+   PB27 chat widget (Pages/Shared/_ChatWidget.cshtml + wwwroot/js/chatbot.js).
+   Global, not scoped: the message bubbles are created by script, and scoped
+   CSS only matches elements written in the .cshtml file. Every rule is under
+   .rr-chat so nothing leaks into the rest of the site.
+   =========================================================================== */
+
+.rr-chat {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1040;   /* above the sticky navbar (1030), below Bootstrap modals (1055) */
+    font-size: 0.9375rem;
+}
+
+/* Round launcher button in the plum accent */
+.rr-chat-launcher {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 0;
+    border-radius: 50%;
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+    box-shadow: 0 0.5rem 1.5rem rgba(15, 46, 43, 0.3);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.rr-chat-launcher:hover {
+    background-color: var(--rr-accent-dark);
+    transform: scale(1.05);
+}
+
+.rr-chat-launcher:focus-visible {
+    outline: 3px solid rgba(163, 51, 74, 0.35);
+    outline-offset: 3px;
+}
+
+/* The panel sits above the launcher */
+.rr-chat-panel {
+    position: absolute;
+    right: 0;
+    bottom: 4.5rem;
+    display: flex;
+    flex-direction: column;
+    width: 23rem;
+    height: min(34rem, calc(100vh - 7rem));
+    overflow: hidden;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-radius: 0.875rem;
+    box-shadow: 0 1rem 2.5rem rgba(15, 46, 43, 0.22);
+}
+
+.rr-chat-panel[hidden] {
+    display: none;
+}
+
+.rr-chat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+.rr-chat-title {
+    margin: 0;
+    font-family: var(--rr-serif);
+    font-size: 1.125rem;
+}
+
+.rr-chat-sub {
+    margin: 0.125rem 0 0;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.rr-chat-head-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.rr-chat-icon {
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: #FFFFFF;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.rr-chat-icon:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Conversation */
+.rr-chat-log {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 1rem;
+    overflow-y: auto;
+    background-color: var(--rr-surface);
+}
+
+.rr-chat-msg {
+    max-width: 85%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    line-height: 1.45;
+    white-space: pre-wrap;      /* keep the bot's line breaks and lists */
+    overflow-wrap: anywhere;
+}
+
+.rr-chat-bot {
+    align-self: flex-start;
+    background-color: var(--rr-raised);
+    border: 1px solid var(--rr-line);
+    border-bottom-left-radius: 0.25rem;
+}
+
+.rr-chat-user {
+    align-self: flex-end;
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.rr-chat-msg a {
+    color: var(--rr-accent);
+    font-weight: 500;
+}
+
+.rr-chat-error {
+    border-color: #E8B4BE;
+    background-color: #FBEFF1;
+    color: #7A1F31;
+}
+
+.rr-chat-stopped {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--rr-muted);
+}
+
+/* Live progress line: "Checking the menu..." with three pulsing dots */
+.rr-chat-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--rr-muted);
+}
+
+.rr-chat-dots {
+    display: inline-flex;
+    gap: 0.1875rem;
+}
+
+.rr-chat-dots i {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background-color: var(--rr-muted);
+    animation: rr-chat-pulse 1s infinite ease-in-out;
+}
+
+.rr-chat-dots i:nth-child(2) { animation-delay: 0.15s; }
+.rr-chat-dots i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes rr-chat-pulse {
+    0%, 80%, 100% { opacity: 0.25; }
+    40% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rr-chat-dots i { animation: none; opacity: 0.6; }
+    .rr-chat-launcher { transition: none; }
+}
+
+/* Suggested first questions */
+.rr-chat-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0 1rem 0.75rem;
+    background-color: var(--rr-surface);
+}
+
+.rr-chat-suggestions[hidden] {
+    display: none;
+}
+
+.rr-chat-suggestions button {
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+    font-size: 0.8125rem;
+}
+
+.rr-chat-suggestions button:hover {
+    border-color: var(--rr-accent);
+    color: var(--rr-accent);
+}
+
+/* Input row */
+.rr-chat-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-top: 1px solid var(--rr-line);
+}
+
+.rr-chat-form textarea {
+    flex: 1;
+    max-height: 6rem;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 0.5rem;
+    resize: none;
+    font: inherit;
+}
+
+.rr-chat-form textarea:focus {
+    outline: none;
+    border-color: var(--rr-muted);
+    box-shadow: 0 0 0 3px rgba(163, 51, 74, 0.12);
+}
+
+.rr-chat-send,
+.rr-chat-stop {
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.rr-chat-send {
+    border: 0;
+    background-color: var(--rr-accent);
+    color: #FFFFFF;
+}
+
+.rr-chat-send:hover {
+    background-color: var(--rr-accent-dark);
+}
+
+.rr-chat-send:disabled {
+    opacity: 0.5;
+}
+
+.rr-chat-stop {
+    border: 1px solid var(--rr-ink);
+    background-color: var(--rr-raised);
+    color: var(--rr-ink);
+}
+
+.rr-chat-stop[hidden],
+.rr-chat-send[hidden] {
+    display: none;
+}
+
+.rr-chat-note {
+    margin: 0;
+    padding: 0 0.75rem 0.625rem;
+    font-size: 0.6875rem;
+    color: var(--rr-muted);
+    text-align: center;
+}
+
+/* Phone: the panel fills the screen above the launcher, with the 16px gutter */
+@media (max-width: 575.98px) {
+    .rr-chat {
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    .rr-chat-panel {
+        position: fixed;
+        inset: 1rem 1rem 5.5rem;
+        width: auto;
+        height: auto;
+    }
+}

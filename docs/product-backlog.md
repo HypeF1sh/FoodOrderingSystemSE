@@ -45,7 +45,7 @@ generation* — is not covered by any PB item. Proposed fix (needs team agreemen
 | PB24 | As an administrator, I want to export reports to CSV, PDF or Excel. | Medium | C | Todo |
 | PB25 | As an administrator, I want table occupancy analytics showing peak hours, trends and utilisation. | Medium | C | Todo |
 | PB26 | As a customer, I want email confirmations for reservations, orders and payments. | Medium | B | Todo |
-| PB27 | As a customer, I want an AI chatbot that shows its progress in real time and lets me stop it. | Medium | A | Todo |
+| PB27 | As a customer, I want an AI chatbot that shows its progress in real time and lets me stop it. | Medium | C (taken over by Jordan from A) | Done (6/11, `feature/PB27-chatbot`, in review) |
 | PB28 | As a customer, I want personalised dish recommendations based on my order history. | Low | C | Todo |
 
 Build order for extras: PB24 → PB26 → PB25 → PB27 → PB28.

@@ -1,0 +1,49 @@
+@*
+    PB27 AI chatbot widget: a round button at the bottom right of customer pages that opens a chat panel.
+    The behaviour is in wwwroot/js/chatbot.js and the look in wwwroot/css/chatbot.css (a global sheet, because the
+    message bubbles are created by script, and scoped CSS only reaches elements written in this file).
+    The anti-forgery token below is sent with every question, like a normal form post.
+*@
+<link rel="stylesheet" href="~/css/chatbot.css" asp-append-version="true" />
+
+<div class="rr-chat" data-chat data-endpoint="@Url.Page("/Chatbot/Index")">
+    @Html.AntiForgeryToken()
+
+    <button type="button" class="rr-chat-launcher" data-chat-open aria-label="Open the chat assistant" aria-expanded="false" aria-controls="rr-chat-panel">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-4.5 3.6A.5.5 0 0 1 4 21.2V18a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm3 6.5a1.5 1.5 0 1 0 0 .01Zm5 0a1.5 1.5 0 1 0 0 .01Zm5 0a1.5 1.5 0 1 0 0 .01Z" /></svg>
+    </button>
+
+    <section id="rr-chat-panel" class="rr-chat-panel" role="dialog" aria-label="Chat assistant" hidden>
+        <header class="rr-chat-head">
+            <div>
+                <p class="rr-chat-title">Ask Rumah Rasa</p>
+                <p class="rr-chat-sub">AI assistant · answers from our real menu and hours</p>
+            </div>
+            <div class="rr-chat-head-actions">
+                <button type="button" class="rr-chat-icon" data-chat-reset title="New chat" aria-label="Start a new chat">↺</button>
+                <button type="button" class="rr-chat-icon" data-chat-close title="Close" aria-label="Close the chat">×</button>
+            </div>
+        </header>
+
+        <div class="rr-chat-log" data-chat-log aria-live="polite">
+            @* Text on one line: the bubbles keep whitespace (pre-wrap), so indentation would show *@
+            <div class="rr-chat-msg rr-chat-bot">Hi! I can help with our menu, prices, opening hours, offers and your bookings or orders. What would you like to know?</div>
+        </div>
+
+        <div class="rr-chat-suggestions" data-chat-suggestions>
+            <button type="button" data-chat-suggest>What do you recommend?</button>
+            <button type="button" data-chat-suggest>Are you open today?</button>
+            <button type="button" data-chat-suggest>Any promotions now?</button>
+        </div>
+
+        <form class="rr-chat-form" data-chat-form>
+            <label for="rr-chat-input" class="visually-hidden">Your question</label>
+            <textarea id="rr-chat-input" rows="1" maxlength="1000" placeholder="Ask a question..." data-chat-input></textarea>
+            <button type="submit" class="rr-chat-send" data-chat-send>Send</button>
+            <button type="button" class="rr-chat-stop" data-chat-stop hidden>Stop</button>
+        </form>
+        <p class="rr-chat-note">AI can make mistakes. Prices and times on the Menu page are always right.</p>
+    </section>
+</div>
+
+<script src="~/js/chatbot.js" asp-append-version="true" defer></script>
