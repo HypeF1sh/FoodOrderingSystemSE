@@ -1,3 +1,4 @@
+// PB14/PB18 (Jordan) - view model: customer order row view model
 using FoodOrderingSystem.Models.Enums;
 
 namespace FoodOrderingSystem.ViewModels;

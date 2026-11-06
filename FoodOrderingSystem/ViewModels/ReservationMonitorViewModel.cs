@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;   // <-- match your project namespace
+﻿// PB21 (Carynn) - view model: reservation monitor view model
+namespace FoodOrderingSystem.ViewModels;   // <-- match your project namespace
 
 // PB21: result of the admin reservation monitor (read-only)
 public class ReservationMonitorViewModel

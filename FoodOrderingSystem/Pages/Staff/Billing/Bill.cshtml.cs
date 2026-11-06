@@ -1,3 +1,4 @@
+// PB17 (Wallace) - one bill: record a cash payment or a refund
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Claims;
@@ -24,6 +25,7 @@ public class BillModel : PageModel
     [Range(0.01, 100000, ErrorMessage = "Enter a valid tendered amount.")]
     public decimal AmountTendered { get; set; }
 
+    // GET: the bill; the amount box starts at the total
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Bill = await _paymentService.GetBillAsync(id);
@@ -37,6 +39,7 @@ public class BillModel : PageModel
         return Page();
     }
 
+    // POST: record cash; the service checks tendered >= total and works out the change
     public async Task<IActionResult> OnPostRecordCashAsync(int id)
     {
         var staffUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -59,6 +62,7 @@ public class BillModel : PageModel
         return RedirectToPage("/Payments/Receipt", new { paymentId = paymentId.Value });
     }
 
+    // POST: refund a paid payment
     public async Task<IActionResult> OnPostRefundAsync(int id, int paymentId)
     {
         var staffUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;

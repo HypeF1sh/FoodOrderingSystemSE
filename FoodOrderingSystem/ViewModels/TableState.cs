@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: table state
 namespace FoodOrderingSystem.ViewModels;
 
 // The one state a table is in on the staff Floor. FloorService checks them from BillDue down to Free

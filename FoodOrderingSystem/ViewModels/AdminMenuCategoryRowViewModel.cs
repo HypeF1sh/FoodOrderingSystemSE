@@ -1,3 +1,4 @@
+// PB06/PB08 (Jordan) - view model: admin menu category row view model
 namespace FoodOrderingSystem.ViewModels;
 
 // One row of the Categories table on /Admin/Menu, also used by the Delete Category page

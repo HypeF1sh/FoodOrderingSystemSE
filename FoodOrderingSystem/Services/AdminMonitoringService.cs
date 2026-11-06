@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Models.Enums;   // <-- match your project namespace
+﻿// PB21 (Carynn) - admin monitoring: reservations, orders, payments in one place
+using FoodOrderingSystem.Models.Enums;   // <-- match your project namespace
 using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
@@ -24,6 +25,7 @@ public class AdminMonitoringService : IAdminMonitoringService
 
     // ================= PB21: monitoring =================
 
+    // PB21: bookings in the range, count per status, optional status filter
     public async Task<ReservationMonitorViewModel> GetReservationsAsync(DateOnly from, DateOnly to, string? status)
     {
         (from, to) = NormalizeRange(from, to);
@@ -47,6 +49,7 @@ public class AdminMonitoringService : IAdminMonitoringService
         };
     }
 
+    // PB21: orders in the range (through Jordan's IOrderService), counts and total value
     public async Task<OrderMonitorViewModel> GetOrdersAsync(DateOnly from, DateOnly to, OrderStatus? status)
     {
         (from, to) = NormalizeRange(from, to);
@@ -68,6 +71,7 @@ public class AdminMonitoringService : IAdminMonitoringService
         };
     }
 
+    // PB21: payments in the range (through IPaymentService), paid and refunded totals
     public async Task<PaymentMonitorViewModel> GetPaymentsAsync(DateOnly from, DateOnly to, PaymentStatus? status)
     {
         (from, to) = NormalizeRange(from, to);
@@ -91,6 +95,7 @@ public class AdminMonitoringService : IAdminMonitoringService
 
     // ================= helpers =================
 
+    // Swap reversed dates and cap the range at 366 days
     private static (DateOnly From, DateOnly To) NormalizeRange(DateOnly from, DateOnly to)
     {
         if (to < from) (from, to) = (to, from);

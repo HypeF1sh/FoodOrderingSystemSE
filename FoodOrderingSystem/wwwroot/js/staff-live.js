@@ -1,3 +1,4 @@
+// PB15 (Jordan) - staff pages: auto-refresh the live boards
 // Staff Floor and The Pass: every 20 seconds, fetch just the live part of the page and swap it in.
 // New orders and bookings appear without a full reload, so an open table drawer or the phone tabs stay as they are.
 // Any element with data-live-url is refreshed; the server returns a Razor partial (e.g. ?handler=Grid).

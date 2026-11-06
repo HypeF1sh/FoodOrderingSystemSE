@@ -1,3 +1,4 @@
+// PB12 (Jordan) - staff Tables tab: floor map with the table panel
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.Services;

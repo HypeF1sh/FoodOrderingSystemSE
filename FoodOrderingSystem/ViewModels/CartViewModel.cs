@@ -1,3 +1,4 @@
+// PB14 (Jordan) - view model: cart view model
 namespace FoodOrderingSystem.ViewModels;
 
 // The whole cart as shown on the cart and checkout pages

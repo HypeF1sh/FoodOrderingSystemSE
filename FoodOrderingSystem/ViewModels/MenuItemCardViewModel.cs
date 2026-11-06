@@ -1,3 +1,4 @@
+// PB06/PB08 (Jordan) - view model: menu item card view model
 namespace FoodOrderingSystem.ViewModels;
 
 // One dish as the customer sees it on /Menu

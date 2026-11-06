@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - staff floor: table state, needs-you list, complete table
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;

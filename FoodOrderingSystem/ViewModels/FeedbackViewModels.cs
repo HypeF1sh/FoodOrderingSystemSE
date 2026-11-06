@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;
+﻿// PB19 (Wallace) - view model: feedback view models
+namespace FoodOrderingSystem.ViewModels;
 
 public class EligibleVisitOptionViewModel
 {

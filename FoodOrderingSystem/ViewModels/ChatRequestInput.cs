@@ -1,3 +1,4 @@
+// PB27 (Jordan) - view model: chat request input
 using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.ViewModels;

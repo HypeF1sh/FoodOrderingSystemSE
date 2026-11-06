@@ -1,3 +1,4 @@
+// PB16 (Jordan) - fake card gateway for the demo (no real money)
 using System.Security.Cryptography;
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;

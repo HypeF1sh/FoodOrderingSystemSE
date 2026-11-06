@@ -1,3 +1,4 @@
+// PB25 (Wallace) - table occupancy analytics: peak hours, utilisation
 using System.Text.Json;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Services;
@@ -37,6 +38,7 @@ public class IndexModel : PageModel
     public OccupancyReportViewModel? Report { get; set; }
     public string ChartDataJson { get; set; } = "{}";
 
+    // GET: build the report for the chosen range; errors (bad range) shown on the page
     public async Task OnGetAsync()
     {
         var (success, message, report) = await _occupancyService.GetOccupancyReportAsync(

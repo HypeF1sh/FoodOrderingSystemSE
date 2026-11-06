@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿// PB20/PB26 (Wallace) - notifications: save in-app message and send email copy
+using System.Net;
 using System.Text.RegularExpressions;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
@@ -22,11 +23,13 @@ public class NotificationService : INotificationService
         _logger = logger;
     }
 
+    // PB20: save an in-app notification, then email a copy (PB26)
     public async Task SendAsync(string userId, string type, string message)
     {
         if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(message))
             return;
 
+        // 1. Clean the input to fit the columns (type 50, message 500 chars)
         var trimmedType = string.IsNullOrWhiteSpace(type) ? "General" : type.Trim();
         if (trimmedType.Length > 50)
             trimmedType = trimmedType[..50];
@@ -35,6 +38,7 @@ public class NotificationService : INotificationService
         if (trimmedMessage.Length > 500)
             trimmedMessage = trimmedMessage[..500];
 
+        // 2. Save it as unread; the navbar bell counts unread ones
         var notification = new Notification
         {
             UserId = userId,
@@ -72,6 +76,7 @@ public class NotificationService : INotificationService
         }
     }
 
+    // PB20: my notifications, newest first
     public async Task<List<Notification>> GetForUserAsync(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
@@ -83,6 +88,7 @@ public class NotificationService : INotificationService
             .ToListAsync();
     }
 
+    // PB20: number on the navbar bell
     public async Task<int> GetUnreadCountAsync(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
@@ -92,6 +98,7 @@ public class NotificationService : INotificationService
             .CountAsync(n => n.UserId == userId && !n.IsRead);
     }
 
+    // PB20: mark one as read (only the owner's, when userId is given)
     public async Task MarkReadAsync(int id, string? userId = null)
     {
         var query = _context.Notifications.Where(n => n.NotificationId == id);
@@ -109,6 +116,7 @@ public class NotificationService : INotificationService
         }
     }
 
+    // PB20: mark all of mine as read
     public async Task MarkAllReadAsync(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
@@ -129,6 +137,7 @@ public class NotificationService : INotificationService
         await _context.SaveChangesAsync();
     }
 
+    // PB26: build the email subject and HTML body from the notification text
     private static (string Subject, string HtmlBody) BuildConfirmationEmail(
         string customerName,
         string type,
@@ -155,6 +164,7 @@ public class NotificationService : INotificationService
             ? $"[Rumah Rasa] {subjectPrefix} ({referenceNumber})"
             : $"[Rumah Rasa] {subjectPrefix}";
 
+        // HTML-encode everything put in the email, so text cannot inject markup
         string safeName = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(customerName) ? "Valued Guest" : customerName);
         string safeType = WebUtility.HtmlEncode(type);
         string safeMessage = WebUtility.HtmlEncode(message);

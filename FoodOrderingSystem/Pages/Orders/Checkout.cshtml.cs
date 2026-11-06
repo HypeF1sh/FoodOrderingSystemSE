@@ -1,3 +1,4 @@
+// PB14 (Jordan) - checkout: shows where the order goes, then places it
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using FoodOrderingSystem.Data;

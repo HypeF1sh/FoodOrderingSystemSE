@@ -1,3 +1,4 @@
+// PB27 (Jordan) - Gemini API client (interface)
 using System.Text.Json.Nodes;
 
 namespace FoodOrderingSystem.Services;

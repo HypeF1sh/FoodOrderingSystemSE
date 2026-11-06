@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;
+﻿// PB04 (Carynn) - view model: user list item view model
+namespace FoodOrderingSystem.ViewModels;
 
 public class UserListItemViewModel
 {

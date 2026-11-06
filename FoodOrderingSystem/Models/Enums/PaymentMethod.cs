@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.Models.Enums;
+﻿// PB16 (Jordan) - Card, EWallet, Cash
+namespace FoodOrderingSystem.Models.Enums;
 
 public enum PaymentMethod
 {

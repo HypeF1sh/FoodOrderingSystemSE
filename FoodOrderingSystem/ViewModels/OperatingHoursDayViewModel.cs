@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;   // <-- match your project namespace
+﻿// PB05 (Carynn) - view model: operating hours day view model
+namespace FoodOrderingSystem.ViewModels;   // <-- match your project namespace
 
 public class OperatingHoursDayViewModel
 {

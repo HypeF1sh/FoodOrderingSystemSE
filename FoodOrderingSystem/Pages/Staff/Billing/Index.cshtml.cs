@@ -1,3 +1,4 @@
+// PB17 (Wallace) - unpaid bills list
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -20,12 +21,14 @@ public class IndexModel : PageModel
     public DateOnly EffectiveDate { get; set; }
     public List<UnpaidOrderRowViewModel> UnpaidOrders { get; set; } = new();
 
+    // GET: unpaid orders for a day (today by default)
     public async Task OnGetAsync()
     {
         EffectiveDate = FilterDate ?? DateOnly.FromDateTime(DateTime.Today);
         UnpaidOrders = await _paymentService.GetUnpaidOrdersAsync(EffectiveDate);
     }
 
+    // POST: jump to a bill by order number
     public async Task<IActionResult> OnPostLookupOrderAsync(int? orderId)
     {
         if (!orderId.HasValue || orderId.Value <= 0)

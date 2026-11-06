@@ -1,3 +1,4 @@
+// PB27 (Jordan) - Gemini API client: streaming HTTP call
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;

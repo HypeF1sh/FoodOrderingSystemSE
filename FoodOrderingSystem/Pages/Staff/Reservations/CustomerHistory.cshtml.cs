@@ -1,3 +1,4 @@
+// PB13 (Wallace) - a customer's booking history and preferences
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ public class CustomerHistoryModel : PageModel
 
     public CustomerReservationProfileViewModel? Profile { get; set; }
 
+    // PB13: history, preferred area, typical party size and past requests
     public async Task<IActionResult> OnGetAsync(string customerId)
     {
         if (string.IsNullOrWhiteSpace(customerId))

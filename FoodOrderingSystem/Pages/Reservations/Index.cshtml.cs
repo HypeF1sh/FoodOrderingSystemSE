@@ -1,3 +1,4 @@
+// PB11/PB18 (Wallace) - my bookings: upcoming and past
 using System.Security.Claims;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
@@ -17,12 +18,14 @@ public class IndexModel : PageModel
 
     public List<ReservationDetailViewModel> Reservations { get; set; } = new();
 
+    // GET: all my bookings
     public async Task OnGetAsync()
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         Reservations = await _reservationService.GetCustomerReservationsAsync(customerId);
     }
 
+    // POST: cancel one of my bookings (service checks it is mine and not too late)
     public async Task<IActionResult> OnPostCancelAsync(int id)
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;

@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;
+﻿// PB28 (Carynn) - view model: recommendation view model
+namespace FoodOrderingSystem.ViewModels;
 
 // PB28: one recommended dish, with just what the menu card needs
 public class RecommendedDishViewModel

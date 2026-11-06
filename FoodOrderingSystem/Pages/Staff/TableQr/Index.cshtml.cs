@@ -1,3 +1,4 @@
+// PB14 (Jordan) - printable QR code for every table
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;

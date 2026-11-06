@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: floor view model
 namespace FoodOrderingSystem.ViewModels;
 
 // Everything the staff Floor page shows for one dining area

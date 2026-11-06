@@ -1,3 +1,4 @@
+// PB06 (Jordan) - delete a category (blocked if it still has dishes)
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;

@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: bill view model
 using FoodOrderingSystem.Models.Enums;
 
 namespace FoodOrderingSystem.ViewModels;

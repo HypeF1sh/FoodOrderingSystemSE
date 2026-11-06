@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB05 (Carynn) - dining area (e.g. Garden) that holds tables
+using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.Models;
 

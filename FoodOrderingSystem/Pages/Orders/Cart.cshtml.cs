@@ -1,3 +1,4 @@
+// PB14 (Jordan) - cart: add, change quantity, remove (kept in the session)
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Authorization;

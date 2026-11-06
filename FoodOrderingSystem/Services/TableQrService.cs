@@ -1,3 +1,4 @@
+// PB14 (Jordan) - table QR ordering: signed codes, scan stored in session
 using System.Security.Cryptography;
 using System.Text.Json;
 using FoodOrderingSystem.ViewModels;

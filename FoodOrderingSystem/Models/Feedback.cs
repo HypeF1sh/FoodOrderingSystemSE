@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB19 (Wallace) - rating and comment after a completed booking
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FoodOrderingSystem.Models;
@@ -11,6 +12,7 @@ public class Feedback
     [Required]
     public string CustomerId { get; set; } = string.Empty;
 
+    // A review is for a booking OR an order, so exactly one of these is set
     public int? ReservationId { get; set; }
 
     public int? OrderId { get; set; }

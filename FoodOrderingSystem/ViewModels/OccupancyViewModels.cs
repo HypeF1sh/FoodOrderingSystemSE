@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;
+﻿// PB25 (Wallace) - view model: occupancy view models
+namespace FoodOrderingSystem.ViewModels;
 
 public enum OccupancyGrouping
 {

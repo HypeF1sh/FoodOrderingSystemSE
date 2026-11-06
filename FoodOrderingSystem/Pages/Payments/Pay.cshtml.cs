@@ -1,3 +1,4 @@
+// PB16 (Jordan) - pay online by card or e-wallet (simulated gateway)
 using System.Security.Claims;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models.Enums;

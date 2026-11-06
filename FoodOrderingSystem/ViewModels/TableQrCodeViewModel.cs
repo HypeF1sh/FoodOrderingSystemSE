@@ -1,3 +1,4 @@
+// PB14 (Jordan) - view model: table qr code view model
 namespace FoodOrderingSystem.ViewModels;
 
 // One table card on the printable QR page (PB14 table QR ordering)

@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Data;
+﻿// PB19 (Wallace) - feedback: who can rate, save, staff list
+using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;
@@ -15,10 +16,12 @@ public class FeedbackService : IFeedbackService
         _context = context;
     }
 
+    // PB19: visits the customer may still rate = Completed bookings and orders not rated yet
     public async Task<List<EligibleVisitOptionViewModel>> GetEligibleVisitsAsync(string customerId)
     {
         var options = new List<EligibleVisitOptionViewModel>();
 
+        // 1. What they already rated
         var reviewedReservationIds = await _context.Feedbacks
             .Where(f => f.CustomerId == customerId && f.ReservationId.HasValue)
             .Select(f => f.ReservationId!.Value)
@@ -29,6 +32,7 @@ public class FeedbackService : IFeedbackService
             .Select(f => f.OrderId!.Value)
             .ToListAsync();
 
+        // 2. Completed bookings they have not rated
         var completedReservations = await _context.Reservations
             .Include(r => r.RestaurantTable)
             .Where(r => r.CustomerId == customerId
@@ -46,6 +50,7 @@ public class FeedbackService : IFeedbackService
             });
         }
 
+        // 3. Completed orders they have not rated
         var completedOrders = await _context.Orders
             .Where(o => o.CustomerId == customerId
                         && o.Status == OrderStatus.Completed
@@ -65,6 +70,7 @@ public class FeedbackService : IFeedbackService
         return options;
     }
 
+    // PB19: save a rating; every rule checked on the server
     public async Task<(bool Success, string Message)> SubmitFeedbackAsync(
         string customerId,
         int? reservationId,
@@ -72,12 +78,14 @@ public class FeedbackService : IFeedbackService
         int rating,
         string? comment)
     {
+        // 1. 1-5 stars, and it must be about a booking or an order
         if (rating < 1 || rating > 5)
             return (false, "Rating must be between 1 and 5 stars.");
 
         if (!reservationId.HasValue && !orderId.HasValue)
             return (false, "Please select a completed reservation or order to rate.");
 
+        // 2. Booking: must be theirs, Completed, and not rated before
         if (reservationId.HasValue)
         {
             var reservation = await _context.Reservations
@@ -96,6 +104,7 @@ public class FeedbackService : IFeedbackService
                 return (false, "You have already submitted feedback for this reservation.");
         }
 
+        // 3. Order: same three checks
         if (orderId.HasValue)
         {
             var order = await _context.Orders
@@ -114,6 +123,7 @@ public class FeedbackService : IFeedbackService
                 return (false, "You have already submitted feedback for this order.");
         }
 
+        // 4. Save the feedback
         var feedback = new Feedback
         {
             CustomerId = customerId,
@@ -130,6 +140,7 @@ public class FeedbackService : IFeedbackService
         return (true, "Thank you! Your rating and feedback have been submitted.");
     }
 
+    // PB19: a customer's own past feedback
     public async Task<List<FeedbackItemViewModel>> GetCustomerFeedbackAsync(string customerId)
     {
         return await _context.Feedbacks
@@ -151,6 +162,7 @@ public class FeedbackService : IFeedbackService
             .ToListAsync();
     }
 
+    // PB19: all feedback for staff, optional star filter
     public async Task<List<FeedbackItemViewModel>> GetAllFeedbackAsync(int? ratingFilter = null)
     {
         var query = _context.Feedbacks

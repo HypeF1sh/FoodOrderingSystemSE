@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Data;         // <-- match your project namespace
+﻿// PB05 (Carynn) - weekly opening hours: read and save
+using FoodOrderingSystem.Data;         // <-- match your project namespace
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ public class OperatingHoursService : IOperatingHoursService
         _db = db;
     }
 
+    // PB05: always returns 7 days (Sun-Sat); used by bookings, home page and chatbot
     public async Task<List<OperatingHoursDayViewModel>> GetWeekAsync()
     {
         var rows = await _db.OperatingHours.AsNoTracking().ToListAsync();
@@ -34,6 +36,7 @@ public class OperatingHoursService : IOperatingHoursService
         return week;
     }
 
+    // PB05: save all 7 days at once, after validating every day
     public async Task<(bool Success, string Message)> UpdateWeekAsync(IEnumerable<OperatingHoursDayViewModel> days)
     {
         var list = days.ToList();
@@ -48,6 +51,7 @@ public class OperatingHoursService : IOperatingHoursService
                 return (false, $"{d.DayName}: closing time must be after opening time (or mark the day as closed).");
         }
 
+        // Update existing rows, create missing ones
         var existing = await _db.OperatingHours.ToListAsync();
 
         foreach (var d in list)

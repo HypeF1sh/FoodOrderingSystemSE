@@ -1,3 +1,4 @@
+// PB09/PB10 (Wallace) - book a table: check free tables, then reserve
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using FoodOrderingSystem.Services;
@@ -18,9 +19,11 @@ public class CreateModel : PageModel
     }
 
     [BindProperty(SupportsGet = true)]
+    // Step 1 form: date, time, guests, area (GET, so the search is in the URL)
     public SearchModel Search { get; set; } = new();
 
     [BindProperty]
+    // Step 2 form: the table the customer picked (POST)
     public BookingInputModel Input { get; set; } = new();
 
     public List<SelectListItem> DiningAreaOptions { get; set; } = new();
@@ -62,6 +65,7 @@ public class CreateModel : PageModel
         public string? SpecialRequests { get; set; }
     }
 
+    // GET: show the form; with ?check=true also list free tables
     public async Task OnGetAsync(bool check = false)
     {
         await LoadDiningAreasAsync();
@@ -72,6 +76,7 @@ public class CreateModel : PageModel
         }
     }
 
+    // POST: book the chosen table
     public async Task<IActionResult> OnPostAsync()
     {
         Search = new SearchModel
@@ -84,6 +89,7 @@ public class CreateModel : PageModel
 
         await LoadDiningAreasAsync();
 
+        // 1. Field checks from the annotations
         if (!ModelState.IsValid)
         {
             await RunAvailabilitySearchAsync();
@@ -92,6 +98,7 @@ public class CreateModel : PageModel
 
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
+        // 2. The service re-checks hours, overlap and table availability
         var (success, message, reservationId) = await _reservationService.CreateReservationAsync(
             customerId,
             Input.RestaurantTableId,
@@ -100,6 +107,7 @@ public class CreateModel : PageModel
             Input.PartySize,
             Input.SpecialRequests);
 
+        // 3. Business rule failed: show the message on the same page
         if (!success || reservationId == null)
         {
             ModelState.AddModelError(string.Empty, message);
@@ -107,6 +115,7 @@ public class CreateModel : PageModel
             return Page();
         }
 
+        // 4. Success: Post/Redirect/Get to the confirmation page
         TempData["SuccessMessage"] = message;
         return RedirectToPage("Confirmation", new { id = reservationId.Value });
     }
@@ -120,6 +129,7 @@ public class CreateModel : PageModel
         DiningAreaOptions.Insert(0, new SelectListItem("All Dining Areas", ""));
     }
 
+    // PB09: open at that time? then which tables are free
     private async Task RunAvailabilitySearchAsync()
     {
         HasSearched = true;

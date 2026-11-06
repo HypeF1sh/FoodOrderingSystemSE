@@ -1,3 +1,4 @@
+// PB27 (Jordan) - AI chatbot: Gemini plus read-only restaurant tools
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using FoodOrderingSystem.ViewModels;

@@ -1,3 +1,4 @@
+// PB16 (Jordan) - view model: payment list item view model
 using FoodOrderingSystem.Models.Enums;
 
 namespace FoodOrderingSystem.ViewModels;

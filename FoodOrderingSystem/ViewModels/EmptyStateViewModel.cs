@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: empty state view model
 namespace FoodOrderingSystem.ViewModels;
 
 // Data for the shared back office empty state (Pages/Shared/_EmptyState.cshtml).

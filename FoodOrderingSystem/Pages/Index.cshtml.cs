@@ -1,3 +1,4 @@
+// UI (Jordan) - landing page: photo slideshow, signature dishes, hours, offers
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;

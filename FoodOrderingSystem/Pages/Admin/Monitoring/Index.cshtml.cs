@@ -1,3 +1,4 @@
+// PB21 (Carynn) - read-only monitor: all reservations, orders, payments
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
@@ -27,6 +28,7 @@ public class IndexModel : PageModel
     public PaymentMonitorViewModel Payments { get; set; } = new();
     public List<SelectListItem> StatusOptions { get; set; } = new();
 
+    // GET: load what the page shows
     public async Task OnGetAsync()
     {
         // Only three valid tabs; anything else falls back to reservations

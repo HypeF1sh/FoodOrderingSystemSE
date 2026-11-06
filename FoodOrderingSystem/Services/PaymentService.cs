@@ -1,3 +1,4 @@
+// PB16/PB17 (Jordan) - payments: online pay, cash at the counter, receipts
 using System.Security.Cryptography;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;

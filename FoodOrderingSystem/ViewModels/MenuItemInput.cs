@@ -1,3 +1,4 @@
+// PB06/PB08 (Jordan) - view model: menu item input
 using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.ViewModels;

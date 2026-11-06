@@ -1,3 +1,4 @@
+// PB06/PB08 (Jordan) - view model: menu browse view model
 namespace FoodOrderingSystem.ViewModels;
 
 // Everything the public /Menu page needs in one object

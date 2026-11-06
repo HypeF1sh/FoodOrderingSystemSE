@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Models;
+﻿// PB20 (Wallace) - notifications (interface)
+using FoodOrderingSystem.Models;
 
 namespace FoodOrderingSystem.Services;
 

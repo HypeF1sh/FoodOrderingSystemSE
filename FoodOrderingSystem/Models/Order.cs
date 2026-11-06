@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB14 (Jordan) - customer order: status, total, booking or scanned table
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FoodOrderingSystem.Models.Enums;
 

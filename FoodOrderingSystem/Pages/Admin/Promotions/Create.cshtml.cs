@@ -1,3 +1,4 @@
+// PB07 (Carynn) - add a promotion
 using System.ComponentModel.DataAnnotations;
 using FoodOrderingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -47,19 +48,24 @@ public class CreateModel : PageModel
 
     public void OnGet() { }
 
+    // POST: save the form
     public async Task<IActionResult> OnPostAsync()
     {
+        // Field checks from the data annotations
         if (!ModelState.IsValid) return Page();
 
+        // The service checks the business rules and saves
         var (success, message) = await _service.CreateAsync(
             Input.Title, Input.Description, Input.DiscountPercent, Input.StartDate, Input.EndDate, Input.IsActive);
 
+        // Rule failed: show the message on the form
         if (!success)
         {
             ModelState.AddModelError(string.Empty, message);
             return Page();
         }
 
+        // Success: message for the next page, then redirect (Post/Redirect/Get)
         SuccessMessage = message;
         return RedirectToPage("Index");
     }

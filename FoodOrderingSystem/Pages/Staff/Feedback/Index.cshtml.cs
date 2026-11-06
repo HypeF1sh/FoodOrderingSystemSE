@@ -1,3 +1,4 @@
+// PB19 (Wallace) - staff view of customer reviews
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,7 @@ public class IndexModel : PageModel
 
     public List<FeedbackItemViewModel> Feedbacks { get; set; } = new();
 
+    // GET: all reviews, optional star filter
     public async Task OnGetAsync()
     {
         Feedbacks = await _feedbackService.GetAllFeedbackAsync(RatingFilter);

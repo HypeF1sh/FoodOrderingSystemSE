@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB20 (Wallace) - in-app notification for one user
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FoodOrderingSystem.Models;
@@ -17,6 +18,7 @@ public class Notification
     [Required, StringLength(500)]
     public string Message { get; set; } = string.Empty;
 
+    // Unread ones are counted on the navbar bell
     public bool IsRead { get; set; } = false;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.Models.Enums;
+﻿// PB16 (Jordan) - Unpaid, Paid, Failed, Refunded
+namespace FoodOrderingSystem.Models.Enums;
 
 public enum PaymentStatus
 {

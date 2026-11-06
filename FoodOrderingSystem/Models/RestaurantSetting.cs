@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB07 (Carynn) - key-value restaurant setting (e.g. Address, Phone)
+using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.Models;
 
