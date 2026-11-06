@@ -282,12 +282,28 @@ h3 { font-size: var(--rr-h3); }
 
 /* Wordmark - the one voiced element in the shell */
 .rr-wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
     font-family: var(--rr-serif);
     font-size: var(--rr-h3);
     font-weight: 400;
     letter-spacing: -0.015em;
     color: var(--rr-ink);
     margin-right: 2.5rem;
+}
+
+/* The RR house logo in front of the name (wwwroot/images/brand) */
+.rr-logo {
+    width: auto;
+    height: 2rem;
+}
+
+.rr-logo-sm {
+    width: auto;
+    height: 1.25rem;
+    margin-right: 0.375rem;
+    vertical-align: -0.2rem;
 }
 
 .rr-wordmark:hover,

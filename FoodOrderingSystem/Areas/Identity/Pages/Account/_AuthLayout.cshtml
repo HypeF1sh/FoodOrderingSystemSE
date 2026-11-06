@@ -17,6 +17,8 @@
     <title>@ViewData["Title"] - @RestaurantName</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="icon" href="~/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="~/images/brand/apple-touch-icon.png" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
 </head>
@@ -26,7 +28,7 @@
     <header class="rr-header">
         <nav class="navbar">
             <div class="container-fluid">
-                <a class="navbar-brand rr-wordmark" asp-area="" asp-page="/Index">@RestaurantName</a>
+                <a class="navbar-brand rr-wordmark" asp-area="" asp-page="/Index"><img src="~/images/brand/logo-mark.png" alt="" class="rr-logo" width="43" height="32" />@RestaurantName</a>
                 @if (onRegister)
                 {
                     <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Login">Log in</a>
@@ -51,7 +53,7 @@
 
     <footer class="rr-footer rr-auth-footer">
         <div class="container-fluid">
-            <span class="rr-footer-mark">@RestaurantName</span>
+            <span class="rr-footer-mark"><img src="~/images/brand/logo-mark.png" alt="" class="rr-logo-sm" width="27" height="20" />@RestaurantName</span>
             <a asp-area="" asp-page="/Privacy">Privacy</a>
             <span class="rr-footer-meta">&copy; @DateTime.Now.Year</span>
         </div>

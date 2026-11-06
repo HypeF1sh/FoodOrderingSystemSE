@@ -25,6 +25,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - @RestaurantName back office</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="icon" href="~/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="~/images/brand/apple-touch-icon.png" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/backoffice.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
@@ -45,7 +47,7 @@
         <!-- Side menu: always visible from lg up, a slide-in panel below it -->
         <aside class="bo-side offcanvas-lg offcanvas-start" tabindex="-1" id="boSide" aria-labelledby="boSideLabel">
             <div class="bo-brand">
-                <a asp-area="" asp-page="/Index" id="boSideLabel">@RestaurantName</a>
+                <a asp-area="" asp-page="/Index" id="boSideLabel"><img src="~/images/brand/logo-mark-white.png" alt="" class="bo-logo" width="40" height="30" />@RestaurantName</a>
                 <span>Back office</span>
                 <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
                         data-bs-target="#boSide" aria-label="Close menu"></button>

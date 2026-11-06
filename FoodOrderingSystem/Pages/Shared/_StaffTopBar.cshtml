@@ -26,7 +26,7 @@
     var moreActive = more.Any(m => currentPage.StartsWith(m.Prefix));
 }
 <header class="st-top">
-    <a class="st-brand" asp-area="" asp-page="/Staff/Floor/Index">@RestaurantName</a>
+    <a class="st-brand" asp-area="" asp-page="/Staff/Floor/Index"><img src="~/images/brand/logo-mark.png" alt="" class="st-logo" width="40" height="30" />@RestaurantName</a>
     <span class="st-shift">@shift shift · @now.ToString("ddd d MMM")</span>
 
     <nav class="st-tabs" aria-label="Staff">

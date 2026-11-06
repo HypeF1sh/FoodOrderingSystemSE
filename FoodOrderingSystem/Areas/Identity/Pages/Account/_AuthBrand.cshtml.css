@@ -1,6 +1,6 @@
 /* ===========================================================================
    Styles scoped to _AuthBrand.cshtml (CSS isolation).
-   White wordmark and tagline on the green page background from _AuthLayout.
+   White logo and tagline on the green page background from _AuthLayout.
    =========================================================================== */
 
 .rr-auth-brand {
@@ -14,12 +14,13 @@
     max-width: 22rem;
 }
 
-.rr-auth-brand-mark {
-    font-family: var(--rr-serif);
-    font-size: 2.5rem;
-    line-height: 1.1;
-    letter-spacing: -0.015em;
-    margin-bottom: 0.75rem;
+/* ::deep because an <img src="~/..."> is rendered by a tag helper, which skips the scope attribute */
+.rr-auth-brand-text ::deep .rr-auth-brand-logo {
+    display: block;
+    width: 100%;
+    max-width: 18rem;
+    height: auto;
+    margin-bottom: 1.25rem;
 }
 
 .rr-auth-brand-line {
