@@ -396,6 +396,39 @@ public class OrderService : IOrderService
     }
 
     // =====================================================================
+    // Recommendations (PB28)
+    // =====================================================================
+
+    public async Task<List<int>> GetTopItemIdsAsync(string? customerId, DateOnly? since, int take)
+    {
+        if (take <= 0) return new List<int>();
+
+        var query = _context.OrderItems
+            .AsNoTracking()
+            .Where(oi => oi.Order!.Status != OrderStatus.Cancelled);
+
+        // One customer, or (null) the whole restaurant
+        if (customerId != null)
+            query = query.Where(oi => oi.Order!.CustomerId == customerId);
+
+        // Orders are saved in restaurant local time, so the cut-off is local midnight too
+        if (since.HasValue)
+        {
+            var start = since.Value.ToDateTime(TimeOnly.MinValue);
+            query = query.Where(oi => oi.Order!.CreatedAt >= start);
+        }
+
+        // Most ordered first (by total quantity), ties broken by the lower MenuItemId
+        return await query
+            .GroupBy(oi => oi.MenuItemId)
+            .OrderByDescending(g => g.Sum(oi => oi.Quantity))
+            .ThenBy(g => g.Key)
+            .Select(g => g.Key)
+            .Take(take)
+            .ToListAsync();
+    }
+
+    // =====================================================================
     // Rules shared by the methods above
     // =====================================================================
 
