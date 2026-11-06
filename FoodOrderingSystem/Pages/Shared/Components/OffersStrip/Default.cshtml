@@ -1,0 +1,209 @@
+﻿@model (List<FoodOrderingSystem.Models.Announcement> Announcements, List<FoodOrderingSystem.Models.Promotion> Promotions, bool Compact)
+
+@* Shows nothing when there is nothing active *@
+@if (Model.Announcements.Count > 0 || Model.Promotions.Count > 0)
+{
+    <style>
+        .rr-offer-tag {
+            flex: 0 0 auto;
+            padding: 0.125rem 0.5rem;
+            background: #f8eef1;
+            color: var(--rr-accent, #a5334b);
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .rr-offer-badge {
+            padding: 0.125rem 0.625rem;
+            background: var(--rr-accent, #a5334b);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* ---- Full version (menu page): cards ---- */
+        .rr-offers { margin-top: 1rem; }
+
+        .rr-offer-notice {
+            display: flex;
+            gap: 0.875rem;
+            align-items: flex-start;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.625rem;
+            background: var(--rr-raised, #fff);
+            border: 1px solid var(--rr-line, #e3dde0);
+            border-left: 4px solid var(--rr-accent, #a5334b);
+            border-radius: var(--rr-radius, 8px);
+        }
+
+        .rr-offer-title { font-weight: 600; color: var(--rr-ink, #1f1f1f); }
+
+        .rr-offer-text {
+            margin-top: 0.125rem;
+            color: var(--rr-muted, #6b6b6b);
+            font-size: var(--rr-text-sm, 0.9rem);
+            white-space: pre-line;
+        }
+
+        .rr-offer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .rr-offer-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.875rem 1rem;
+            background: var(--rr-raised, #fff);
+            border: 1px solid var(--rr-line, #e3dde0);
+            border-top: 4px solid var(--rr-accent, #a5334b);
+            border-radius: var(--rr-radius, 8px);
+        }
+
+        .rr-offer-card .rr-offer-badge { align-self: flex-start; }
+
+        .rr-offer-until {
+            margin-top: auto;
+            padding-top: 0.375rem;
+            color: var(--rr-muted, #6b6b6b);
+            font-size: 0.8rem;
+        }
+
+        /* ---- Compact version (home page): one bar per category ---- */
+        .rr-bars {
+            margin: -1.5rem 0 1.5rem;
+            max-width: 46rem;
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .rr-bar {
+            padding: 0.875rem 1.125rem;
+            background: var(--rr-raised, #fff);
+            border: 1px solid var(--rr-line, #e3dde0);
+            border-left: 4px solid var(--rr-accent, #a5334b);
+            border-radius: var(--rr-radius, 8px);
+        }
+
+        .rr-bar-label {
+            margin-bottom: 0.25rem;
+            color: var(--rr-accent, #a5334b);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .rr-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-top: 1px solid var(--rr-line, #e3dde0);
+            font-size: 1.0625rem;
+        }
+
+        .rr-bar-item:first-of-type { border-top: none; }
+
+        .rr-bar-item .rr-offer-badge { font-size: 0.95rem; padding: 0.25rem 0.75rem; }
+
+        .rr-bar-main { flex: 1 1 auto; min-width: 0; }
+        .rr-bar-title { font-weight: 600; color: var(--rr-ink, #1f1f1f); }
+        .rr-bar-body { color: var(--rr-muted, #6b6b6b); font-size: 0.95rem; }
+
+        .rr-bar-until {
+            flex: 0 0 auto;
+            color: var(--rr-muted, #6b6b6b);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        @@media (max-width: 575.98px) {
+            .rr-bar-item { flex-wrap: wrap; }
+            .rr-bar-until { width: 100%; }
+        }
+    </style>
+
+    @if (Model.Compact)
+    {
+        <div class="rr-bars">
+            @if (Model.Announcements.Count > 0)
+            {
+                <div class="rr-bar">
+                    <div class="rr-bar-label">News</div>
+                    @foreach (var a in Model.Announcements)
+                    {
+                        <div class="rr-bar-item">
+                            <div class="rr-bar-main">
+                                <span class="rr-bar-title">@a.Title</span>
+                                <span class="rr-bar-body"> &mdash; @(a.Body.Length > 90 ? a.Body.Substring(0, 90) + "…" : a.Body)</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (Model.Promotions.Count > 0)
+            {
+                <div class="rr-bar">
+                    <div class="rr-bar-label">Promotions</div>
+                    @foreach (var p in Model.Promotions)
+                    {
+                        <div class="rr-bar-item">
+                            <span class="rr-offer-badge">@p.DiscountPercent.ToString("0.##")% off</span>
+                            <div class="rr-bar-main">
+                                <span class="rr-bar-title">@p.Title</span>
+                                @if (!string.IsNullOrWhiteSpace(p.Description))
+                                {
+                                    <span class="rr-bar-body"> &mdash; @p.Description</span>
+                                }
+                            </div>
+                            <span class="rr-bar-until">until @p.EndDate.ToString("dd MMM")</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="container rr-offers">
+            @foreach (var a in Model.Announcements)
+            {
+                <div class="rr-offer-notice" role="status">
+                    <span class="rr-offer-tag">News</span>
+                    <div>
+                        <div class="rr-offer-title">@a.Title</div>
+                        <div class="rr-offer-text">@a.Body</div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Promotions.Count > 0)
+            {
+                <div class="rr-offer-grid">
+                    @foreach (var p in Model.Promotions)
+                    {
+                        <div class="rr-offer-card">
+                            <span class="rr-offer-badge">@p.DiscountPercent.ToString("0.##")% off</span>
+                            <div class="rr-offer-title">@p.Title</div>
+                            @if (!string.IsNullOrWhiteSpace(p.Description))
+                            {
+                                <div class="rr-offer-text">@p.Description</div>
+                            }
+                            <div class="rr-offer-until">Valid until @p.EndDate.ToString("dd MMM yyyy")</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+}

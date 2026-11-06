@@ -7,6 +7,8 @@
     var returnUrl = Request.Path + Request.QueryString;
 }
 
+@await Component.InvokeAsync("OffersStrip", new { showAnnouncements = false })
+
 <div class="container mt-4">
 
     <!-- Heading + search. A GET form, so the filter shows in the URL and works without JavaScript -->
