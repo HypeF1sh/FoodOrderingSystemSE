@@ -11,4 +11,6 @@ public interface IPromotionService
     Task<(bool Success, string Message)> ToggleActiveAsync(int id);
     Task<(bool Success, string Message)> DeleteAsync(int id);
     Task<List<Promotion>> GetActiveAsync();
+    /// <summary>The promotion for a code like PROMO3, if it is active, valid today and within the discount cap. Otherwise null.</summary>
+    Task<Promotion?> GetActiveByCodeAsync(string? code);
 }

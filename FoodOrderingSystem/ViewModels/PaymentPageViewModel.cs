@@ -16,4 +16,9 @@ public class PaymentPageViewModel
     // Decided by the service: when false the page shows CannotPayReason instead of the form
     public bool CanPay { get; set; }
     public string? CannotPayReason { get; set; }
+
+    // The order's notes. When a promo code was used, PlaceOrderAsync wrote it at the start ("Promo PROMO3 (name): 10% off | ...")
+    public string Notes { get; set; } = string.Empty;
+    public string? PromotionLine =>
+        Notes.StartsWith("Promo ", StringComparison.Ordinal) ? Notes.Split(" | ")[0] : null;
 }

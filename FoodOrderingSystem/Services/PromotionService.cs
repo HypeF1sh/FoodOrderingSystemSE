@@ -89,6 +89,29 @@ public class PromotionService : IPromotionService
             .ToListAsync();
     }
 
+    // A promotion's code is derived from its id (PROMO3), so no new column is needed
+    public static string CodeFor(int promotionId) => $"PROMO{promotionId}";
+
+    // One place for the discount rule, used by the order service and by the checkout preview
+    public static decimal ApplyDiscount(decimal unitPrice, decimal discountPercent) =>
+        Math.Round(unitPrice * (100m - discountPercent) / 100m, 2, MidpointRounding.AwayFromZero);
+
+    public async Task<Promotion?> GetActiveByCodeAsync(string? code)
+    {
+        code = code?.Trim().ToUpperInvariant();
+        if (string.IsNullOrEmpty(code) || !code.StartsWith("PROMO")
+            || !int.TryParse(code.AsSpan(5), out var promotionId))
+            return null;
+
+        var today = DateTime.Today;
+        return await _db.Promotions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.PromotionId == promotionId
+                                      && p.IsActive
+                                      && p.StartDate <= today && p.EndDate >= today
+                                      && p.DiscountPercent >= 1 && p.DiscountPercent <= 90);
+    }
+
     private static string? Validate(string title, decimal discountPercent, DateTime startDate, DateTime endDate)
     {
         if (string.IsNullOrWhiteSpace(title)) return "Title is required.";

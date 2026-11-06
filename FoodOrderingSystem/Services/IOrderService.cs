@@ -13,7 +13,7 @@ public interface IOrderService
     /// scannedTableId comes from ITableQrService.GetScannedTableId. Refused when there is no table and no
     /// confirmed booking. Returns (success, message, new order id). Nothing is saved if any check fails.</summary>
     Task<(bool Success, string Message, int? OrderId)> PlaceOrderAsync(
-        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId);
+        string customerId, List<CartSessionItem> items, string? notes, int? scannedTableId, string? promoCode = null);
 
     /// <summary>For the checkout page: whether an order can be placed now and where it would go
     /// (scanned table, the customer's table now, or a pre-order), or why it cannot.</summary>
