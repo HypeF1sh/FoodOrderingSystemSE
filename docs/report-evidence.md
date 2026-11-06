@@ -33,6 +33,75 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-11-01 | Staff side: Floor, The Pass, Today + order-to-table link (BUG8) | See the detailed entry below |
 | 2026-11-04 | Login and register restyle (`feature/UI-auth-pages`) | See the detailed entry below |
 | 2026-11-04 | Account settings redesign (`feature/UI-account-settings`) | See the detailed entry below |
+| 2026-11-04 | Staff pages made consistent (`feature/UI-staff-consistency`) | See the detailed entry below |
+| 2026-11-04 | Staff home "Tonight": to-do list + table panel | See the detailed entry below |
+| 2026-11-04 | Modern date pickers: booking day strip + time chips, staff day stepper | See the detailed entry below |
+
+### 2026-11-04 — Modern date pickers
+
+**Ch.5 screenshots to capture**
+1. Book a table before (date box + time box + number spinner) and after (day strip, time chips, guest chips).
+2. Book a table at phone width: swiping the day strip.
+3. Staff Bookings with the day stepper on "Tomorrow".
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U19 | Open Book a table | Next 14 days as chips, Saturdays crossed out "Closed", tomorrow selected, 6:00 PM selected | As expected |
+| TC-U20 | Tap Today | Only times from now + 30 min appear (e.g. 5:00 PM onwards at 4:30 PM) | As expected |
+| TC-U21 | Today, 7:00 PM, 4 guests, Find a table | "4 available" tables for 7:00–8:30 PM; the picker keeps the choices | As expected |
+| TC-U22 | Staff Bookings: press › then Today | Shows "Tomorrow · Thu 5 Nov", then back to today | As expected |
+
+**Ch.7 reflection notes**
+- *Design by prevention.* The old form let customers type a closed day or a time outside opening hours and only told them after submitting. The picker only offers choices that can work; the server still validates in case the page is bypassed.
+- *No back-end change.* The picker posts the same field names as the old inputs, so Wallace's PageModels and `ReservationService` did not change.
+
+**AI use declaration note:** Claude (Anthropic) was used to research patterns and draft the partials, JavaScript and CSS. [Write here your own part, only true statements.]
+
+### 2026-11-04 — Staff home "Tonight": to-do list + table panel
+
+**Ch.5 screenshots to capture**
+1. The four design mockups side by side (ports 5101–5104) to show the options considered, then the chosen one.
+2. `/Staff/Floor` (Tonight) with a "ready" job and a "bill due" job, map on the right.
+3. The table panel open on a bill-due table: dishes, total, Take payment.
+4. Tonight at phone width.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U15 | Customer orders via table QR (G1); staff start and finish it on The Pass; open Tonight | "#7 ready · G1" under Now with **Mark served** | As expected |
+| TC-U16 | Press Mark served | Banner "Order #7 is now served"; the job becomes "G1 bill due · #7, RM 34.00" with **Take payment**; G1 turns red | As expected |
+| TC-U17 | Tap table G1 | Panel slides in: order #7, both dishes with prices, RM 34.00, **Take payment** | As expected |
+| TC-U18 | Press Take payment (list or panel) | Opens the Bill page for order #7 | As expected |
+
+**Ch.7 reflection notes**
+- *Designing by comparing mockups.* Four throwaway HTML mockups on separate ports let me feel each option before touching the app. The chosen design mixed two of them.
+- *Reuse over rewrite.* The to-do buttons post to the handlers the table panel already had, and payment still goes through the existing Bill page, so no business rule exists twice.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the mockups, markup, CSS and the FloorService changes. [Write here your own part, only true statements.]
+
+### 2026-11-04 — Staff pages made consistent (`feature/UI-staff-consistency`)
+
+**Ch.5 screenshots to capture**
+1. `/Staff/Reservations` before (cyan "No reservations found" box, "Staff Reservation Management") and after (header with Pending / Confirmed / Special requests tiles, empty state).
+2. `/Staff/Billing` after: "Unpaid orders" and "Still to collect" tiles.
+3. `/Staff/Orders` (The Pass) with empty columns: dashed slots with "No new orders", "Nothing cooking".
+4. Any staff page at phone width.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (4/11) |
+|---|---|---|---|
+| TC-U13 | Open Reservations, Billing and Reviews with no data | Each shows the same header style and a friendly empty state with an icon and a hint | As expected |
+| TC-U14 | Reservations: filter a date with bookings | Tiles count Pending / Confirmed / Special requests for that date; table shows the bookings | To run with demo data |
+
+**Ch.7 reflection notes**
+- *Two design languages in one back office.* Each member styled their own pages, so staff saw two products. A small set of shared CSS pieces (header, filter bar, empty state) fixed it without touching anyone's C#.
+- *Developer labels leaked into the UI.* "(PB12)" and "(PB13)" were in visible labels; moved to comments only.
+
+**AI use declaration note:** Claude (Anthropic) was used to draft the CSS and markup. [Write here your own part, only true statements.]
 
 ### 2026-11-04 — Account settings redesign (`feature/UI-account-settings`)
 

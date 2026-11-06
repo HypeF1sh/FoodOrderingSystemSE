@@ -1,0 +1,185 @@
+﻿/* Print layout for the report pages (Dashboard, Customer activity) - PB24.
+   Linked with media="print", so it never changes how the pages look on screen.
+   The accent colour comes from the site palette (--rr-accent); the fallback is the plum used in the charts. */
+
+@page {
+    size: A4 portrait;
+    margin: 14mm 12mm;
+}
+
+/* ---- 1. Show only the report: hide everything, then show the print area ---- */
+html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+}
+
+    body * {
+        visibility: hidden !important;
+    }
+
+.print-area, .print-area * {
+    visibility: visible !important;
+}
+
+.print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #1f1f1f;
+    font-size: 12pt;
+}
+
+.no-print {
+    display: none !important;
+}
+
+/* ---- 2. Report header (the .print-header block is only shown when printing) ---- */
+.print-header {
+    border-bottom: 4px solid var(--rr-accent, #a5334b);
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+}
+
+.print-title {
+    font-size: 26pt;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0;
+    color: var(--rr-accent, #a5334b);
+}
+
+.print-meta {
+    font-size: 12pt;
+    color: #444;
+    margin-top: 6px;
+}
+
+/* ---- 3. Summary strip (Customer activity) ---- */
+.print-summary {
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.print-summary-item {
+    flex: 1 1 0;
+    border: 1px solid #d9d9d9;
+    border-top: 5px solid var(--rr-accent, #a5334b);
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: #fbf6f7 !important;
+}
+
+.print-summary-label {
+    font-size: 10.5pt;
+    color: #555;
+}
+
+.print-summary-value {
+    font-size: 20pt;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ---- 4. Cards: flat, light border, accent top line, never split across two pages ---- */
+.card {
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.card-body {
+    padding: 12px 14px !important;
+}
+
+.card a.align-self-start {
+    display: none !important; /* the "View all ..." links */
+}
+
+h2 {
+    font-size: 14pt !important;
+    color: var(--rr-accent, #a5334b);
+}
+
+/* ---- 5. Dashboard: four tiles in one row ---- */
+.print-tiles > div {
+    flex: 0 0 25% !important;
+    max-width: 25% !important;
+}
+
+.print-tiles .card {
+    border-top: 5px solid var(--rr-accent, #a5334b) !important;
+    background: #fbf6f7 !important;
+}
+
+.rr-stat-value {
+    font-size: 20pt !important;
+}
+
+.rr-stat-label,
+.rr-stat-note {
+    font-size: 10pt !important;
+}
+
+/* Charts: the page script swaps each canvas for a picture just before printing, so the chart fits its card */
+.rr-chart {
+    height: auto !important;
+}
+
+.print-chart-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+
+/* ---- 6. Tables (Customer activity): coloured header, bigger text, light stripes ---- */
+.table-responsive {
+    overflow: visible !important;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5pt;
+}
+
+.table > :not(caption) > * > * {
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+.table > thead > tr > th {
+    background-color: var(--rr-accent, #a5334b) !important;
+    color: #fff !important;
+    font-size: 12pt !important;
+    font-weight: 600 !important;
+    padding: 10px 12px !important;
+    border: none !important;
+}
+
+td {
+    padding: 10px 12px !important;
+    border-bottom: 1px solid #e3e3e3 !important;
+}
+
+tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.small {
+    font-size: 10.5pt !important;
+}
+
+/* keep the colours when printing */
+* {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}

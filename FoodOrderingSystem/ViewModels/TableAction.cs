@@ -8,5 +8,7 @@ public enum TableAction
     MarkServed,       // POST: order ReadyToServe -> Served
     ViewInPass,       // link only: Pending and Preparing belong to the kitchen
     TakePayment,      // link to Wallace's Bill page, so cash handling is not built twice
-    CompleteTable     // POST: FloorService.CompleteTableAsync
+    CompleteTable,    // POST: FloorService.CompleteTableAsync
+    SendToKitchen,    // POST: pre-order Held -> Pending, once staff know the customer is here
+    OpenTable         // link only: open the table's panel (e.g. a late booking: call the guest or mark no-show)
 }

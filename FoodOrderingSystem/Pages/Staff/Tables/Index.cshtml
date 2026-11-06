@@ -1,0 +1,61 @@
+@page
+@using FoodOrderingSystem.ViewModels
+@model FoodOrderingSystem.Pages.Staff.Tables.IndexModel
+@{
+    ViewData["Title"] = "Tables";
+    var floor = Model.Floor;
+    var selected = floor.SelectedTable;
+}
+
+@*
+    Tables: every table in one dining area on the left, and the chosen table's panel on the right - who is there,
+    what they ordered, the bill, and the button to take payment or clear the table. On phones the panel sits under
+    the map and the page jumps to it (#panel) when a table is tapped.
+*@
+<div class="container mt-4">
+    <div class="bo-head">
+        <div>
+            <h1>Tables</h1>
+            <p class="bo-head-sub">Tap a table to see what they ordered, take payment or clear it.</p>
+        </div>
+        @if (floor.Areas.Count > 1)
+        {
+            <nav class="fl-areas" aria-label="Dining areas">
+                @foreach (var area in floor.Areas)
+                {
+                    var isOn = area.DiningAreaId == floor.SelectedAreaId;
+                    <a asp-page="./Index" asp-route-areaId="@area.DiningAreaId"
+                       class="fl-area @(isOn ? "active" : "")" aria-current="@(isOn ? "page" : null)">@area.Name</a>
+                }
+            </nav>
+        }
+    </div>
+
+    @if (floor.Areas.Count == 0)
+    {
+        <partial name="_EmptyState" model='new EmptyStateViewModel("No tables set up yet", "An administrator adds dining areas and tables under Configurations.", "table")' />
+    }
+    else
+    {
+        <div class="tb">
+            <div class="tb-map" data-live-url="@Url.Page("./Index", "Map", new { areaId = floor.SelectedAreaId, table = floor.SelectedTableId })">
+                <partial name="_TablesMap" model="floor" />
+            </div>
+
+            <aside class="tb-panel" id="panel" aria-label="Chosen table">
+                @if (selected != null)
+                {
+                    <partial name="/Pages/Staff/_TablePanel.cshtml" model="new TablePanelViewModel(selected, floor.SelectedAreaId)" />
+                }
+                else
+                {
+                    <partial name="_EmptyState" model='new EmptyStateViewModel("Pick a table", "Tap any table on the left to see its guests, orders and bill.", "table")' />
+                }
+            </aside>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/staff-live.js" asp-append-version="true"></script>
+}

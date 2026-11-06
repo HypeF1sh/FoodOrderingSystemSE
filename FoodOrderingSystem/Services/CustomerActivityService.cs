@@ -1,4 +1,4 @@
-﻿using FoodOrderingSystem.Models.Enums;   // <-- match your project namespace
+﻿using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
@@ -75,7 +75,7 @@ public class CustomerActivityService : ICustomerActivityService
         {
             var row = RowFor(p.CustomerId, p.CustomerName, null);
             row.TotalSpent += p.Amount;
-            KeepLatest(row, DateOnly.FromDateTime(p.PaidAt.ToLocalTime()));
+            KeepLatest(row, DateOnly.FromDateTime(p.PaidAt));
         }
 
         var list = rows.Values.ToList();

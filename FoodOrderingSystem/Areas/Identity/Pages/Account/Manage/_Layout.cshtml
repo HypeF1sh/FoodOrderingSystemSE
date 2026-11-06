@@ -1,8 +1,10 @@
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
 @{
-    // Account pages sit inside the normal site layout (header, footer, avatar menu)
-    Layout = "/Pages/Shared/_Layout.cshtml";
+    // Customers see account pages inside the normal site layout (header, footer, avatar menu).
+    // Staff and admins get a plain bar with only "Back to Tonight / Dashboard", no customer links.
+    var isBackOfficeUser = User.IsInRole("Staff") || User.IsInRole("Administrator");
+    Layout = isBackOfficeUser ? "_BackOfficeAccountLayout" : "/Pages/Shared/_Layout.cshtml";
 
     // Profile summary for the side card: name, email, role and initials (same rule as the avatar menu)
     var currentUser = await UserManager.GetUserAsync(User);

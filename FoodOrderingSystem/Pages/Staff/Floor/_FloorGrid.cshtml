@@ -1,73 +1,156 @@
 @using FoodOrderingSystem.ViewModels
 @model FloorViewModel
 @*
-    Live part of the Floor: the Needs-you bar, the table tiles and the footer.
+    Live part of Tonight: the to-do list (left) and the side cards with the mini table map (right).
     Rendered inside Index.cshtml, and again every 20 s by staff-live.js through ?handler=Grid.
     Page paths are absolute because this partial is also rendered by the Grid handler.
+    Every to-do button posts to the same Floor handlers the table panel uses, so no rule is written twice.
 *@
 @{
-    var chips = Model.NeedsYou.Take(FloorViewModel.BarLimit).ToList();
-    var more = Model.NeedsYou.Count - chips.Count;
+    var now = DateTime.Now;
+
+    // Now: orders waiting on staff. Soon: pre-orders to send and late guests. Later: bookings to confirm.
+    var groups = new (string Title, List<NeedsYouItemViewModel> Items)[]
+    {
+        ("Now", Model.NeedsYou.Where(i => i.IsNow).ToList()),
+        ("Soon", Model.NeedsYou.Where(i => !i.IsNow && i.Action != TableAction.ConfirmBooking).ToList()),
+        ("Later", Model.NeedsYou.Where(i => i.Action == TableAction.ConfirmBooking).ToList())
+    };
+
+    var inUse = Model.Tables.Count(t => t.State == TableState.InUse || t.State == TableState.BillDue);
+
+    // Icon square for each kind of job (text glyphs, so there is no icon font to download)
+    string Icon(TableAction action) => action switch
+    {
+        TableAction.TakePayment => "RM",
+        TableAction.MarkServed => "✓",
+        TableAction.SendToKitchen => "→",
+        TableAction.ConfirmBooking => "?",
+        _ => "!"
+    };
+
+    // Orders count up from when they were placed; bookings count towards (or past) their start time
+    (string Text, bool Hot) Wait(NeedsYouItemViewModel item)
+    {
+        var minutes = (int)Math.Round((now - item.SortTime).TotalMinutes);
+        var isBooking = item.Action is TableAction.ConfirmBooking or TableAction.OpenTable or TableAction.SendToKitchen;
+        if (!isBooking)
+        {
+            return ($"{Math.Max(minutes, 0)} min", minutes >= 10);
+        }
+        return minutes < 0 ? ($"in {-minutes} min", false) : ($"{minutes} min late", minutes >= 10);
+    }
 }
 
-<div class="fl-needs" role="region" aria-label="Needs you">
-    <span class="fl-needs-label">Needs you</span>
-    @if (chips.Count == 0)
-    {
-        <span class="fl-needs-none">All good right now</span>
-    }
-    @foreach (var item in chips)
-    {
-        var href = item.RestaurantTableId != null
-            ? Url.Page("/Staff/Floor/Index", new { areaId = item.DiningAreaId, table = item.RestaurantTableId })
-            : Url.Page("/Staff/Orders/Index");
-        <a class="fl-chip is-@item.Tone" href="@href">
-            @item.Text
-            @if (item.HasAllergyNote)
+<div class="tn">
+    <section class="tn-todo" aria-label="To do">
+        @if (Model.NeedsYou.Count == 0)
+        {
+            <partial name="_EmptyState" model='new EmptyStateViewModel("All clear", "Nothing needs you right now. Bills, ready dishes, arrivals and bookings to confirm will show up here.", "ticket")' />
+        }
+
+        @foreach (var group in groups.Where(g => g.Items.Count > 0))
+        {
+            <h2 class="tn-group">@group.Title <span>@group.Items.Count</span></h2>
+            @foreach (var item in group.Items)
             {
-                <span class="fl-chip-flag">⚠ allergy</span>
+                var tableUrl = Url.Page("/Staff/Floor/Index", new { areaId = item.DiningAreaId, table = item.RestaurantTableId });
+                var wait = Wait(item);
+                <article class="tn-item">
+                    <span class="tn-ic is-@item.Tone" aria-hidden="true">@Icon(item.Action)</span>
+                    <a class="tn-what" href="@(item.RestaurantTableId != null ? tableUrl : Url.Page("/Staff/Orders/Index"))">
+                        <b>
+                            @item.Text
+                            @if (item.HasAllergyNote)
+                            {
+                                <span class="tn-tag">Note</span>
+                            }
+                        </b>
+                        <span>@item.Detail</span>
+                    </a>
+                    <span class="tn-wait @(wait.Hot ? "is-hot" : "")">@wait.Text</span>
+
+                    @switch (item.Action)
+                    {
+                        case TableAction.TakePayment:
+                            <a class="btn btn-primary tn-act" href="@Url.Page("/Staff/Billing/Bill", new { id = item.OrderId })">Take payment</a>
+                            break;
+                        case TableAction.MarkServed:
+                            <form method="post" action="@Url.Page("/Staff/Floor/Index", "Serve", new { orderId = item.OrderId, areaId = item.DiningAreaId })">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn tn-act tn-soft">Mark served</button>
+                            </form>
+                            break;
+                        case TableAction.SendToKitchen:
+                            <form method="post" action="@Url.Page("/Staff/Floor/Index", "SendToKitchen", new { orderId = item.OrderId, areaId = item.DiningAreaId })">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn tn-act tn-soft">Send to kitchen</button>
+                            </form>
+                            break;
+                        case TableAction.ConfirmBooking:
+                            <form method="post" action="@Url.Page("/Staff/Floor/Index", "Confirm", new { reservationId = item.ReservationId, areaId = item.DiningAreaId })">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn tn-act tn-soft">Confirm</button>
+                            </form>
+                            break;
+                        case TableAction.ViewInPass:
+                            <a class="btn tn-act tn-soft" href="@Url.Page("/Staff/Orders/Index")">Check kitchen</a>
+                            break;
+                        case TableAction.OpenTable:
+                            <a class="btn tn-act tn-soft" href="@tableUrl">Open table</a>
+                            break;
+                    }
+                </article>
             }
-        </a>
-    }
-    @if (more > 0)
-    {
-        <a class="fl-chip is-more" asp-page="/Staff/Today/Index">+@more more</a>
-    }
-</div>
+        }
+    </section>
 
-@if (Model.Tables.Count == 0)
-{
-    <div class="alert alert-light border">No active tables in @Model.SelectedAreaName.</div>
-}
-else
-{
-    <div class="fl-grid">
-        @foreach (var tile in Model.Tables)
-        {
-            var isOpen = tile.RestaurantTableId == Model.SelectedTableId;
-            <a asp-page="/Staff/Floor/Index" asp-route-areaId="@tile.DiningAreaId" asp-route-table="@tile.RestaurantTableId"
-               class="fl-tile is-@TableStateDisplay.CssName(tile.State) @(isOpen ? "selected" : "")"
-               aria-current="@(isOpen ? "true" : null)">
-                @if (tile.IsPendingBooking)
+    <aside class="tn-side" aria-label="Tables">
+        <div class="tn-card">
+            <div class="tn-stat"><b>@inUse/@Model.Tables.Count</b><span>tables in use</span></div>
+
+            @if (Model.Areas.Count > 1)
+            {
+                <nav class="tn-areas" aria-label="Dining areas">
+                    @foreach (var area in Model.Areas)
+                    {
+                        var isOn = area.DiningAreaId == Model.SelectedAreaId;
+                        <a href="@Url.Page("/Staff/Floor/Index", new { areaId = area.DiningAreaId })"
+                           class="@(isOn ? "on" : "")" aria-current="@(isOn ? "page" : null)">@area.Name</a>
+                    }
+                </nav>
+            }
+
+            @* Mini map: tap a table to open its panel (orders, bill, Take payment) *@
+            <div class="tn-mini">
+                @foreach (var tile in Model.Tables)
                 {
-                    <span class="fl-dot" title="Booking not confirmed yet"></span>
+                    var isOpen = tile.RestaurantTableId == Model.SelectedTableId;
+                    <a href="@Url.Page("/Staff/Floor/Index", new { areaId = tile.DiningAreaId, table = tile.RestaurantTableId })"
+                       class="is-@TableStateDisplay.CssName(tile.State) @(isOpen ? "selected" : "")"
+                       title="@tile.TableNumber · @TableStateDisplay.Label(tile.State) · @tile.Subtitle">
+                        @tile.TableNumber
+                        @if (tile.IsPendingBooking)
+                        {
+                            <i class="fl-dot" aria-hidden="true"></i>
+                        }
+                    </a>
                 }
-                <span class="fl-tile-num">@tile.TableNumber</span>
-                <span class="fl-tile-state">@TableStateDisplay.Label(tile.State)</span>
-                <span class="fl-tile-sub">@tile.Subtitle</span>
-            </a>
-        }
-    </div>
-}
+            </div>
+            <div class="tn-legend">
+                @foreach (var state in TableStateDisplay.InLegendOrder)
+                {
+                    <span class="is-@TableStateDisplay.CssName(state)">@TableStateDisplay.Label(state)</span>
+                }
+            </div>
+        </div>
 
-<div class="fl-foot">
-    <span class="fl-legend">
-        @foreach (var state in TableStateDisplay.InLegendOrder)
-        {
-            <span class="is-@TableStateDisplay.CssName(state)">@TableStateDisplay.Label(state)</span>
-        }
-    </span>
-    <span data-live-status data-updated="@Model.UpdatedAt.ToString("h:mm tt")">
-        Updated @Model.UpdatedAt.ToString("h:mm tt") · refreshes every 20 s
-    </span>
+        <div class="tn-card"><div class="tn-stat"><b>@Model.Tables.Count(t => t.State == TableState.BillDue)</b><span>bills due</span></div></div>
+        <div class="tn-card"><div class="tn-stat"><b>@Model.Tables.Count(t => t.State == TableState.Booked)</b><span>booked in the next hour</span></div></div>
+        <div class="tn-card"><div class="tn-stat"><b>@Model.Tables.Count(t => t.State == TableState.Free)</b><span>free tables</span></div></div>
+
+        <p class="tn-updated" data-live-status data-updated="@Model.UpdatedAt.ToString("h:mm tt")">
+            Updated @Model.UpdatedAt.ToString("h:mm tt") · refreshes every 20 s
+        </p>
+    </aside>
 </div>

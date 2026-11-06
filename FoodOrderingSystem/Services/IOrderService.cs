@@ -43,10 +43,16 @@ public interface IOrderService
     /// <summary>Cancels an order that is still Pending or Preparing and has not been paid. Returns (success, message).</summary>
     Task<(bool Success, string Message)> CancelOrderAsync(int orderId, OrderStatus currentStatus);
 
-    // ---- Admin monitoring (for PB21 / PB23, Carynn) ----
+    // ---- Admin monitoring (for PB21 / PB23, Caryn) ----
 
     /// <summary>Orders whose CreatedAt falls between from and to (both days included), newest first,
     /// with their payment status. status null = all statuses. Read-only: NextStatus and CanCancel are
     /// left empty, so an admin page cannot show staff actions. Returns an empty list if from is after to.</summary>
     Task<List<StaffOrderViewModel>> GetOrdersAsync(DateOnly from, DateOnly to, OrderStatus? status);
+
+    // ---- Recommendations (PB28, Carynn) ----
+
+    /// <summary>Dish ids ordered most, by total quantity, most ordered first. Cancelled orders do not count.
+    /// customerId null = the whole restaurant. since null = all time. Read-only.</summary>
+    Task<List<int>> GetTopItemIdsAsync(string? customerId, DateOnly? since, int take);
 }
