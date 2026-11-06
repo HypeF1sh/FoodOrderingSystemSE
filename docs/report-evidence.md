@@ -36,6 +36,29 @@ Each report must state which AI tools were used and for what. Keep a note of how
 | 2026-11-04 | Staff pages made consistent (`feature/UI-staff-consistency`) | See the detailed entry below |
 | 2026-11-04 | Staff home "Tonight": to-do list + table panel | See the detailed entry below |
 | 2026-11-04 | Modern date pickers: booking day strip + time chips, staff day stepper | See the detailed entry below |
+| 2026-11-06 | Menu photos for the seeded dishes (`feature/menu-photos`) | See the detailed entry below |
+
+### 2026-11-06 — Menu photos for the seeded dishes (`feature/menu-photos`)
+
+**Ch.5 screenshots to capture**
+1. `/Menu` before (placeholder plates, from an older commit) and after (real photos).
+2. Home page "From our kitchen" row with photos.
+3. Admin > Manage menu list with thumbnails; Edit dish showing the current photo and the upload field.
+
+**Ch.6 test cases**
+
+| ID | Steps | Expected | Actual (6/11) |
+|---|---|---|---|
+| TC-MP01 | Start the app on a database whose dishes have no photos | All 15 seeded dishes get `/images/menu/...jpg`; each URL returns 200 | As expected |
+| TC-MP02 | Give a dish an admin-uploaded photo, restart | The uploaded photo is kept, not replaced by the seed photo | As expected |
+| TC-MP03 | Empty one dish's photo, restart | The seed photo is filled in again | As expected |
+| TC-MP04 | Teammate pulls and runs (no manual steps) | Same photos on their PC | To do (ask a teammate) |
+
+**Ch.7 reflection notes**
+- *Why both ways.* Admin uploads go to a git-ignored folder and each developer has their own database, so uploads never reach teammates or the demo PC. Committed seed photos plus a seeder step give everyone the same menu; admin upload stays for real use.
+- *Matched by name, not id.* Ids can differ between databases, names of seeded dishes do not.
+- *Size.* Resized 1200 px WhatsApp images to 900 px (3 MB to 911 KB) so the repo stays small and the menu loads fast.
+- *Image source.* The photos look AI-generated; state their source in the image credits and the AI-use declaration.
 
 ### 2026-11-04 — Modern date pickers
 
