@@ -76,6 +76,18 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
   data (hours, menu prices, offers, own orders/bookings, Malay question answered in Malay, off-topic refused,
   "book me a table" refused with the booking link), plus a burst over the rate limit (all answered after the retry).
   Build 0 warnings.
+- **2026-11-06** — Jordan: **logo** on `feature/UI-logo`. The RR house logo (from `Logo/2R.pdf`) cut out to transparent
+  PNGs in `wwwroot/images/brand/` (colour + white, mark + full). Used in the customer header and footer, the sign-in
+  pages (full white logo on the green panel), the back office side menu (white) and the staff top bar; new
+  `favicon.ico` and phone home-screen icon. Shared files touched: `_Layout`, `_BackOfficeLayout`, `_StaffTopBar`,
+  `site.css`, `backoffice.css`. Build 0 warnings; all pages and logo files checked.
+- **2026-11-06** — Jordan: **menu photos** on `feature/menu-photos` (off the `dev` hotfix #70). 15 dish photos
+  supplied by Jordan, resized to 900 px (911 KB total, from 3 MB), committed in `wwwroot/images/menu/` so every PC
+  has them. `DbSeeder` step 6 links each seeded dish to its photo **by name**, on every start, but **only when the
+  dish has no photo**, so teammates' existing databases get them on the next run and an admin upload is never
+  replaced. Admin upload (PB06) is unchanged: it still saves to the git-ignored `wwwroot/uploads/menu/`.
+  `DbSeeder.cs` is Wallace's/Carynn's file: group OK needed. Tested: all 15 linked and served (HTTP 200), Menu and
+  landing "From our kitchen" show them, an admin-uploaded photo survives a restart, an emptied one is refilled.
 - **2026-11-05** — Jordan: **status review + landing page.** Checked every Known issue / Idea / Decision against the
   code and marked the cleared ones above (D1, D3–D5, BUG1–3, BUG6–8, UX1, UX2, UX4). Still open: BUG5 on 3 customer
   pages, UX3 booking reach (14/60 days vs 1 week), staff/admin can still open customer pages, PB27 (Jordan), PB28

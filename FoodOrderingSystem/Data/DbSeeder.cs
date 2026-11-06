@@ -120,7 +120,43 @@ public static class DbSeeder
             context.MenuItems.AddRange(items);
             await context.SaveChangesAsync();
         }
+
+        // 6. Photos for the seeded dishes. The files are committed in wwwroot/images/menu, so every PC has them.
+        //    This runs on every start (not only on a new database), so teammates' existing databases get the
+        //    photos too. It only fills dishes that have no photo yet: an image the admin uploaded is never replaced.
+        var dishesWithoutPhoto = await context.MenuItems
+            .Where(m => m.ImageUrl == "")
+            .ToListAsync();
+
+        foreach (var dish in dishesWithoutPhoto)
+        {
+            if (SeedDishPhotos.TryGetValue(dish.Name, out var fileName))
+                dish.ImageUrl = $"/images/menu/{fileName}";
+        }
+
+        if (context.ChangeTracker.HasChanges())
+            await context.SaveChangesAsync();
     }
+
+    // Seeded dish name -> its photo in wwwroot/images/menu (matched by name, because ids differ between databases)
+    private static readonly Dictionary<string, string> SeedDishPhotos = new()
+    {
+        ["Garlic Herb Bruschetta"] = "garlic-herb-bruschetta.jpg",
+        ["Crispy Calamari Rings"] = "crispy-calamari-rings.jpg",
+        ["Truffle Mushroom Soup"] = "truffle-mushroom-soup.jpg",
+        ["Caesar Salad"] = "caesar-salad.jpg",
+        ["Pan-Seared Atlantic Salmon"] = "pan-seared-atlantic-salmon.jpg",
+        ["Chargrilled Ribeye Steak"] = "chargrilled-ribeye-steak.jpg",
+        ["Herb-Roasted Chicken Chop"] = "herb-roasted-chicken-chop.jpg",
+        ["Seafood Aglio Olio"] = "seafood-aglio-olio.jpg",
+        ["Classic Wagyu Beef Burger"] = "classic-wagyu-beef-burger.jpg",
+        ["Classic Tiramisu"] = "classic-tiramisu.jpg",
+        ["Molten Chocolate Lava Cake"] = "molten-chocolate-lava-cake.jpg",
+        ["New York Cheesecake"] = "new-york-cheesecake.jpg",
+        ["Iced Passionfruit Sparkling Tea"] = "iced-passionfruit-sparkling-tea.jpg",
+        ["Artisan Flat White"] = "artisan-flat-white.jpg",
+        ["Freshly Squeezed Orange Juice"] = "freshly-squeezed-orange-juice.jpg"
+    };
 
     private static async Task CreateUserAsync(
         UserManager<ApplicationUser> userManager,
