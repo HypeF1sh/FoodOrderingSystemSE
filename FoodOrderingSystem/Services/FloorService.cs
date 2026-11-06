@@ -325,20 +325,33 @@ public class FloorService : IFloorService
             var where = order.TableNumber ?? "no table";
             var minutes = OrderAgeDisplay.MinutesSincePlaced(order.CreatedAt);
 
+            var dishes = DishSummary(order);
+
             if (order.Status == OrderStatus.Pending && minutes > OrderWaitMinutes)
             {
                 var item = OrderItem(1, "plum", $"#{order.OrderId} waiting {minutes}m · {where}", order, booking, today.Areas);
                 item.HasAllergyNote = !string.IsNullOrWhiteSpace(order.Notes);
+                item.Detail = $"Not started yet · {dishes}";
+                item.Action = TableAction.ViewInPass;
+                item.IsNow = true;
                 items.Add(item);
             }
             else if (IsBillDue(order))
             {
                 var label = order.TableNumber != null ? $"{order.TableNumber} bill due · #{order.OrderId}" : $"#{order.OrderId} bill due";
-                items.Add(OrderItem(2, "plum", label, order, booking, today.Areas));
+                var item = OrderItem(2, "plum", label, order, booking, today.Areas);
+                item.Detail = $"RM {order.TotalAmount:0.00} · {dishes}";
+                item.Action = TableAction.TakePayment;
+                item.IsNow = true;
+                items.Add(item);
             }
             else if (order.Status == OrderStatus.ReadyToServe)
             {
-                items.Add(OrderItem(3, "jade", $"#{order.OrderId} ready · {where}", order, booking, today.Areas));
+                var item = OrderItem(3, "jade", $"#{order.OrderId} ready · {where}", order, booking, today.Areas);
+                item.Detail = dishes;
+                item.Action = TableAction.MarkServed;
+                item.IsNow = true;
+                items.Add(item);
             }
             else if (order.Status == OrderStatus.Held && booking != null
                      && today.Now >= Start(booking).AddMinutes(-PreOrderNoticeMinutes))
@@ -348,6 +361,8 @@ public class FloorService : IFloorService
                     $"{booking.TableNumber} pre-order #{order.OrderId} · {booking.CustomerName} {booking.StartTime:h:mm tt}",
                     order, booking, today.Areas);
                 item.SortTime = Start(booking);
+                item.Detail = $"Send once they arrive · {dishes}";
+                item.Action = TableAction.SendToKitchen;
                 items.Add(item);
             }
         }
@@ -360,15 +375,23 @@ public class FloorService : IFloorService
             // A Held pre-order does not count: a late customer with a pre-order still needs a phone call
             var hasOrder = today.Orders.Any(o => o.ReservationId == booking.ReservationId && o.Status != OrderStatus.Held);
 
+            var party = $"{booking.PartySize} guests · {booking.TableNumber}";
+
             if (!hasOrder && today.Now > start.AddMinutes(LateMinutes) && today.Now < End(booking))
             {
-                items.Add(BookingItem(5, "amber", $"{who} late, no-show?", booking, start));
+                var item = BookingItem(5, "amber", $"{who} late, no-show?", booking, start);
+                item.Detail = $"{party} · call the guest or free the table";
+                item.Action = TableAction.OpenTable;
+                items.Add(item);
             }
             else if (booking.Status == nameof(ReservationStatus.Pending)
                      && start <= today.Now.AddMinutes(UnconfirmedWindowMinutes)
                      && today.Now < End(booking))
             {
-                items.Add(BookingItem(4, "amber", $"{who} not confirmed", booking, start));
+                var item = BookingItem(4, "amber", $"{who} not confirmed", booking, start);
+                item.Detail = party;
+                item.Action = TableAction.ConfirmBooking;
+                items.Add(item);
             }
         }
 
@@ -400,8 +423,18 @@ public class FloorService : IFloorService
             Text = text,
             SortTime = start,
             DiningAreaId = booking.DiningAreaId,
-            RestaurantTableId = booking.RestaurantTableId
+            RestaurantTableId = booking.RestaurantTableId,
+            ReservationId = booking.ReservationId
         };
+
+    // "2× Nasi lemak, 1× Teh tarik" for the to-do list's second line; long orders end in "+N more"
+    private static string DishSummary(StaffOrderViewModel order)
+    {
+        const int shown = 2;
+        var lines = order.Lines.Take(shown).Select(l => $"{l.Quantity}× {l.Name}");
+        var rest = order.Lines.Count - shown;
+        return string.Join(", ", lines) + (rest > 0 ? $" +{rest} more" : string.Empty);
+    }
 
     // ---------------------------------------------------------------------
     // Small helpers

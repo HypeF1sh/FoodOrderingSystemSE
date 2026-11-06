@@ -1,0 +1,50 @@
+/* ===========================================================================
+   Styles scoped to Create.cshtml (CSS isolation): the dining area chips under
+   the booking picker, styled like the picker's own chips.
+   =========================================================================== */
+
+.bp-label {
+    margin: 1rem 0 0.5rem;
+    color: var(--rr-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.bp-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.bp-area-chip {
+    position: relative;
+    cursor: pointer;
+}
+
+.bp-area-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.bp-area-chip span {
+    display: inline-block;
+    padding: 0.4375rem 0.875rem;
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    background-color: var(--rr-raised);
+    font-size: 0.875rem;
+}
+
+.bp-area-chip input:checked + span {
+    border-color: var(--rr-ink);
+    background-color: var(--rr-ink);
+    color: #FFFFFF;
+}
+
+.bp-area-chip input:focus-visible + span {
+    outline: 2px solid var(--rr-accent);
+    outline-offset: 2px;
+}

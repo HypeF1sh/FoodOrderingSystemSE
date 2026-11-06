@@ -1,0 +1,54 @@
+@*
+    Top bar for Staff (administrators keep the side menu, they have many more pages).
+    Wordmark, the shift, pill tabs for the four jobs of a shift, a "More" menu for the rest, and the avatar menu.
+    A tab stays highlighted on its sub-pages because it is matched by path prefix, as in _BackOfficeNav.
+*@
+@{
+    const string RestaurantName = "Rumah Rasa";
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    var now = DateTime.Now;
+    var shift = now.Hour < 11 ? "Breakfast" : now.Hour < 17 ? "Lunch" : "Dinner";
+
+    var tabs = new (string Label, string Page, string Prefix)[]
+    {
+        ("Tonight", "/Staff/Floor/Index", "/Staff/Floor/"),
+        ("Tables", "/Staff/Tables/Index", "/Staff/Tables/"),
+        ("Kitchen", "/Staff/Orders/Index", "/Staff/Orders/"),
+        ("Bookings", "/Staff/Reservations/Index", "/Staff/Reservations/"),
+        ("Bills", "/Staff/Billing/Index", "/Staff/Billing/")
+    };
+    var more = new (string Label, string Page, string Prefix)[]
+    {
+        ("Today's run sheet", "/Staff/Today/Index", "/Staff/Today/"),
+        ("Table QR codes", "/Staff/TableQr/Index", "/Staff/TableQr/"),
+        ("Reviews", "/Staff/Feedback/Index", "/Staff/Feedback/")
+    };
+    var moreActive = more.Any(m => currentPage.StartsWith(m.Prefix));
+}
+<header class="st-top">
+    <a class="st-brand" asp-area="" asp-page="/Staff/Floor/Index">@RestaurantName</a>
+    <span class="st-shift">@shift shift · @now.ToString("ddd d MMM")</span>
+
+    <nav class="st-tabs" aria-label="Staff">
+        @foreach (var tab in tabs)
+        {
+            var active = currentPage.StartsWith(tab.Prefix);
+            <a asp-area="" asp-page="@tab.Page" class="@(active ? "on" : "")" aria-current="@(active ? "page" : null)">@tab.Label</a>
+        }
+        <div class="dropdown">
+            <button type="button" class="@(moreActive ? "on" : "")" data-bs-toggle="dropdown" aria-expanded="false">More</button>
+            <ul class="dropdown-menu dropdown-menu-end rr-account-menu">
+                @foreach (var link in more)
+                {
+                    <li><a class="dropdown-item" asp-area="" asp-page="@link.Page">@link.Label</a></li>
+                }
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item" asp-area="" asp-page="/Index">View customer site</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="st-account">
+        <partial name="_LoginPartial" />
+    </div>
+</header>

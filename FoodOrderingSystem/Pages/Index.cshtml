@@ -2,49 +2,208 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home";
+
+    // With no photos in wwwroot/images/landing/, the hero shows three soft coloured slides so the page still moves
+    var slides = Model.HeroPhotos.Count > 0
+        ? Model.HeroPhotos
+        : Enumerable.Range(0, 3).Select(_ => new FoodOrderingSystem.ViewModels.HeroPhotoViewModel("", "")).ToList();
+    var today = Model.Today;
 }
 
 @*
-    Placeholder home page. It exists so the layout shell can be seen and
-    screenshotted. The real landing content (featured menu items, promotions)
-    arrives with PB06 and PB07 in Sprint 2.
+    Landing page for visitors from outside the restaurant (links, Google, social media).
+    A table QR scan never shows this page: it goes to /Orders/Table, which attaches the table and opens the Menu.
+    1. Hero: full-width photo slideshow (crossfade + slow zoom), headline, Book a table / See the menu
+    2. Signature dishes from the real menu   3. Our story + visit us (hours, address)
+    4. What's on: active promotions and announcements   5. Closing call to action
 *@
 
-<div class="container">
-    <div class="rr-hero">
-        <h1>Book a table, order ahead</h1>
-
-        <p class="rr-prose text-muted">
-            Reserve a table for your party, choose your dishes before you arrive,
-            and settle the bill when you are done.
-        </p>
-
-        <div class="rr-hero-actions">
-            <a class="btn btn-primary" asp-page="/Reservations/Create">Book a table</a>
-            <a class="btn btn-secondary" asp-page="/Menu/Index">See the menu</a>
-        </div>
+<section class="lp-hero" aria-label="Welcome">
+    <div class="lp-slides" aria-hidden="true">
+        @for (var i = 0; i < slides.Count; i++)
+        {
+            @* The photo is data, not styling, so it goes in an inline style; the placeholder tone shows when there is none *@
+            <div class="lp-slide lp-tone-@(i % 3) @(i == 0 ? "is-on" : "")" data-credit="@slides[i].Credit"
+                 style="@(string.IsNullOrEmpty(slides[i].Url) ? null : $"background-image: url('{slides[i].Url}')")"></div>
+        }
     </div>
 
-    <!-- Opening hours, as set by the administrator on /Admin/OperatingHours (BUG4) -->
-    <section class="rr-hours">
-        <h2>Opening hours</h2>
-        <dl class="rr-hours-list">
-            @foreach (var day in Model.OpeningHours)
+    <div class="container lp-hero-text">
+        <p class="lp-kicker">Rumah Rasa · Penang</p>
+        <h1>Home-style cooking, served at your table</h1>
+        <p class="lp-lead">Book a table in a few taps, pre-order before you arrive, or scan the QR on your table and order from your phone.</p>
+        <div class="lp-actions">
+            <a class="btn btn-primary btn-lg" asp-page="/Reservations/Create">Book a table</a>
+            <a class="btn lp-btn-ghost btn-lg" asp-page="/Menu/Index">See the menu</a>
+        </div>
+        @if (today != null)
+        {
+            <p class="lp-today">
+                @if (today.IsClosed)
+                {
+                    <span>Closed today</span>
+                }
+                else
+                {
+                    <span>Open today @today.OpenTime.ToString("h:mm tt") – @today.CloseTime.ToString("h:mm tt")</span>
+                }
+            </p>
+        }
+    </div>
+
+    @if (slides.Count > 1)
+    {
+        <div class="container lp-dots" aria-hidden="true">
+            @for (var i = 0; i < slides.Count; i++)
             {
-                <div>
-                    <dt>@day.DayName</dt>
-                    <dd>
-                        @if (day.IsClosed)
-                        {
-                            <span>Closed</span>
-                        }
-                        else
-                        {
-                            @day.OpenTime.ToString("hh:mm tt") <text>-</text> @day.CloseTime.ToString("hh:mm tt")
-                        }
-                    </dd>
-                </div>
+                <i class="@(i == 0 ? "is-on" : "")"></i>
             }
-        </dl>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(slides[0].Credit))
+    {
+        <span class="lp-credit" data-credit-line>Photo: @slides[0].Credit</span>
+    }
+</section>
+
+<div class="container">
+    @if (Model.SignatureDishes.Count > 0)
+    {
+        <section class="lp-section">
+            <div class="lp-section-head">
+                <h2>From our kitchen</h2>
+                <a asp-page="/Menu/Index">Full menu →</a>
+            </div>
+            @* Endless row drifting left: the script below copies the cards once, and the CSS slides the track by
+               exactly one copy, so the end meets the start with no jump. Hover pauses it. No prices: this is a teaser. *@
+            <div class="lp-marquee">
+                <div class="lp-dishes" data-marquee>
+                    @foreach (var dish in Model.SignatureDishes)
+                    {
+                        <a class="lp-dish" asp-page="/Menu/Index">
+                            <img src="@(string.IsNullOrEmpty(dish.ImageUrl) ? "/images/menu-placeholder.svg" : dish.ImageUrl)" alt="" loading="lazy" />
+                            <span class="lp-dish-name">@dish.Name</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    <section class="lp-section lp-two">
+        <div>
+            <h2>Our story</h2>
+            <p class="rr-prose text-muted">
+                Rumah Rasa means "the taste of home". We cook the dishes we grew up with, from family recipes, and serve
+                them in a relaxed dining room and garden patio. Come with family, friends or colleagues: we keep a table ready.
+            </p>
+        </div>
+
+        <!-- Opening hours, as set by the administrator on /Admin/OperatingHours (BUG4) -->
+        <div class="rr-hours">
+            <h2>Visit us</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Address))
+            {
+                <p class="lp-address">
+                    @Model.Address<br />
+                    <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(Model.Address)" target="_blank" rel="noopener">Get directions →</a>
+                </p>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Phone))
+            {
+                <p class="lp-address"><a href="tel:@Model.Phone">@Model.Phone</a></p>
+            }
+            <dl class="rr-hours-list">
+                @foreach (var day in Model.OpeningHours)
+                {
+                    var isToday = day.DayOfWeek == (int)DateTime.Today.DayOfWeek;
+                    <div class="@(isToday ? "is-today" : "")">
+                        <dt>@day.DayName@(isToday ? " (today)" : "")</dt>
+                        <dd>
+                            @if (day.IsClosed)
+                            {
+                                <span>Closed</span>
+                            }
+                            else
+                            {
+                                @day.OpenTime.ToString("hh:mm tt") <text>-</text> @day.CloseTime.ToString("hh:mm tt")
+                            }
+                        </dd>
+                    </div>
+                }
+            </dl>
+        </div>
+    </section>
+
+    @if (Model.Promotions.Count > 0 || Model.Announcements.Count > 0)
+    {
+        <section class="lp-section">
+            <h2>What's on</h2>
+            <div class="lp-news">
+                @foreach (var promo in Model.Promotions)
+                {
+                    <article class="lp-news-item is-promo">
+                        <span class="lp-badge">@promo.DiscountPercent.ToString("0.#")% off</span>
+                        <h3>@promo.Title</h3>
+                        <p>@promo.Description</p>
+                        <small>Until @promo.EndDate.ToString("d MMM yyyy")</small>
+                    </article>
+                }
+                @foreach (var news in Model.Announcements)
+                {
+                    <article class="lp-news-item">
+                        <h3>@news.Title</h3>
+                        <p>@news.Body</p>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    <section class="lp-cta">
+        <h2>Planning a meal?</h2>
+        <p class="text-muted">Pick a day and time, we'll keep the table ready.</p>
+        <a class="btn btn-primary btn-lg" asp-page="/Reservations/Create">Book a table</a>
     </section>
 </div>
+
+@section Scripts {
+    <script>
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Hero slideshow: crossfade to the next slide every 5 s; the credit line follows the photo
+        (function () {
+            const slides = document.querySelectorAll('.lp-slide');
+            const dots = document.querySelectorAll('.lp-dots i');
+            const credit = document.querySelector('[data-credit-line]');
+            if (slides.length < 2 || reduceMotion) {
+                return;
+            }
+            let current = 0;
+            setInterval(function () {
+                slides[current].classList.remove('is-on');
+                if (dots[current]) { dots[current].classList.remove('is-on'); }
+                current = (current + 1) % slides.length;
+                slides[current].classList.add('is-on');
+                if (dots[current]) { dots[current].classList.add('is-on'); }
+                if (credit && slides[current].dataset.credit) { credit.textContent = 'Photo: ' + slides[current].dataset.credit; }
+            }, 5000);
+        })();
+
+        // Dish row: copy the cards once so the track is two identical halves (copies hidden from screen readers)
+        (function () {
+            const track = document.querySelector('[data-marquee]');
+            if (!track || reduceMotion) {
+                return;
+            }
+            Array.from(track.children).forEach(function (card) {
+                const copy = card.cloneNode(true);
+                copy.setAttribute('aria-hidden', 'true');
+                copy.tabIndex = -1;
+                track.appendChild(copy);
+            });
+            track.classList.add('is-moving');
+        })();
+    </script>
+}

@@ -13,4 +13,11 @@ public class NeedsYouItemViewModel
     public int? DiningAreaId { get; set; }
     public int? RestaurantTableId { get; set; }
     public int? OrderId { get; set; }
+    public int? ReservationId { get; set; }
+
+    // The Tonight to-do list: a second line under the text, the one button that finishes the job,
+    // and whether it goes under "Now" (orders waiting on staff) or "Next up" (bookings and pre-orders)
+    public string Detail { get; set; } = string.Empty;
+    public TableAction Action { get; set; } = TableAction.None;
+    public bool IsNow { get; set; }
 }
