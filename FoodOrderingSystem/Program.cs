@@ -66,6 +66,11 @@ builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 builder.Services.AddScoped<IExportService, ExportService>();
 
+// PB27 AI chatbot: GeminiClient gets its own HttpClient from the factory; the key comes from user-secrets
+builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+builder.Services.AddHttpClient<IGeminiClient, GeminiClient>();
+builder.Services.AddScoped<IChatbotService, ChatbotService>();
+
 
 // PB14 cart lives in the session (dish ids + quantities only; prices are re-read from the DB)
 builder.Services.AddDistributedMemoryCache();

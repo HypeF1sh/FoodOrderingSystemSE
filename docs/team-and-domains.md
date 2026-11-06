@@ -5,9 +5,9 @@ This keeps Git contribution even and gives each member a clear ownership story f
 
 | Domain | Owner | Core items | Extras | Sprint 1 setup task |
 |---|---|---|---|---|
-| A — Accounts & Administration | Carynn | PB01–PB05, PB07, PB21, PB23 | PB27 | Auth, roles, table/area admin |
+| A — Accounts & Administration | Carynn | PB01–PB05, PB07, PB21, PB23 | PB24, PB28 (taken over) | Auth, roles, table/area admin |
 | B — Reservations & Staff Operations | Wallace Chan | PB09–PB13, PB17, PB19, PB20 | PB26 | Database schema, ER model, seed data |
-| C — Menu, Orders & Payment | Jordan | PB06, PB08, PB14–PB16, PB18, PB22 | PB24, PB25, PB28 | Layout shell, navigation, styling |
+| C — Menu, Orders & Payment | Jordan | PB06, PB08, PB14–PB16, PB18, PB22 | PB25, PB27 (taken over) | Layout shell, navigation, styling |
 
 ## Scrum roles
 | Role | Who |

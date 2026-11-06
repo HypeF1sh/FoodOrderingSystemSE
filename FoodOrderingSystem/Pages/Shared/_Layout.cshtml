@@ -135,6 +135,12 @@
         </div>
     </footer>
 
+    @* PB27 chat assistant for customers and visitors; staff and admins have the back office instead *@
+    @if (!isBackOfficeUser)
+    {
+        <partial name="_ChatWidget" />
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

@@ -57,6 +57,25 @@ Keep this file short. Newest log entries on top. Claude reads it at the start of
 | I2 | **(Partly: available tables are listed smallest first; bigger tables are still offered to small parties.)** **Smallest-table-first booking (PB09/PB10 extension).** A party of 1 is only offered 2-seat tables, so bigger tables stay free for bigger groups and seats are not wasted. | Wallace (idea from Jordan) | Rule: offer the smallest free table that fits the party (1–2 people → 2-seaters). Larger tables only when no smaller one is free for that slot, or not at all for solo diners (to agree with Wallace). Lives in `ReservationService`'s availability check; no schema change. **Wallace's domain**, so raise it with him before anyone builds it. |
 
 ## Log
+- **2026-11-06** — Jordan: **PB27 AI chatbot** on `feature/PB27-chatbot` (off `dev` after #65–#69 merged).
+  Google AI Studio (Gemini) key, as agreed in the group chat; called from `GeminiClient` with plain `HttpClient`
+  (no NuGet), model `gemini-3.5-flash-lite` (stable, ~2 s per answer; overridable with `Gemini:Model`).
+  `gemini-3.6-flash` was tried first but its free tier allows only 5 requests/min (Flash-Lite: 15), and a question
+  with a tool look-up takes 2–3 requests. When Google answers 429 with "retry in N s" (N ≤ 60), the bot shows
+  "Busy right now, trying again in N s..." and retries once. Key in **user-secrets**
+  (`UserSecretsId` added to the `.csproj`); with no key the widget says "not set up". Layers: floating widget
+  (`_ChatWidget` + `chatbot.js`, shown to visitors and customers only, one `_Layout` line) → `/Chatbot` page streams
+  Server-Sent Events → `ChatbotService` (rules + 6 read-only tools: menu, hours, offers, restaurant info, my bookings,
+  my orders, all through existing services) → `GeminiClient`. **Progress in real time:** status lines ("Checking the
+  menu...") while tools run, then the answer streams in word by word. **Stop:** aborts the fetch; `RequestAborted`
+  cancels the Gemini call. Answers are rendered as text (no HTML), only known page paths become links. Limits: 1000
+  chars per message, last 12 messages, 40 questions per session, anti-forgery token checked. Also fixed a **broken
+  `dev` build**: the #67 conflict fix on GitHub left the line `feature/PB28-recommendations` in `Program.cs`.
+  Tested against a local fake Gemini server (streaming, tool round trip incl. thought signature + call id echo,
+  Stop, validation, roles), with no key, and **with Jordan's real key**: 25+ real questions all answered from real
+  data (hours, menu prices, offers, own orders/bookings, Malay question answered in Malay, off-topic refused,
+  "book me a table" refused with the booking link), plus a burst over the rate limit (all answered after the retry).
+  Build 0 warnings.
 - **2026-11-06** — Jordan: **logo** on `feature/UI-logo`. The RR house logo (from `Logo/2R.pdf`) cut out to transparent
   PNGs in `wwwroot/images/brand/` (colour + white, mark + full). Used in the customer header and footer, the sign-in
   pages (full white logo on the green panel), the back office side menu (white) and the staff top bar; new
