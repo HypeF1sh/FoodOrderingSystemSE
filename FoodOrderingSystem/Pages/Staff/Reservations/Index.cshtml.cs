@@ -1,3 +1,4 @@
+// PB12 (Wallace) - staff daily bookings: filter, then confirm, complete, cancel or mark no-show
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
@@ -38,6 +39,7 @@ public class IndexModel : PageModel
     public List<SelectListItem> DiningAreaOptions { get; set; } = new();
     public List<SelectListItem> StatusOptions { get; set; } = new();
 
+    // GET: bookings for the chosen day (or all dates) with the filters applied
     public async Task OnGetAsync()
     {
         await LoadFilterOptionsAsync();
@@ -58,6 +60,7 @@ public class IndexModel : PageModel
         }
     }
 
+    // POST: change one booking's status, then come back with the same filters
     public async Task<IActionResult> OnPostUpdateStatusAsync(
         int id,
         ReservationStatus newStatus,

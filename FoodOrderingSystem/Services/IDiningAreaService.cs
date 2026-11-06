@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Models;   // <-- match your project namespace
+﻿// PB05 (Carynn) - dining areas and tables (interface)
+using FoodOrderingSystem.Models;   // <-- match your project namespace
 
 namespace FoodOrderingSystem.Services;
 

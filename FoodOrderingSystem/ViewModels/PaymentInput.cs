@@ -1,3 +1,4 @@
+// PB16 (Jordan) - view model: payment input
 using System.ComponentModel.DataAnnotations;
 using FoodOrderingSystem.Models.Enums;
 

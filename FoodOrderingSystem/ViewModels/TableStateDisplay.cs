@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: table state display
 namespace FoodOrderingSystem.ViewModels;
 
 // Words and CSS names for each table state, kept in one place like OrderStatusDisplay

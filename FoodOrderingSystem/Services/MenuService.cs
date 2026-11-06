@@ -1,3 +1,4 @@
+// PB06/PB08 (Jordan) - menu: browse, admin CRUD, availability, delete checks
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.ViewModels;

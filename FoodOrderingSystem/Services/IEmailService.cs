@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.Services;
+﻿// PB26 (Wallace) - email sending (interface + options)
+namespace FoodOrderingSystem.Services;
 
 public class EmailOptions
 {

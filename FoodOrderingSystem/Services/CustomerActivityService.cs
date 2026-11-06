@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Models.Enums;
+﻿// PB23 (Carynn) - customer activity report: visits, orders, spend per customer
+using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
@@ -22,6 +23,7 @@ public class CustomerActivityService : ICustomerActivityService
         _paymentService = paymentService;
     }
 
+    // PB23: one row per customer: bookings, orders, money spent, last visit
     public async Task<List<CustomerActivityRowViewModel>> GetCustomerActivityAsync(DateOnly from, DateOnly to, string? sort)
     {
         (from, to) = NormalizeRange(from, to);
@@ -50,6 +52,7 @@ public class CustomerActivityService : ICustomerActivityService
             if (row.LastVisit == null || day > row.LastVisit) row.LastVisit = day;
         }
 
+        // Count bookings (not cancelled); a completed one counts as a visit
         foreach (var r in reservations)
         {
             if (string.Equals(r.Status, nameof(ReservationStatus.Cancelled), StringComparison.OrdinalIgnoreCase))
@@ -62,6 +65,7 @@ public class CustomerActivityService : ICustomerActivityService
                 KeepLatest(row, r.ReservationDate);
         }
 
+        // Count orders (not cancelled)
         foreach (var o in orders)
         {
             if (o.Status == OrderStatus.Cancelled) continue;
@@ -80,6 +84,7 @@ public class CustomerActivityService : ICustomerActivityService
 
         var list = rows.Values.ToList();
 
+        // Sort by spend, or by activity (default)
         return string.Equals(sort, "spend", StringComparison.OrdinalIgnoreCase)
             ? list.OrderByDescending(r => r.TotalSpent).ThenByDescending(r => r.ActivityCount).ThenBy(r => r.CustomerName).ToList()
             : list.OrderByDescending(r => r.ActivityCount).ThenByDescending(r => r.TotalSpent).ThenBy(r => r.CustomerName).ToList();

@@ -1,3 +1,4 @@
+// Setup (Group) - app start-up: services (DI), Identity, role rules per folder, session, middleware
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using Microsoft.AspNetCore.Identity;

@@ -1,3 +1,4 @@
+// PB20 (Wallace) - my notifications: list, mark as read
 using System.Security.Claims;
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Services;
@@ -17,12 +18,14 @@ public class IndexModel : PageModel
 
     public List<Notification> Notifications { get; set; } = new();
 
+    // GET: my notifications
     public async Task OnGetAsync()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         Notifications = await _notificationService.GetForUserAsync(userId);
     }
 
+    // POST: mark one as read (only mine)
     public async Task<IActionResult> OnPostMarkReadAsync(int id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -30,6 +33,7 @@ public class IndexModel : PageModel
         return RedirectToPage();
     }
 
+    // POST: mark all mine as read
     public async Task<IActionResult> OnPostMarkAllReadAsync()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;

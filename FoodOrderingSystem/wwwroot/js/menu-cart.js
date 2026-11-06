@@ -1,3 +1,4 @@
+// PB14 (Jordan) - menu page: add-to-cart dialog and toast without page reload
 // UX1: friendlier "Add" on /Menu.
 // Tapping Add opens a small dialog to pick the quantity. Confirming posts the same form in the background
 // (fetch), so the page does not reload and the customer keeps their place in the menu.

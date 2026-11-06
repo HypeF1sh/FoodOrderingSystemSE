@@ -1,3 +1,4 @@
+// PB22 (Jordan) - view model: dashboard view model
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FoodOrderingSystem.ViewModels;

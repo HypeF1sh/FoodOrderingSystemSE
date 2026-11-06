@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: table panel view model
 namespace FoodOrderingSystem.ViewModels;
 
 // Data for the shared table panel (Pages/Staff/_TablePanel.cshtml): the chosen table and the dining area on screen,

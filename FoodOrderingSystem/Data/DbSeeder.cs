@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Models;
+﻿// Data layer (Wallace) - start-up seed data: roles, dev accounts, areas, tables, hours, menu, menu photos
+using FoodOrderingSystem.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

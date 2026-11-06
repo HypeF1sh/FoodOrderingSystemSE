@@ -1,3 +1,4 @@
+// PB05 (Carynn) - edit a dining area
 using System.ComponentModel.DataAnnotations;
 using FoodOrderingSystem.Services;     // <-- match your project namespace
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,7 @@ public class EditModel : PageModel
         public string? Description { get; set; }
     }
 
+    // GET: load what the page shows
     public async Task<IActionResult> OnGetAsync(int id)
     {
         var area = await _service.GetAreaAsync(id);
@@ -39,17 +41,22 @@ public class EditModel : PageModel
         return Page();
     }
 
+    // POST: save the form
     public async Task<IActionResult> OnPostAsync()
     {
+        // Field checks from the data annotations
         if (!ModelState.IsValid) return Page();
 
+        // The service checks the business rules and saves
         var (success, message) = await _service.UpdateAreaAsync(Input.Id, Input.Name, Input.Description);
+        // Rule failed: show the message on the form
         if (!success)
         {
             ModelState.AddModelError(string.Empty, message);
             return Page();
         }
 
+        // Success: message for the next page, then redirect (Post/Redirect/Get)
         SuccessMessage = message;
         return RedirectToPage("Index");
     }

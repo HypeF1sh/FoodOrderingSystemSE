@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Models;   // <-- match your project namespace
+﻿// PB07 (Carynn) - restaurant settings (interface)
+using FoodOrderingSystem.Models;   // <-- match your project namespace
 
 namespace FoodOrderingSystem.Services;
 

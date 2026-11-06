@@ -1,3 +1,4 @@
+// PB04 (Carynn) - change a user's role or deactivate them
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using FoodOrderingSystem.Services;
@@ -38,6 +39,7 @@ public class EditModel : PageModel
         public bool IsActive { get; set; }
     }
 
+    // GET: load what the page shows
     public async Task<IActionResult> OnGetAsync(string? id)
     {
         if (string.IsNullOrEmpty(id)) return NotFound();
@@ -53,23 +55,28 @@ public class EditModel : PageModel
         return Page();
     }
 
+    // POST: save the form
     public async Task<IActionResult> OnPostAsync()
     {
         if (!await LoadAsync(Input.Id)) return NotFound();
 
+        // Field checks from the data annotations
         if (!ModelState.IsValid) return Page();
 
         var currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
+        // The service checks the business rules and saves
         var (success, message) = await _userAdminService.UpdateUserAsync(
             Input.Id, Input.Role, Input.IsActive, currentAdminId);
 
+        // Rule failed: show the message on the form
         if (!success)
         {
             ModelState.AddModelError(string.Empty, message);
             return Page();
         }
 
+        // Success: message for the next page, then redirect (Post/Redirect/Get)
         SuccessMessage = message;
         return RedirectToPage("Index");
     }

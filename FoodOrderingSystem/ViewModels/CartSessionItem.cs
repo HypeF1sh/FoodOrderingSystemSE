@@ -1,3 +1,4 @@
+// PB14 (Jordan) - view model: cart session item
 namespace FoodOrderingSystem.ViewModels;
 
 // One cart line as stored in the session (as JSON). Only the id and quantity are kept:

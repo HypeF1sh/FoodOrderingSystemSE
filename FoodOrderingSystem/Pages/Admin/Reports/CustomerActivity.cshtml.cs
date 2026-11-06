@@ -1,3 +1,4 @@
+// PB23/PB24 (Carynn) - customer activity report, with CSV export
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,7 @@ public class CustomerActivityModel : PageModel
         new("Highest spend", "spend")
     };
 
+    // GET: load what the page shows
     public async Task OnGetAsync()
     {
         ApplyDefaults();

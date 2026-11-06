@@ -1,3 +1,4 @@
+// PB14 (Jordan) - view model: checkout input
 using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.ViewModels;

@@ -1,3 +1,4 @@
+// PB11 (Wallace) - modify or cancel my booking
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using FoodOrderingSystem.Services;
@@ -43,6 +44,7 @@ public class EditModel : PageModel
         public string? SpecialRequests { get; set; }
     }
 
+    // GET: load my booking (only mine), refuse if it is locked (under 2 h / finished)
     public async Task<IActionResult> OnGetAsync(
         int id,
         DateOnly? date = null,
@@ -75,6 +77,7 @@ public class EditModel : PageModel
         return Page();
     }
 
+    // POST: save the change; the service checks every rule again
     public async Task<IActionResult> OnPostAsync()
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -105,6 +108,7 @@ public class EditModel : PageModel
         return RedirectToPage("Index");
     }
 
+    // Table dropdown: free tables for the new slot, ignoring this booking itself
     private async Task LoadAvailableTablesAsync(
         DateOnly date,
         TimeOnly startTime,

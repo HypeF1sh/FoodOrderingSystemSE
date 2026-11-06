@@ -1,3 +1,4 @@
+// PB08/PB28 (Jordan) - public menu: tabs, search, add to cart, recommended row
 using System.Security.Claims;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Services;

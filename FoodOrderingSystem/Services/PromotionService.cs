@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Data;
+﻿// PB07 (Carynn) - promotions: CRUD, active list, promo code lookup
+using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,12 +14,14 @@ public class PromotionService : IPromotionService
         _db = db;
     }
 
+    // PB07: all promotions for the admin list
     public async Task<List<Promotion>> GetAllAsync() =>
         await _db.Promotions.AsNoTracking().OrderByDescending(p => p.StartDate).ToListAsync();
 
     public async Task<Promotion?> GetAsync(int id) =>
         await _db.Promotions.AsNoTracking().FirstOrDefaultAsync(p => p.PromotionId == id);
 
+    // PB07: add a promotion after validation
     public async Task<(bool Success, string Message)> CreateAsync(
         string title, string? description, decimal discountPercent, DateTime startDate, DateTime endDate, bool isActive)
     {
@@ -38,6 +41,7 @@ public class PromotionService : IPromotionService
         return (true, $"Promotion \"{title.Trim()}\" was created.");
     }
 
+    // PB07: edit a promotion after validation
     public async Task<(bool Success, string Message)> UpdateAsync(
         int id, string title, string? description, decimal discountPercent, DateTime startDate, DateTime endDate, bool isActive)
     {
@@ -57,6 +61,7 @@ public class PromotionService : IPromotionService
         return (true, $"Promotion \"{promo.Title}\" was updated.");
     }
 
+    // PB07: switch on/off without deleting
     public async Task<(bool Success, string Message)> ToggleActiveAsync(int id)
     {
         var promo = await _db.Promotions.FindAsync(id);
@@ -67,6 +72,7 @@ public class PromotionService : IPromotionService
         return (true, $"Promotion \"{promo.Title}\" is now {(promo.IsActive ? "active" : "inactive")}.");
     }
 
+    // PB07: delete a promotion
     public async Task<(bool Success, string Message)> DeleteAsync(int id)
     {
         var promo = await _db.Promotions.FindAsync(id);
@@ -77,6 +83,7 @@ public class PromotionService : IPromotionService
         return (true, $"Promotion \"{promo.Title}\" was deleted.");
     }
 
+    // Active today = switched on and today is inside its date range (shown on home and menu)
     public async Task<List<Promotion>> GetActiveAsync()
     {
         var today = DateTime.Today;   // dates are saved without a time, so the end day is included
@@ -96,6 +103,7 @@ public class PromotionService : IPromotionService
     public static decimal ApplyDiscount(decimal unitPrice, decimal discountPercent) =>
         Math.Round(unitPrice * (100m - discountPercent) / 100m, 2, MidpointRounding.AwayFromZero);
 
+    // Checkout promo code: "PROMO3" -> promotion 3, only if active today and 1-90% off
     public async Task<Promotion?> GetActiveByCodeAsync(string? code)
     {
         code = code?.Trim().ToUpperInvariant();
@@ -112,6 +120,7 @@ public class PromotionService : IPromotionService
                                       && p.DiscountPercent >= 1 && p.DiscountPercent <= 90);
     }
 
+    // Rules: title required, 1-90% off, end date not before start date
     private static string? Validate(string title, decimal discountPercent, DateTime startDate, DateTime endDate)
     {
         if (string.IsNullOrWhiteSpace(title)) return "Title is required.";

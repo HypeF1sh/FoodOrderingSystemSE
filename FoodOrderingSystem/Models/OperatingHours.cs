@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB05 (Carynn) - opening hours for one day of the week
+using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.Models;
 

@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.Models.Enums;
+﻿// PB15 (Jordan) - order statuses: Held, Pending, Preparing, ReadyToServe, Served, Completed, Cancelled
+namespace FoodOrderingSystem.Models.Enums;
 
 public enum OrderStatus
 {

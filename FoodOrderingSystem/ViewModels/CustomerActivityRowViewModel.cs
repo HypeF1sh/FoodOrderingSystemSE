@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;   // <-- match your project namespace
+﻿// PB23 (Carynn) - view model: customer activity row view model
+namespace FoodOrderingSystem.ViewModels;   // <-- match your project namespace
 
 // PB23: one customer's activity in a date range
 public class CustomerActivityRowViewModel

@@ -1,3 +1,4 @@
+// PB07 (Carynn) - edit restaurant settings (key-value)
 using System.ComponentModel.DataAnnotations;
 using FoodOrderingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,7 @@ public class IndexModel : PageModel
         public string Value { get; set; } = string.Empty;
     }
 
+    // GET: load what the page shows
     public async Task OnGetAsync()
     {
         var all = await _service.GetAllAsync();
@@ -39,6 +41,7 @@ public class IndexModel : PageModel
     // "Save changes" form
     public async Task<IActionResult> OnPostSaveAsync()
     {
+        // Field checks from the data annotations
         if (!ModelState.IsValid)
         {
             await FillKeysAsync();      // keys are not posted, so reload them for display
@@ -46,6 +49,7 @@ public class IndexModel : PageModel
         }
 
         var values = Settings.ToDictionary(s => s.Id, s => s.Value);
+        // The service checks the business rules and saves
         var (success, message) = await _service.UpdateValuesAsync(values);
         if (success) SuccessMessage = message; else ErrorMessage = message;
         return RedirectToPage();
@@ -54,6 +58,7 @@ public class IndexModel : PageModel
     // "Add setting" form (plain inputs named newKey / newValue)
     public async Task<IActionResult> OnPostAddAsync(string? newKey, string? newValue)
     {
+        // The service checks the business rules and saves
         var (success, message) = await _service.AddAsync(newKey ?? string.Empty, newValue ?? string.Empty);
         if (success) SuccessMessage = message; else ErrorMessage = message;
         return RedirectToPage();

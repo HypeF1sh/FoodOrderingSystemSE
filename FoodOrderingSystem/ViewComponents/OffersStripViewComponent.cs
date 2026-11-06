@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Models;
+﻿// PB07 (Carynn) - strip of active promotions and announcements on the menu page
+using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 

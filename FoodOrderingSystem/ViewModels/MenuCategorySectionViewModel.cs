@@ -1,3 +1,4 @@
+// PB06/PB08 (Jordan) - view model: menu category section view model
 namespace FoodOrderingSystem.ViewModels;
 
 // One category heading on /Menu with the dishes listed under it

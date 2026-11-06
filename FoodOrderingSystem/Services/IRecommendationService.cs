@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.ViewModels;
+﻿// PB28 (Carynn) - dish recommendations (interface)
+using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
 

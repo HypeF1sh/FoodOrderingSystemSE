@@ -1,3 +1,4 @@
+// PB01 (Carynn) - customer sign-up with full name and phone, gets the Customer role
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 

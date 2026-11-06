@@ -1,3 +1,4 @@
+// PB27 (Jordan) - chatbot endpoint: streams the answer as Server-Sent Events
 using System.Security.Claims;
 using System.Text.Json;
 using FoodOrderingSystem.Data;

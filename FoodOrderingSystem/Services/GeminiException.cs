@@ -1,3 +1,4 @@
+// PB27 (Jordan) - Gemini error with a customer-safe message
 namespace FoodOrderingSystem.Services;
 
 // Thrown by GeminiClient when the Gemini API refuses or fails a request.

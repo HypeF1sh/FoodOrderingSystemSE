@@ -1,3 +1,4 @@
+// PB14 (Jordan) - cart in the session: ids and quantities only, prices re-read
 using System.Text.Json;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.ViewModels;

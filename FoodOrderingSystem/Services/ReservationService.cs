@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Data;
+﻿// PB09-PB13 (Wallace) - reservations: availability, booking, modify, cancel, staff actions
+using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.ViewModels;
@@ -13,6 +14,7 @@ public class ReservationService : IReservationService
     private readonly IOperatingHoursService _operatingHoursService;
     private readonly INotificationService _notificationService;
 
+    // Booking rules (no magic numbers): 90 min slot, 15 min turnover buffer, book 30 min to 60 days ahead, change up to 2 h before, online max 8 guests
     public const int DiningDurationMinutes = 90;
     public const int TurnoverBufferMinutes = 15;
     public const int MinAdvanceBookingMinutes = 30;
@@ -32,6 +34,7 @@ public class ReservationService : IReservationService
         _notificationService = notificationService;
     }
 
+    // PB09: dining areas for the booking form (read through Carynn's IDiningAreaService)
     public async Task<List<DiningAreaOptionViewModel>> GetDiningAreasAsync()
     {
         var areas = await _diningAreaService.GetAreasAsync();
@@ -46,10 +49,12 @@ public class ReservationService : IReservationService
             .ToList();
     }
 
+    // PB09: is the restaurant open at this date and time? Staff can skip the advance-notice checks
     public async Task<(bool IsOpen, string ErrorMessage)> ValidateOperatingHoursAsync(
         DateOnly date, TimeOnly startTime, bool bypassAdvanceNotice = false)
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
+        // 1. Date window: not in the past, not too far ahead, at least 30 min from now
         if (!bypassAdvanceNotice)
         {
             if (date < today)
@@ -63,6 +68,7 @@ public class ReservationService : IReservationService
                 return (false, $"Reservations must be booked at least {MinAdvanceBookingMinutes} minutes in advance.");
         }
 
+        // 2. Opening hours for that weekday (from Carynn's OperatingHoursService)
         int dayOfWeek = (int)date.DayOfWeek;
         var week = await _operatingHoursService.GetWeekAsync();
         var hours = week.FirstOrDefault(h => (int)h.DayOfWeek == dayOfWeek);
@@ -70,6 +76,7 @@ public class ReservationService : IReservationService
         if (hours == null || hours.IsClosed)
             return (false, "The restaurant is closed on the selected date.");
 
+        // 3. Last seating = closing time minus one 90 min slot, so the meal ends before closing
         var lastSeatingTime = hours.CloseTime.AddMinutes(-DiningDurationMinutes);
 
         if (startTime < hours.OpenTime || startTime > lastSeatingTime)
@@ -82,6 +89,7 @@ public class ReservationService : IReservationService
         return (true, string.Empty);
     }
 
+    // PB09: free tables for a date, time and party size
     public async Task<List<AvailableTableViewModel>> GetAvailableTablesAsync(
         DateOnly date,
         TimeOnly startTime,
@@ -90,6 +98,7 @@ public class ReservationService : IReservationService
         int? excludeReservationId = null,
         bool bypassAdvanceNotice = false)
     {
+        // 1. Party size and opening hours must be valid first
         if (partySize < 1 || partySize > MaxOnlinePartySize)
             return new List<AvailableTableViewModel>();
 
@@ -97,10 +106,13 @@ public class ReservationService : IReservationService
         if (!isOpen)
             return new List<AvailableTableViewModel>();
 
+        // 2. The requested slot, widened by the 15 min buffer on both sides
         var requestedEnd = startTime.AddMinutes(DiningDurationMinutes);
         var windowStart = startTime.AddMinutes(-TurnoverBufferMinutes);
         var windowEnd = requestedEnd.AddMinutes(TurnoverBufferMinutes);
 
+        // 3. Overlap rule: a table is taken if any active booking satisfies existing.Start < requested.End + buffer AND existing.End > requested.Start - buffer
+        // Cancelled and NoShow bookings free the table; excludeReservationId lets a booking being edited ignore itself
         var conflictingTableIds = await _context.Reservations
             .Where(r => r.ReservationDate == date
                         && r.Status != ReservationStatus.Cancelled
@@ -112,6 +124,7 @@ public class ReservationService : IReservationService
             .Distinct()
             .ToListAsync();
 
+        // 4. Do not waste big tables: a table may have at most 3 spare seats (staff can override)
         int maxAllowedCapacity = Math.Max(partySize + 3, 4);
 
         var allTables = await _diningAreaService.GetTablesAsync();
@@ -122,6 +135,7 @@ public class ReservationService : IReservationService
                         && (bypassAdvanceNotice || t.Capacity <= maxAllowedCapacity)
                         && !conflictingTableIds.Contains(t.RestaurantTableId)
                         && (!diningAreaId.HasValue || diningAreaId.Value <= 0 || t.DiningAreaId == diningAreaId.Value))
+            // 5. Smallest fitting table first
             .OrderBy(t => t.Capacity)
             .ThenBy(t => t.TableNumber)
             .Select(t => new AvailableTableViewModel
@@ -135,6 +149,7 @@ public class ReservationService : IReservationService
             .ToList();
     }
 
+    // PB10: make a booking; every rule is re-checked here, never trusted from the form
     public async Task<(bool Success, string Message, int? ReservationId)> CreateReservationAsync(
         string customerId,
         int restaurantTableId,
@@ -152,6 +167,7 @@ public class ReservationService : IReservationService
 
         var requestedEnd = startTime.AddMinutes(DiningDurationMinutes);
 
+        // 1. One customer cannot hold two bookings at the same time
         bool customerHasOverlappingBooking = await _context.Reservations
             .AnyAsync(r => r.CustomerId == customerId
                            && r.ReservationDate == date
@@ -163,12 +179,14 @@ public class ReservationService : IReservationService
         if (customerHasOverlappingBooking)
             return (false, "You already have an active reservation during this time window.", null);
 
+        // 2. The chosen table must still be free (someone may have booked it since the form loaded)
         var availableTables = await GetAvailableTablesAsync(date, startTime, partySize);
         var selectedTable = availableTables.FirstOrDefault(t => t.RestaurantTableId == restaurantTableId);
 
         if (selectedTable == null)
             return (false, "That table is no longer available for the selected time and party size. Please choose another table.", null);
 
+        // 3. Save as Pending: staff confirm it later (PB12)
         var reservation = new Reservation
         {
             CustomerId = customerId,
@@ -196,6 +214,7 @@ public class ReservationService : IReservationService
             reservation.ReservationId);
     }
 
+    // One booking; passing customerId makes sure customers only see their own
     public async Task<ReservationDetailViewModel?> GetReservationByIdAsync(int reservationId, string? customerId = null)
     {
         var query = _context.Reservations
@@ -213,6 +232,7 @@ public class ReservationService : IReservationService
         return r == null ? null : MapToDetailViewModel(r);
     }
 
+    // PB11/PB18: all bookings of one customer, newest first
     public async Task<List<ReservationDetailViewModel>> GetCustomerReservationsAsync(string customerId)
     {
         var list = await _context.Reservations
@@ -227,6 +247,7 @@ public class ReservationService : IReservationService
         return list.Select(MapToDetailViewModel).ToList();
     }
 
+    // PB11: customer changes their booking
     public async Task<(bool Success, string Message)> UpdateReservationAsync(
         int reservationId,
         string customerId,
@@ -245,6 +266,7 @@ public class ReservationService : IReservationService
         if (reservation == null)
             return (false, "Reservation not found.");
 
+        // 1. Only Pending/Confirmed bookings, at least 2 h before the start
         var (canModify, lockReason) = EvaluateModificationPolicy(reservation.Status, reservation.ReservationDate, reservation.StartTime);
         if (!canModify)
             return (false, lockReason);
@@ -255,6 +277,7 @@ public class ReservationService : IReservationService
 
         var requestedEnd = startTime.AddMinutes(DiningDurationMinutes);
 
+        // 2. Same checks as a new booking, ignoring this booking itself
         bool customerHasOtherOverlap = await _context.Reservations
             .AnyAsync(r => r.CustomerId == customerId
                            && r.ReservationId != reservationId
@@ -273,6 +296,7 @@ public class ReservationService : IReservationService
         if (selectedTable == null)
             return (false, "The selected table is not available or cannot fit the updated party size for that time slot.");
 
+        // 3. Apply the change; the end time is always start + 90 min
         reservation.RestaurantTableId = restaurantTableId;
         reservation.ReservationDate = date;
         reservation.StartTime = startTime;
@@ -284,6 +308,7 @@ public class ReservationService : IReservationService
         return (true, $"Reservation #{reservationId} updated for {date:dd/MM/yyyy} at {startTime:hh\\:mm tt}.");
     }
 
+    // PB11: customer cancels (same 2 h rule as modify)
     public async Task<(bool Success, string Message)> CancelReservationAsync(int reservationId, string customerId)
     {
         var reservation = await _context.Reservations
@@ -310,6 +335,7 @@ public class ReservationService : IReservationService
 
     // ---- Sprint 3: PB12 (Staff Daily Reservations & Management) ----
 
+    // PB12: staff list for a day with optional status, area and search filters
     public async Task<List<ReservationDetailViewModel>> GetStaffDailyReservationsAsync(
         DateOnly? date,
         string? statusFilter = null,
@@ -340,6 +366,7 @@ public class ReservationService : IReservationService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
+            // Search matches customer name, email, table number or special request
             var term = searchTerm.Trim().ToLower();
             query = query.Where(r =>
                 (r.Customer != null && (r.Customer.FullName.ToLower().Contains(term) || (r.Customer.Email != null && r.Customer.Email.ToLower().Contains(term)))) ||
@@ -356,6 +383,7 @@ public class ReservationService : IReservationService
         return list.Select(MapToDetailViewModel).ToList();
     }
 
+    // PB12: staff confirm, complete, cancel or mark no-show
     public async Task<(bool Success, string Message)> UpdateStatusByStaffAsync(
         int reservationId,
         ReservationStatus newStatus)
@@ -370,6 +398,7 @@ public class ReservationService : IReservationService
         if (reservation.Status == newStatus)
             return (false, $"Reservation #{reservationId} is already marked as {newStatus}.");
 
+        // Reactivating a cancelled/no-show booking: only if its table is still free
         if ((reservation.Status == ReservationStatus.Cancelled || reservation.Status == ReservationStatus.NoShow) &&
             (newStatus == ReservationStatus.Confirmed || newStatus == ReservationStatus.Pending))
         {
@@ -391,6 +420,7 @@ public class ReservationService : IReservationService
         await _context.SaveChangesAsync();
 
         // PB20: Notify customer when staff confirms, cancels, or updates their booking status
+        // PB20: tell the customer about the change (Completed also invites feedback, PB19)
         if (newStatus == ReservationStatus.Confirmed || newStatus == ReservationStatus.Cancelled || newStatus == ReservationStatus.Completed)
         {
             var actionText = newStatus switch
@@ -410,6 +440,7 @@ public class ReservationService : IReservationService
         return (true, $"Reservation #{reservationId} status updated to {newStatus}.");
     }
 
+    // PB12: staff edit any field; advance-notice rules skipped, overlap rule still applies
     public async Task<(bool Success, string Message)> UpdateReservationByStaffAsync(
         int reservationId,
         int restaurantTableId,
@@ -434,6 +465,7 @@ public class ReservationService : IReservationService
         if (!isOpen)
             return (false, hoursError);
 
+        // Only an active booking needs a free table
         if (status != ReservationStatus.Cancelled && status != ReservationStatus.NoShow)
         {
             var availableTables = await GetAvailableTablesAsync(
@@ -468,6 +500,7 @@ public class ReservationService : IReservationService
 
     // ---- Sprint 3: PB13 (Staff Customer Requests, Preferences & History) ----
 
+    // PB13: a customer's history and preferences for staff
     public async Task<CustomerReservationProfileViewModel?> GetCustomerReservationProfileAsync(string customerId)
     {
         var customer = await _context.Users
@@ -488,6 +521,7 @@ public class ReservationService : IReservationService
         var mapped = reservations.Select(MapToDetailViewModel).ToList();
 
         var activeOrCompleted = mapped.Where(r => r.Status != "Cancelled").ToList();
+        // Preferred area = the dining area they booked most often
         var preferredArea = activeOrCompleted
             .Where(r => !string.IsNullOrEmpty(r.DiningAreaName))
             .GroupBy(r => r.DiningAreaName)
@@ -495,10 +529,12 @@ public class ReservationService : IReservationService
             .Select(g => $"{g.Key} ({g.Count()} visit(s))")
             .FirstOrDefault() ?? "No preference recorded yet";
 
+        // Typical party = average party size, rounded
         var typicalPartySize = activeOrCompleted.Any()
             ? (int)Math.Round(activeOrCompleted.Average(r => r.PartySize))
             : 0;
 
+        // Up to 8 past special requests (allergies, occasions...)
         var notableRequests = mapped
             .Where(r => !string.IsNullOrWhiteSpace(r.SpecialRequests))
             .Select(r => $"{r.ReservationDate:dd/MM/yyyy}: \"{r.SpecialRequests}\"")
@@ -522,6 +558,7 @@ public class ReservationService : IReservationService
         };
     }
 
+    // PB13: bookings that have a special request
     public async Task<List<ReservationDetailViewModel>> GetReservationsWithRequestsAsync(DateOnly? fromDate = null)
     {
         var query = _context.Reservations
@@ -545,6 +582,7 @@ public class ReservationService : IReservationService
 
     // ---- Sprint 4: Cross-domain query for PB21 & PB22 ----
 
+    // PB21/PB22: bookings in a date range, for the admin monitor and dashboard
     public async Task<List<ReservationDetailViewModel>> GetReservationsAsync(
         DateOnly? from = null,
         DateOnly? to = null,
@@ -579,6 +617,7 @@ public class ReservationService : IReservationService
         return list.Select(MapToDetailViewModel).ToList();
     }
 
+    // Can this booking still be changed? Not if cancelled, finished, started, or less than 2 h away
     private static (bool Allowed, string Reason) EvaluateModificationPolicy(
         ReservationStatus status, DateOnly date, TimeOnly startTime)
     {
@@ -600,6 +639,7 @@ public class ReservationService : IReservationService
         return (true, string.Empty);
     }
 
+    // Entity -> view model, so pages never get the EF entity
     private static ReservationDetailViewModel MapToDetailViewModel(Reservation r)
     {
         var (canModify, lockReason) = EvaluateModificationPolicy(r.Status, r.ReservationDate, r.StartTime);

@@ -1,3 +1,4 @@
+// PB14 (Jordan) - view model: order target view model
 namespace FoodOrderingSystem.ViewModels;
 
 // Where an order placed now would go, shown on the checkout page (PB14)

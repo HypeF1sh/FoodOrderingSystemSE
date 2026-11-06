@@ -1,3 +1,4 @@
+// PB27 (Jordan) - Gemini settings (key comes from user-secrets)
 namespace FoodOrderingSystem.Services;
 
 // PB27 chatbot settings, read from the "Gemini" section of configuration.

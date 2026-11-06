@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: floor table view model
 namespace FoodOrderingSystem.ViewModels;
 
 // One table tile on the staff Floor, plus what its drawer shows. Filled by FloorService.

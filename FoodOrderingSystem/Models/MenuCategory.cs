@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB06 (Jordan) - menu category (Starters, Mains...)
+using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.Models;
 

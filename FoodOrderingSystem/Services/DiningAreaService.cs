@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Data;     // <-- match your project namespace
+﻿// PB05 (Carynn) - dining areas and tables: CRUD and delete checks
+using FoodOrderingSystem.Data;     // <-- match your project namespace
 using FoodOrderingSystem.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ public class DiningAreaService : IDiningAreaService
 
     // ================= Dining areas =================
 
+    // PB05: all areas with their tables (read-only, AsNoTracking)
     public async Task<List<DiningArea>> GetAreasAsync() =>
         await _db.DiningAreas
             .Include(a => a.RestaurantTables)
@@ -25,6 +27,7 @@ public class DiningAreaService : IDiningAreaService
     public async Task<DiningArea?> GetAreaAsync(int id) =>
         await _db.DiningAreas.AsNoTracking().FirstOrDefaultAsync(a => a.DiningAreaId == id);
 
+    // PB05: add an area; name required and unique
     public async Task<(bool Success, string Message)> CreateAreaAsync(string name, string? description)
     {
         name = (name ?? string.Empty).Trim();
@@ -42,6 +45,7 @@ public class DiningAreaService : IDiningAreaService
         return (true, $"Dining area \"{name}\" was created.");
     }
 
+    // PB05: rename an area; same checks, ignoring itself
     public async Task<(bool Success, string Message)> UpdateAreaAsync(int id, string name, string? description)
     {
         name = (name ?? string.Empty).Trim();
@@ -59,6 +63,7 @@ public class DiningAreaService : IDiningAreaService
         return (true, $"Dining area \"{name}\" was updated.");
     }
 
+    // PB05: delete only an empty area (no tables left)
     public async Task<(bool Success, string Message)> DeleteAreaAsync(int id)
     {
         var area = await _db.DiningAreas.FindAsync(id);
@@ -74,6 +79,7 @@ public class DiningAreaService : IDiningAreaService
 
     // ================= Tables =================
 
+    // PB05: all tables with their area; other domains read tables only through this
     public async Task<List<RestaurantTable>> GetTablesAsync() =>
         await _db.RestaurantTables
             .Include(t => t.DiningArea)
@@ -88,6 +94,7 @@ public class DiningAreaService : IDiningAreaService
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.RestaurantTableId == id);
 
+    // PB05: add a table after validation
     public async Task<(bool Success, string Message)> CreateTableAsync(
         int diningAreaId, string tableNumber, int capacity, bool isActive)
     {
@@ -106,6 +113,7 @@ public class DiningAreaService : IDiningAreaService
         return (true, $"Table {tableNumber} was created.");
     }
 
+    // PB05: edit a table after validation
     public async Task<(bool Success, string Message)> UpdateTableAsync(
         int id, int diningAreaId, string tableNumber, int capacity, bool isActive)
     {
@@ -123,6 +131,7 @@ public class DiningAreaService : IDiningAreaService
         return (true, $"Table {table.TableNumber} was updated.");
     }
 
+    // PB05: delete a table; one with booking history is deactivated instead, so history stays
     public async Task<(bool Success, string Message)> DeleteTableAsync(int id)
     {
         var table = await _db.RestaurantTables.FindAsync(id);
@@ -146,6 +155,7 @@ public class DiningAreaService : IDiningAreaService
     }
 
     // Returns an error message, or null if valid
+    // Shared rules: number required and unique, 1-20 seats, area must exist
     private async Task<string?> ValidateTableAsync(int? existingId, int diningAreaId, string tableNumber, int capacity)
     {
         tableNumber = (tableNumber ?? string.Empty).Trim();

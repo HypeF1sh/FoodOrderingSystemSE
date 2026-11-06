@@ -1,3 +1,4 @@
+// PB12 (Wallace) - staff edit a booking
 using System.ComponentModel.DataAnnotations;
 using FoodOrderingSystem.Models.Enums;
 using FoodOrderingSystem.Services;
@@ -49,6 +50,7 @@ public class EditModel : PageModel
         public string? SpecialRequests { get; set; }
     }
 
+    // GET: load any booking for staff to edit
     public async Task<IActionResult> OnGetAsync(
         int id,
         DateOnly? date = null,
@@ -76,6 +78,7 @@ public class EditModel : PageModel
         return Page();
     }
 
+    // POST: staff save; overlap and capacity still checked by the service
     public async Task<IActionResult> OnPostAsync()
     {
         ReservationInfo = await _reservationService.GetReservationByIdAsync(Input.ReservationId);

@@ -1,3 +1,4 @@
+// PB14 (Jordan) - table QR scan landing: remembers the table, opens the menu
 using FoodOrderingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;

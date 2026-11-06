@@ -1,3 +1,4 @@
+// PB27 (Jordan) - view model: chat stream event
 namespace FoodOrderingSystem.ViewModels;
 
 // PB27: one update sent to the browser while the bot works. Type is one of:

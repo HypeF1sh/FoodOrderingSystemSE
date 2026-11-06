@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB16 (Jordan) - one payment attempt for an order
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FoodOrderingSystem.Models.Enums;
 
@@ -12,6 +13,7 @@ public class Payment
     [Required]
     public int OrderId { get; set; }
 
+    // Staff member who took a cash payment; null for online payments
     public string? RecordedByUserId { get; set; }
 
     [Column(TypeName = "decimal(10,2)")]
@@ -20,6 +22,7 @@ public class Payment
     [Required]
     public PaymentMethod Method { get; set; } = PaymentMethod.Cash;
 
+    // One order can have several payment rows (a failed try, then a paid one); failed rows are never overwritten
     [Required]
     public PaymentStatus Status { get; set; } = PaymentStatus.Unpaid;
 

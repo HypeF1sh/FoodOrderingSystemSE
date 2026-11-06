@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.ViewModels;
+﻿// PB25 (Wallace) - occupancy analytics: peak hours, trends, utilisation
+using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
 
@@ -26,17 +27,20 @@ public class OccupancyService : IOccupancyService
         _operatingHoursService = operatingHoursService;
     }
 
+    // Up to 31 days: one point per day; longer: one point per week
     public OccupancyGrouping SuggestGrouping(DateOnly from, DateOnly to)
     {
         int days = to.DayNumber - from.DayNumber + 1;
         return days <= 31 ? OccupancyGrouping.Day : OccupancyGrouping.Week;
     }
 
+    // PB25: the whole occupancy report for a date range (reads other services only, no direct DB access)
     public async Task<(bool Success, string Message, OccupancyReportViewModel? Report)> GetOccupancyReportAsync(
         DateOnly from,
         DateOnly to,
         OccupancyGrouping? grouping = null)
     {
+        // 0. Validate the range (max 366 days)
         if (to < from)
             return (false, "The 'To' date must be on or after the 'From' date.", null);
 
@@ -152,6 +156,7 @@ public class OccupancyService : IOccupancyService
         foreach (var t in tables)
         {
             var tBookings = validBookings.Where(r => r.RestaurantTableId == t.RestaurantTableId).ToList();
+            // Utilisation % = minutes booked (bookings x 90) / minutes the table was open in the range
             int bookedMins = tBookings.Count * SlotMinutes;
             int openMins = t.IsActive ? singleTableOpenMinutes : 0;
 

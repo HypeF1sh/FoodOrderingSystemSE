@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB05 (Carynn) - one table: number, seats, area
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FoodOrderingSystem.Models;
@@ -17,6 +18,7 @@ public class RestaurantTable
     [Range(1, 20)]
     public int Capacity { get; set; }
 
+    // Inactive tables are hidden from booking but keep their history
     public bool IsActive { get; set; } = true;
 
     // Navigation properties

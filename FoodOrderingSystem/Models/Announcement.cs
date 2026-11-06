@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PB07 (Carynn) - system announcement shown to customers (table owned by A)
+using System.ComponentModel.DataAnnotations;
 
 namespace FoodOrderingSystem.Models;
 

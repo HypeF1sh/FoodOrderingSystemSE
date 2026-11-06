@@ -1,3 +1,4 @@
+// PB04 (Carynn) - list users with their roles
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,7 @@ public class IndexModel : PageModel
     [TempData] public string? SuccessMessage { get; set; }
     [TempData] public string? ErrorMessage { get; set; }
 
+    // GET: load what the page shows
     public async Task OnGetAsync()
     {
         Users = await _userAdminService.GetAllUsersAsync();

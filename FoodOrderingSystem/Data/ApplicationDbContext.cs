@@ -1,9 +1,11 @@
-﻿using FoodOrderingSystem.Models;
+﻿// Data layer (Wallace) - EF Core database context: one DbSet per table, enum-as-text and delete rules
+using FoodOrderingSystem.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoodOrderingSystem.Data;
 
+// Inherits IdentityDbContext so the Identity tables (users, roles) live in the same database
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -11,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
+    // One DbSet per table; only the Data layer and services use these, never a page
     public DbSet<DiningArea> DiningAreas => Set<DiningArea>();
     public DbSet<RestaurantTable> RestaurantTables => Set<RestaurantTable>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
@@ -28,6 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        // Identity must configure its own tables first
         base.OnModelCreating(builder);
 
         // Store enums as strings
@@ -51,6 +55,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasConversion<string>()
             .HasMaxLength(30);
 
+        // Restrict = cannot delete a user who still has bookings/orders (history is kept)
         // Prevent SQL Server multiple cascade path cycles
         builder.Entity<Reservation>()
             .HasOne(r => r.Customer)
@@ -68,6 +73,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(o => o.Reservation)
             .WithMany(r => r.Orders)
             .HasForeignKey(o => o.ReservationId)
+            // SetNull = deleting a booking keeps its orders, just unlinks them
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.Entity<Payment>()

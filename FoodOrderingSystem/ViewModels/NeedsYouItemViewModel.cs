@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: needs you item view model
 namespace FoodOrderingSystem.ViewModels;
 
 // One chip on the Floor's Needs-you bar, or one row in Today's Needs-you list

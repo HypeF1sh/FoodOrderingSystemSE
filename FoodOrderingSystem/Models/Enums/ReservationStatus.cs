@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.Models.Enums;
+﻿// PB10 (Wallace) - Pending, Confirmed, Completed, Cancelled, NoShow
+namespace FoodOrderingSystem.Models.Enums;
 
 public enum ReservationStatus
 {

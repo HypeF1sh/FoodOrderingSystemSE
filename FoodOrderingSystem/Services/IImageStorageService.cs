@@ -1,3 +1,4 @@
+// PB06 (Jordan) - dish photo storage (interface)
 namespace FoodOrderingSystem.Services;
 
 public interface IImageStorageService

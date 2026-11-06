@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Data;     // <-- match your project namespace
+﻿// PB07 (Carynn) - restaurant settings: read and save key-values
+using FoodOrderingSystem.Data;     // <-- match your project namespace
 using FoodOrderingSystem.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +14,11 @@ public class RestaurantSettingService : IRestaurantSettingService
         _db = db;
     }
 
+    // PB07: all settings, sorted by key
     public async Task<List<RestaurantSetting>> GetAllAsync() =>
         await _db.RestaurantSettings.AsNoTracking().OrderBy(s => s.Key).ToListAsync();
 
+    // PB07: save edited values; each must be 1-500 characters
     public async Task<(bool Success, string Message)> UpdateValuesAsync(Dictionary<int, string> valuesById)
     {
         var ids = valuesById.Keys.ToList();
@@ -33,6 +36,7 @@ public class RestaurantSettingService : IRestaurantSettingService
         return (true, "Settings were saved.");
     }
 
+    // PB07: add a new key (unique); e.g. Address and Phone appear on the home page
     public async Task<(bool Success, string Message)> AddAsync(string key, string value)
     {
         key = (key ?? string.Empty).Trim();

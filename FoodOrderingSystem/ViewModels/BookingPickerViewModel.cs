@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: booking picker view model
 namespace FoodOrderingSystem.ViewModels;
 
 // Data for the booking day/time/guests picker (Pages/Shared/_BookingPicker.cshtml).

@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.ViewModels;
+﻿// PB25 (Wallace) - occupancy analytics (interface)
+using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
 

@@ -1,3 +1,4 @@
+// PB05 (Carynn) - add a dining area
 using System.ComponentModel.DataAnnotations;
 using FoodOrderingSystem.Services;     // <-- match your project namespace
 using Microsoft.AspNetCore.Mvc;
@@ -30,17 +31,22 @@ public class CreateModel : PageModel
 
     public void OnGet() { }
 
+    // POST: save the form
     public async Task<IActionResult> OnPostAsync()
     {
+        // Field checks from the data annotations
         if (!ModelState.IsValid) return Page();
 
+        // The service checks the business rules and saves
         var (success, message) = await _service.CreateAreaAsync(Input.Name, Input.Description);
+        // Rule failed: show the message on the form
         if (!success)
         {
             ModelState.AddModelError(string.Empty, message);
             return Page();
         }
 
+        // Success: message for the next page, then redirect (Post/Redirect/Get)
         SuccessMessage = message;
         return RedirectToPage("Index");
     }

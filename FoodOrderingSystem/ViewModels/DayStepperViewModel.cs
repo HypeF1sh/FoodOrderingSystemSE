@@ -1,3 +1,4 @@
+// PB15/PB17 (Jordan) - view model: day stepper view model
 namespace FoodOrderingSystem.ViewModels;
 
 // Data for the staff day stepper (Pages/Shared/_DayStepper.cshtml): the day on screen, the query-string field the

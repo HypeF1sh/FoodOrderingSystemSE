@@ -1,3 +1,4 @@
+// PB10 (Wallace) - booking received page
 using System.Security.Claims;
 using FoodOrderingSystem.Services;
 using FoodOrderingSystem.ViewModels;
@@ -17,6 +18,7 @@ public class ConfirmationModel : PageModel
 
     public ReservationDetailViewModel? Reservation { get; set; }
 
+    // Show the booking only if it belongs to the logged-in customer
     public async Task<IActionResult> OnGetAsync(int id)
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;

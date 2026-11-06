@@ -1,3 +1,4 @@
+// PB14 (Jordan) - view model: cart line view model
 namespace FoodOrderingSystem.ViewModels;
 
 // One row on the cart page, with the dish's current name, price and availability

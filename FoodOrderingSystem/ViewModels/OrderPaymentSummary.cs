@@ -1,3 +1,4 @@
+// PB14/PB18 (Jordan) - view model: order payment summary
 using FoodOrderingSystem.Models.Enums;
 
 namespace FoodOrderingSystem.ViewModels;

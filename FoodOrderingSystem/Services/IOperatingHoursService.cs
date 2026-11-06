@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.ViewModels;   // <-- match your project namespace
+﻿// PB05 (Carynn) - weekly opening hours (interface)
+using FoodOrderingSystem.ViewModels;   // <-- match your project namespace
 
 namespace FoodOrderingSystem.Services;
 

@@ -1,3 +1,4 @@
+// PB19 (Wallace) - customer rates a completed visit
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using FoodOrderingSystem.Services;
@@ -26,6 +27,7 @@ public class IndexModel : PageModel
     public class FeedbackInputModel
     {
         [Required(ErrorMessage = "Please select a completed visit to rate.")]
+        // One dropdown for both kinds of visit, so the value carries its type
         public string SelectedTarget { get; set; } = string.Empty; // "R:12" or "O:34"
 
         [Range(1, 5, ErrorMessage = "Please choose a rating between 1 and 5 stars.")]
@@ -40,6 +42,7 @@ public class IndexModel : PageModel
         await LoadPageDataAsync(reservationId, orderId);
     }
 
+    // POST: submit a rating
     public async Task<IActionResult> OnPostAsync()
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -50,6 +53,7 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        // Turn "R:12" / "O:34" back into a booking id or an order id
         int? reservationId = null;
         int? orderId = null;
 
@@ -62,6 +66,7 @@ public class IndexModel : PageModel
             orderId = oId;
         }
 
+        // The service checks it is theirs, Completed and not rated yet
         var (success, message) = await _feedbackService.SubmitFeedbackAsync(
             customerId, reservationId, orderId, Input.Rating, Input.Comment);
 
@@ -76,6 +81,7 @@ public class IndexModel : PageModel
         return RedirectToPage();
     }
 
+    // Visits they can still rate (optionally preselected from a link) and their past reviews
     private async Task LoadPageDataAsync(int? preselectReservationId = null, int? preselectOrderId = null)
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;

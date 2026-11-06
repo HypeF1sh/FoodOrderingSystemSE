@@ -1,3 +1,4 @@
+// PB06 (Jordan) - dish photo upload: validate, save with random name, delete
 namespace FoodOrderingSystem.Services;
 
 public class ImageStorageService : IImageStorageService

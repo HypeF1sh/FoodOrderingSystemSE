@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿// PB26 (Wallace) - email sending by SMTP or to a pickup folder
+using System.Net;
 using System.Net.Mail;
 using System.Text;
 using Microsoft.Extensions.Options;
@@ -21,6 +22,7 @@ public class SmtpEmailService : IEmailService
         _logger = logger;
     }
 
+    // PB26: send one email; switched off or no address = do nothing
     public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = true)
     {
         if (!_options.Enabled || string.IsNullOrWhiteSpace(toEmail))
@@ -28,6 +30,7 @@ public class SmtpEmailService : IEmailService
 
         try
         {
+            // 1. Build the message (UTF-8, HTML)
             using var mail = new MailMessage
             {
                 From = new MailAddress(_options.FromAddress, _options.FromName),
@@ -41,6 +44,7 @@ public class SmtpEmailService : IEmailService
 
             using var client = new SmtpClient();
 
+            // 2a. Demo mode: write the email as a .eml file in App_Data/MailPickup instead of sending
             if (_options.UsePickupDirectory)
             {
                 var pickupPath = Path.IsPathRooted(_options.PickupDirectory)
@@ -55,6 +59,7 @@ public class SmtpEmailService : IEmailService
             }
             else
             {
+                // 2b. Real mode: send through the SMTP server in appsettings (password in user-secrets)
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
                 client.Host = _options.SmtpHost;
                 client.Port = _options.SmtpPort;

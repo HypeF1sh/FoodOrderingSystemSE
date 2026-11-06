@@ -1,3 +1,4 @@
+// PB09 (Jordan) - booking picker: day strip, time chips, guest chips
 // Booking picker (Pages/Shared/_BookingPicker.cshtml): builds the time-slot chips for the chosen day.
 // Slots are every 30 minutes from opening time to the last seating (closing time minus the dining slot).
 // For today, slots sooner than the minimum notice are left out. The server still checks everything again.

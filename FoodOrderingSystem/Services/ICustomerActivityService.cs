@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.ViewModels;   // <-- match your project namespace
+﻿// PB23 (Carynn) - customer activity report (interface)
+using FoodOrderingSystem.ViewModels;   // <-- match your project namespace
 
 namespace FoodOrderingSystem.Services;
 

@@ -1,4 +1,5 @@
-﻿namespace FoodOrderingSystem.ViewModels;
+﻿// PB09-PB13 (Wallace) - view model: reservation view models
+namespace FoodOrderingSystem.ViewModels;
 
 public class DiningAreaOptionViewModel
 {

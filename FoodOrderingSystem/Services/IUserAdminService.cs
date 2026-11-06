@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.ViewModels;
+﻿// PB04 (Carynn) - user and role management (interface)
+using FoodOrderingSystem.ViewModels;
 
 namespace FoodOrderingSystem.Services;
 

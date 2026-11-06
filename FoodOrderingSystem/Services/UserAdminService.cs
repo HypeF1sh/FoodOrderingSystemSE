@@ -1,4 +1,5 @@
-﻿using FoodOrderingSystem.Data;
+﻿// PB04 (Carynn) - user and role management through UserManager
+using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.ViewModels;
 using Microsoft.AspNetCore.Identity;
