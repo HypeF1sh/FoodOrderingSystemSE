@@ -62,7 +62,6 @@ builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ICustomerActivityService, CustomerActivityService>();
 builder.Services.AddScoped<IAdminMonitoringService, AdminMonitoringService>();
 
-feature/PB28-recommendations
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 builder.Services.AddScoped<IExportService, ExportService>();
