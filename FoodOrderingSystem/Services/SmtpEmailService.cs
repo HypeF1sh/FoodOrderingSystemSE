@@ -1,4 +1,4 @@
-﻿// PB26 (Wallace) - email sending by SMTP or to a pickup folder
+﻿// PB26 (Wallace) - email sending by SMTP and/or to a pickup folder
 using System.Net;
 using System.Net.Mail;
 using System.Text;
@@ -28,24 +28,10 @@ public class SmtpEmailService : IEmailService
         if (!_options.Enabled || string.IsNullOrWhiteSpace(toEmail))
             return;
 
-        try
+        // 1. Always write the .eml copy when UsePickupDirectory is enabled (great for grading/offline demo)
+        if (_options.UsePickupDirectory)
         {
-            // 1. Build the message (UTF-8, HTML)
-            using var mail = new MailMessage
-            {
-                From = new MailAddress(_options.FromAddress, _options.FromName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = isHtml,
-                BodyEncoding = Encoding.UTF8,
-                SubjectEncoding = Encoding.UTF8
-            };
-            mail.To.Add(new MailAddress(toEmail));
-
-            using var client = new SmtpClient();
-
-            // 2a. Demo mode: write the email as a .eml file in App_Data/MailPickup instead of sending
-            if (_options.UsePickupDirectory)
+            try
             {
                 var pickupPath = Path.IsPathRooted(_options.PickupDirectory)
                     ? _options.PickupDirectory
@@ -53,31 +39,77 @@ public class SmtpEmailService : IEmailService
 
                 Directory.CreateDirectory(pickupPath);
 
-                client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
-                client.PickupDirectoryLocation = pickupPath;
-                client.EnableSsl = false;
-            }
-            else
-            {
-                // 2b. Real mode: send through the SMTP server in appsettings (password in user-secrets)
-                client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                client.Host = _options.SmtpHost;
-                client.Port = _options.SmtpPort;
-                client.EnableSsl = _options.EnableSsl;
-
-                if (!string.IsNullOrWhiteSpace(_options.Username))
+                using var pickupMail = CreateMailMessage(toEmail, subject, body, isHtml, _options.FromAddress);
+                using var pickupClient = new SmtpClient
                 {
-                    client.Credentials = new NetworkCredential(_options.Username, _options.Password);
-                }
+                    DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                    PickupDirectoryLocation = pickupPath,
+                    EnableSsl = false
+                };
+
+                await pickupClient.SendMailAsync(pickupMail);
+                _logger.LogInformation("PB26: Saved .eml confirmation for {Email} in {Path}.", toEmail, pickupPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "PB26: Failed to write .eml file for {Email}.", toEmail);
+            }
+        }
+
+        // 2. Real Inbox Delivery: if SMTP credentials are configured (in user-secrets) and recipient isn't a fake @rroms.com address
+        bool hasSmtpCredentials = !string.IsNullOrWhiteSpace(_options.SmtpHost)
+                                  && _options.SmtpHost != "smtp.example.com"
+                                  && _options.SmtpHost != "localhost"
+                                  && !string.IsNullOrWhiteSpace(_options.Username)
+                                  && !string.IsNullOrWhiteSpace(_options.Password);
+
+        if (hasSmtpCredentials)
+        {
+            if (toEmail.EndsWith("@rroms.com", StringComparison.OrdinalIgnoreCase) ||
+                toEmail.EndsWith(".local", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("PB26: Skipping real SMTP send for seeded demo address {Email} (.eml file was saved).", toEmail);
+                return;
             }
 
-            await client.SendMailAsync(mail);
-            _logger.LogInformation("PB26: Confirmation email sent to {Email} with subject '{Subject}'.", toEmail, subject);
+            try
+            {
+                // Use the authenticated SMTP username as the sender address so Gmail doesn't block it
+                var senderAddress = _options.Username.Contains('@') ? _options.Username : _options.FromAddress;
+
+                using var smtpMail = CreateMailMessage(toEmail, subject, body, isHtml, senderAddress);
+                using var smtpClient = new SmtpClient(_options.SmtpHost, _options.SmtpPort)
+                {
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    EnableSsl = _options.EnableSsl,
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential(_options.Username, _options.Password),
+                    Timeout = 15000
+                };
+
+                await smtpClient.SendMailAsync(smtpMail);
+                _logger.LogInformation("PB26: Live email delivered to inbox {Email} via {Host}.", toEmail, _options.SmtpHost);
+            }
+            catch (Exception ex)
+            {
+                // Never throw: email failures must never break bookings, orders, or payments
+                _logger.LogWarning(ex, "PB26: Live SMTP send to {Email} failed. Carrying on.", toEmail);
+            }
         }
-        catch (Exception ex)
+    }
+
+    private MailMessage CreateMailMessage(string toEmail, string subject, string body, bool isHtml, string fromAddress)
+    {
+        var mail = new MailMessage
         {
-            // Never throw: email failures must never break bookings, orders, or payments
-            _logger.LogWarning(ex, "PB26: Failed to send email to {Email} (Subject: '{Subject}'). Carrying on.", toEmail, subject);
-        }
+            From = new MailAddress(fromAddress, _options.FromName),
+            Subject = subject,
+            Body = body,
+            IsBodyHtml = isHtml,
+            BodyEncoding = Encoding.UTF8,
+            SubjectEncoding = Encoding.UTF8
+        };
+        mail.To.Add(new MailAddress(toEmail));
+        return mail;
     }
 }
