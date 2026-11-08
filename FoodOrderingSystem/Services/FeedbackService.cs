@@ -21,24 +21,23 @@ public class FeedbackService : IFeedbackService
     {
         var options = new List<EligibleVisitOptionViewModel>();
 
-        // 1. What they already rated
-        var reviewedReservationIds = await _context.Feedbacks
-            .Where(f => f.CustomerId == customerId && f.ReservationId.HasValue)
-            .Select(f => f.ReservationId!.Value)
-            .ToListAsync();
+        if (string.IsNullOrWhiteSpace(customerId))
+            return options;
 
-        var reviewedOrderIds = await _context.Feedbacks
-            .Where(f => f.CustomerId == customerId && f.OrderId.HasValue)
-            .Select(f => f.OrderId!.Value)
-            .ToListAsync();
-
-        // 2. Completed bookings they have not rated
+        // 1. Completed bookings they have not rated yet (single SQL query, no Contains list bug)
         var completedReservations = await _context.Reservations
-            .Include(r => r.RestaurantTable)
+            .AsNoTracking()
             .Where(r => r.CustomerId == customerId
                         && r.Status == ReservationStatus.Completed
-                        && !reviewedReservationIds.Contains(r.ReservationId))
+                        && !_context.Feedbacks.Any(f => f.ReservationId == r.ReservationId))
             .OrderByDescending(r => r.ReservationDate)
+            .Select(r => new
+            {
+                r.ReservationId,
+                TableNumber = r.RestaurantTable != null ? r.RestaurantTable.TableNumber : "N/A",
+                r.ReservationDate,
+                r.StartTime
+            })
             .ToListAsync();
 
         foreach (var r in completedReservations)
@@ -46,16 +45,23 @@ public class FeedbackService : IFeedbackService
             options.Add(new EligibleVisitOptionViewModel
             {
                 ReservationId = r.ReservationId,
-                DisplayLabel = $"Reservation #{r.ReservationId} — Table {r.RestaurantTable?.TableNumber} on {r.ReservationDate:dd/MM/yyyy} ({r.StartTime:hh\\:mm tt})"
+                DisplayLabel = $"Reservation #{r.ReservationId} — Table {r.TableNumber} on {r.ReservationDate:dd/MM/yyyy} ({r.StartTime:hh\\:mm tt})"
             });
         }
 
-        // 3. Completed orders they have not rated
+        // 2. Completed orders they have not rated yet
         var completedOrders = await _context.Orders
+            .AsNoTracking()
             .Where(o => o.CustomerId == customerId
                         && o.Status == OrderStatus.Completed
-                        && !reviewedOrderIds.Contains(o.OrderId))
+                        && !_context.Feedbacks.Any(f => f.OrderId == o.OrderId))
             .OrderByDescending(o => o.CreatedAt)
+            .Select(o => new
+            {
+                o.OrderId,
+                o.TotalAmount,
+                o.CreatedAt
+            })
             .ToListAsync();
 
         foreach (var o in completedOrders)
